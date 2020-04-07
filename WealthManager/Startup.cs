@@ -6,7 +6,10 @@ using Microsoft.Extensions.Hosting;
 
 namespace WealthManager
 {
+    using System.Text;
+    using Microsoft.AspNetCore.Authentication.JwtBearer;
     using Microsoft.EntityFrameworkCore;
+    using Microsoft.IdentityModel.Tokens;
     using WealthManager.Middleware;
     using WealthManager.Models;
     using WealthManager.Services;
@@ -53,6 +56,33 @@ namespace WealthManager
                     
                     
                 }).AddEntityFrameworkStores<WealthManagerDbContext>();
+
+            // configure strongly typed settings objects
+            var jwtSettingsSection = Configuration.GetSection("Jwt");
+            services.Configure<JwtSettings>(jwtSettingsSection);
+
+            // configure jwt authentication
+            var appSettings = jwtSettingsSection.Get<JwtSettings>();
+            var key = Encoding.ASCII.GetBytes(appSettings.Secret);
+            services.AddAuthentication(
+                options =>
+                {
+                    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                }).AddJwtBearer(
+                options =>
+                {
+                    options.RequireHttpsMetadata = false;
+                    options.RequireHttpsMetadata = false;
+                    options.SaveToken = true;
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuerSigningKey = true,
+                        IssuerSigningKey = new SymmetricSecurityKey(key),
+                        ValidateIssuer = false,
+                        ValidateAudience = false
+                    };
+                });
             services.AddSingleton<ExceptionHandleMiddleware>();
         }
 
@@ -70,7 +100,13 @@ namespace WealthManager
             }
 
             app.UseRouting();
-
+            
+            // global cors policy
+            app.UseCors(x => x
+                .AllowAnyOrigin()
+                .AllowAnyMethod()
+                .AllowAnyHeader());
+            
             app.UseAuthentication();
             app.UseAuthorization();
             app.UseMiddleware<ExceptionHandleMiddleware>();
