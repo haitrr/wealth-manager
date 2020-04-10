@@ -5,11 +5,8 @@ namespace WealthManager.Test.Features
     using System.Net.Mime;
     using System.Text;
     using System.Threading.Tasks;
-    using Microsoft.AspNetCore.Identity;
     using Microsoft.AspNetCore.Mvc.Testing;
-    using Microsoft.Extensions.DependencyInjection;
     using Newtonsoft.Json;
-    using WealthManager.Models;
     using Xunit;
 
     public class LoginTest : IClassFixture<WebApplicationFactory<Startup>>
