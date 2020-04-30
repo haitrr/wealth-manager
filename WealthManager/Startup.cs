@@ -10,6 +10,8 @@ namespace WealthManager
     using Microsoft.AspNetCore.Authentication.JwtBearer;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.IdentityModel.Tokens;
+    using WealthManager.Controllers;
+    using WealthManager.JwtToken;
     using WealthManager.Middleware;
     using WealthManager.Models;
     using WealthManager.Services;
@@ -59,7 +61,9 @@ namespace WealthManager
 
             // configure strongly typed settings objects
             var jwtSettingsSection = Configuration.GetSection("Jwt");
-            services.Configure<JwtSettings>(jwtSettingsSection);
+            var jwtSettings = new JwtSettings();
+            jwtSettingsSection.Bind(jwtSettings);
+            services.AddSingleton(jwtSettings);
 
             // configure jwt authentication
             var appSettings = jwtSettingsSection.Get<JwtSettings>();
@@ -84,6 +88,8 @@ namespace WealthManager
                     };
                 });
             services.AddSingleton<ExceptionHandleMiddleware>();
+            services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
+            services.AddScoped<IWmAuthenticationService, WmAuthenticationService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
