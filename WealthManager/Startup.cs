@@ -7,6 +7,7 @@ using Microsoft.Extensions.Hosting;
 namespace WealthManager
 {
     using System.Text;
+    using System.Threading.Tasks;
     using Microsoft.AspNetCore.Authentication.JwtBearer;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.IdentityModel.Tokens;
@@ -14,6 +15,8 @@ namespace WealthManager
     using WealthManager.JwtToken;
     using WealthManager.Middleware;
     using WealthManager.Models;
+    using WealthManager.Repositories;
+    using WealthManager.Repositories.Abstracts;
     using WealthManager.Services;
     using WealthManager.Services.Abstracts;
 
@@ -90,6 +93,11 @@ namespace WealthManager
             services.AddSingleton<ExceptionHandleMiddleware>();
             services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
             services.AddScoped<IWmAuthenticationService, WmAuthenticationService>();
+            services.AddScoped<IWalletService, WalletService>();
+            services.AddScoped<ILoggedInUserInfoProvider, LoggedInUserInfoProvider>();
+            services.AddScoped<IWmDbTransaction, WmDbTransaction>();
+            services.AddScoped<IWalletRepository, WalletRepository>();
+            services.AddHttpContextAccessor();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -104,8 +112,6 @@ namespace WealthManager
             {
                 app.UseHttpsRedirection();
             }
-
-            app.UseRouting();
             
             // global cors policy
             app.UseCors(x => x
@@ -113,11 +119,28 @@ namespace WealthManager
                 .AllowAnyMethod()
                 .AllowAnyHeader());
             
+            app.UseRouting();
+            
             app.UseAuthentication();
             app.UseAuthorization();
             app.UseMiddleware<ExceptionHandleMiddleware>();
 
             app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
+        }
+    }
+
+    public class WmDbTransaction : IWmDbTransaction
+    {
+        private readonly WealthManagerDbContext wealthManagerDbContext;
+
+        public WmDbTransaction(WealthManagerDbContext wealthManagerDbContext)
+        {
+            this.wealthManagerDbContext = wealthManagerDbContext;
+        }
+
+        public Task CommitAsync()
+        {
+            return this.wealthManagerDbContext.SaveChangesAsync();
         }
     }
 }

@@ -27,7 +27,7 @@ namespace WealthManager.Test.Features
         public async Task ShouldWork()
         {
             var client = this.applicationFactory.CreateClient();
-            var content = JsonConvert.SerializeObject(new { username = "hai", password = "hai" });
+            var content = JsonConvert.SerializeObject(new { username = "createUserTest", password = "hai" });
             var response = await client.PostAsync(
                 "/user",
                 new StringContent(content, Encoding.UTF8, MediaTypeNames.Application.Json));
@@ -35,7 +35,7 @@ namespace WealthManager.Test.Features
             using (var scope = this.applicationFactory.Services.CreateScope())
             {
                 var dbContext = scope.ServiceProvider.GetRequiredService<WealthManagerDbContext>();
-                var user = await dbContext.Users.Where(u => u.UserName == "hai")
+                var user = await dbContext.Users.Where(u => u.UserName == "createUserTest")
                     .SingleOrDefaultAsync();
                 var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
                 Assert.NotNull(user);
