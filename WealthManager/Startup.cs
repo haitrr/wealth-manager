@@ -11,7 +11,6 @@ namespace WealthManager
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.Logging;
     using Microsoft.IdentityModel.Tokens;
-    using WealthManager.Controllers;
     using WealthManager.DbSeeders;
     using WealthManager.DbSeeders.Abstract;
     using WealthManager.JwtToken;

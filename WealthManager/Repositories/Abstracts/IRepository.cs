@@ -1,7 +1,12 @@
 namespace WealthManager.Repositories.Abstracts
 {
-    public interface IRepository<T> where T : class
+    using System.Collections.Generic;
+    using System.Threading.Tasks;
+
+    public interface IRepository<T>
+        where T : class
     {
-        public void Create(T obj);
+        void Create(T obj);
+        Task<IEnumerable<T>> FindAsync();
     }
 }

@@ -1,5 +1,6 @@
 namespace WealthManager.Controllers
 {
+    using System.Collections.Generic;
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
@@ -7,7 +8,7 @@ namespace WealthManager.Controllers
     using WealthManager.Services.Abstracts;
 
     [Authorize]
-    [Route("wallet")]
+    [Route("wallets")]
     public class WalletController : Controller
     {
         private readonly IWalletService walletService;
@@ -22,6 +23,13 @@ namespace WealthManager.Controllers
         {
             int id = await this.walletService.CreateAsync(walletCreateDto);
             return this.Ok(new { Id = id });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ListAsync()
+        {
+            IEnumerable<Wallet> wallets = await this.walletService.ListAsync();
+            return this.Ok(new { Items = wallets });
         }
     }
 }

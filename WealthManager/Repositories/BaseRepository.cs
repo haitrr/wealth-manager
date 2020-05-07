@@ -1,5 +1,7 @@
 namespace WealthManager.Repositories
 {
+    using System.Collections.Generic;
+    using System.Threading.Tasks;
     using Microsoft.EntityFrameworkCore;
     using WealthManager.Repositories.Abstracts;
 
@@ -15,6 +17,11 @@ namespace WealthManager.Repositories
         public void Create(T obj)
         {
             this.dbSet.Add(obj);
+        }
+
+        public async Task<IEnumerable<T>> FindAsync()
+        {
+            return await this.dbSet.ToListAsync();
         }
     }
 }

@@ -1,5 +1,6 @@
 namespace WealthManager.Services
 {
+    using System.Collections.Generic;
     using System.Threading.Tasks;
     using WealthManager.JwtToken;
     using WealthManager.Models;
@@ -29,6 +30,11 @@ namespace WealthManager.Services
             this.walletRepository.Create(wallet);
             await this.wmDbTransaction.CommitAsync();
             return wallet.Id;
+        }
+
+        public Task<IEnumerable<Wallet>> ListAsync()
+        {
+            return this.walletRepository.FindAsync();
         }
     }
 }
