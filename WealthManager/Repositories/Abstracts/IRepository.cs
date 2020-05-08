@@ -8,5 +8,6 @@ namespace WealthManager.Repositories.Abstracts
     {
         void Create(T obj);
         Task<IEnumerable<T>> FindAsync();
+        Task<T> GetByIdAsync(int id);
     }
 }

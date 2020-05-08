@@ -23,5 +23,10 @@ namespace WealthManager.Repositories
         {
             return await this.dbSet.ToListAsync();
         }
+
+        public Task<T> GetByIdAsync(int id)
+        {
+            return this.dbSet.FindAsync(id).AsTask();
+        }
     }
 }

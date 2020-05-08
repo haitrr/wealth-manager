@@ -97,6 +97,8 @@ namespace WealthManager
             services.AddScoped<ILoggedInUserInfoProvider, LoggedInUserInfoProvider>();
             services.AddScoped<IWmDbTransaction, WmDbTransaction>();
             services.AddScoped<IWalletRepository, WalletRepository>();
+            services.AddScoped<ITransactionService, TransactionService>();
+            services.AddScoped<ITransactionRepository, TransactionRepository>();
             services.AddTransient<IDbSeeder, DbSeeder>();
             services.AddLogging(
                 options => options.AddConsole()
