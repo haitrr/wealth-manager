@@ -34,7 +34,8 @@ namespace WealthManager.Services
 
         public Task<IEnumerable<Wallet>> ListAsync()
         {
-            return this.walletRepository.FindAsync();
+            var user = this.loggedInUserInfoProvider.GetLoggedInUser();
+            return this.walletRepository.FindAsync(wallet => wallet.UserId == user.Id);
         }
     }
 }
