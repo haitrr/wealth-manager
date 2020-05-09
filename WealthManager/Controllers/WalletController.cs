@@ -4,7 +4,6 @@ namespace WealthManager.Controllers
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
-    using Newtonsoft.Json.Serialization;
     using WealthManager.Models;
     using WealthManager.Services.Abstracts;
 

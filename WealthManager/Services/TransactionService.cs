@@ -1,5 +1,6 @@
 namespace WealthManager.Services
 {
+    using System.Collections.Generic;
     using System.Threading.Tasks;
     using WealthManager.Exceptions;
     using WealthManager.JwtToken;
@@ -42,6 +43,19 @@ namespace WealthManager.Services
             this.transactionRepository.Create(newTransaction);
             await this.wmDbTransaction.CommitAsync();
             return newTransaction.Id;
+        }
+
+        public Task<IEnumerable<Transaction>> ListAsync(TransactionQuery transactionQuery)
+        {
+            var query = PredicateBuilder.True<Transaction>();
+            var user = this.loggedInUserInfoProvider.GetLoggedInUser();
+            query = query.And(t => t.UserId == user.Id);
+            if (transactionQuery.WalletId != null)
+            {
+                query = query.And(t => t.WalletId == transactionQuery.WalletId);
+            }
+
+            return this.transactionRepository.FindAsync(query);
         }
     }
 }
