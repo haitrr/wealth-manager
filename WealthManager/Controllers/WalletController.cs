@@ -4,6 +4,7 @@ namespace WealthManager.Controllers
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
+    using Newtonsoft.Json.Serialization;
     using WealthManager.Models;
     using WealthManager.Services.Abstracts;
 
@@ -30,6 +31,13 @@ namespace WealthManager.Controllers
         {
             IEnumerable<Wallet> wallets = await this.walletService.ListAsync();
             return this.Ok(new { Items = wallets });
+        }
+        
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetByIdAsync([FromRoute] int id)
+        {
+            var wallet = await this.walletService.GetByIdAsync(id);
+            return this.Ok(wallet);
         }
     }
 }

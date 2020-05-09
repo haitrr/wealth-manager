@@ -8,5 +8,6 @@ namespace WealthManager.Services.Abstracts
     {
         Task<int> CreateAsync(WalletCreateDto walletCreateDto);
         Task<IEnumerable<Wallet>> ListAsync();
+        Task<Wallet> GetByIdAsync(int id);
     }
 }
