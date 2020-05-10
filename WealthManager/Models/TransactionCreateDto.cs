@@ -4,5 +4,6 @@ namespace WealthManager.Models
     {
         public decimal Amount { get; set; }
         public int WalletId { get; set; }
+        public int? CategoryId { get; set; }
     }
 }

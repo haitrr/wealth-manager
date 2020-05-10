@@ -38,7 +38,10 @@ namespace WealthManager.Services
 
             var newTransaction = new Transaction()
             {
-                Amount = transactionCreateDto.Amount, UserId = user.Id, WalletId = transactionCreateDto.WalletId
+                Amount = transactionCreateDto.Amount,
+                UserId = user.Id,
+                WalletId = transactionCreateDto.WalletId,
+                CategoryId = transactionCreateDto.CategoryId,
             };
             this.transactionRepository.Create(newTransaction);
             await this.wmDbTransaction.CommitAsync();

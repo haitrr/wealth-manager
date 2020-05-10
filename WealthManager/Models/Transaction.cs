@@ -6,5 +6,6 @@ namespace WealthManager.Models
         public int UserId { get; set; }
         public decimal Amount { get; set; }
         public int Id { get; set; }
+        public int? CategoryId { get; set; }
     }
 }
