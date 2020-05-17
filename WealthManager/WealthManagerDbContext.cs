@@ -31,11 +31,17 @@ namespace WealthManager
                 .HasOne<Wallet>()
                 .WithMany()
                 .HasForeignKey(transaction => transaction.WalletId);
+            
+            modelBuilder.Entity<TransactionCategory>()
+                .HasOne<User>()
+                .WithMany()
+                .HasForeignKey(transaction => transaction.UserId);
             base.OnModelCreating(modelBuilder);
         }
 
         public DbSet<User> Users { get; set; }
         public DbSet<Wallet> Wallets { get; set; }
         public DbSet<Transaction> Transactions { get; set; }
+        public DbSet<TransactionCategory> TransactionCategories { get; set; }
     }
 }
