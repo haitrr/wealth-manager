@@ -99,6 +99,7 @@ namespace WealthManager
             services.AddScoped<IWalletRepository, WalletRepository>();
             services.AddScoped<ITransactionService, TransactionService>();
             services.AddScoped<ITransactionRepository, TransactionRepository>();
+            services.AddScoped<ITransactionCategoryRepository, TransactionCategoryRepository>();
             services.AddTransient<IDbSeeder, DbSeeder>();
             services.AddLogging(
                 options => options.AddConsole()
