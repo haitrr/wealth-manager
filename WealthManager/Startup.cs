@@ -101,6 +101,7 @@ namespace WealthManager
             services.AddScoped<ITransactionRepository, TransactionRepository>();
             services.AddScoped<ITransactionCategoryRepository, TransactionCategoryRepository>();
             services.AddTransient<IDbSeeder, DbSeeder>();
+            services.AddScoped<ITransactionCategoryService, TransactionCategoryService>();
             services.AddLogging(
                 options => options.AddConsole()
                     .AddDebug());
