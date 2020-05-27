@@ -103,7 +103,7 @@ namespace WealthManager.DbSeeders
             {
                 new TransactionCategory() { Id = 1, Name = "Food and beverage", UserId = user.Id },
                 new TransactionCategory() { Id = 2, Name = "Transportation", UserId = user.Id },
-                new TransactionCategory() { Id = 3, Name = "Taxi", UserId = user.Id, ParentId = 1 }
+                new TransactionCategory() { Id = 3, Name = "Taxi", UserId = user.Id, ParentId = 2 }
             };
             this.dbContext.TransactionCategories.AddRange(categories);
             this.dbContext.SaveChanges();
