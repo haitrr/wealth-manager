@@ -33,6 +33,12 @@ namespace WealthManager.Repositories
                 .ToListAsync();
         }
 
+        public Task<bool> AnyAsync(Expression<Func<T, bool>> filter)
+        {
+            return this.dbSet.Where(filter)
+                .AnyAsync();
+        }
+
         public Task<T> GetByIdAsync(int id)
         {
             return this.dbSet.FindAsync(id).AsTask();

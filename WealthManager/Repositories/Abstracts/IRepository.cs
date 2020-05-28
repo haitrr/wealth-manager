@@ -11,6 +11,7 @@ namespace WealthManager.Repositories.Abstracts
         void Create(T obj);
         Task<IEnumerable<T>> FindAsync();
         Task<IEnumerable<T>> FindAsync(Expression<Func<T,bool>> filter);
+        Task<bool> AnyAsync(Expression<Func<T,bool>> filter);
         Task<T> GetByIdAsync(int id);
     }
 }

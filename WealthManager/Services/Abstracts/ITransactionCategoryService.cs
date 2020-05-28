@@ -7,5 +7,6 @@ namespace WealthManager.Services.Abstracts
     public interface ITransactionCategoryService
     {
         Task<IEnumerable<TransactionCategory>> ListAsync();
+        Task<int> CreateAsync(TransactionCategoryCreateDto transactionCategoryCreateDto);
     }
 }
