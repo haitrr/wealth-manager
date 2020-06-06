@@ -79,6 +79,16 @@ namespace WealthManager.Services
                 query = query.And(t => allIds.Contains(t.CategoryId));
             }
 
+            if (transactionQuery.DateFrom != null)
+            {
+                query = query.And(t => t.CreatedAt >= transactionQuery.DateFrom);
+            }
+            
+            if (transactionQuery.DateTo != null)
+            {
+                query = query.And(t => t.CreatedAt <= transactionQuery.DateTo);
+            }
+
             return await this.transactionRepository.FindAsync(query);
         }
     }
