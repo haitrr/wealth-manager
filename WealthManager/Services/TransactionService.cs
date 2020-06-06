@@ -1,5 +1,6 @@
 namespace WealthManager.Services
 {
+    using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
@@ -46,6 +47,7 @@ namespace WealthManager.Services
                 UserId = user.Id,
                 WalletId = transactionCreateDto.WalletId,
                 CategoryId = transactionCreateDto.CategoryId,
+                CreatedAt = transactionCreateDto.CreatedAt,
             };
             this.transactionRepository.Create(newTransaction);
             await this.wmDbTransaction.CommitAsync();
