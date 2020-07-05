@@ -84,7 +84,8 @@ namespace WealthManager.DbSeeders
                         UserId = user.Id,
                         Amount = new Random().Next(1000, 200000),
                         CategoryId = transactionCategory.Id,
-                        WalletId = wallet.Id
+                        WalletId = wallet.Id,
+                        CreatedAt = DateTime.Now,
                     };
                     this.dbContext.Transactions.Add(t);
                     transactions.Add(t);
