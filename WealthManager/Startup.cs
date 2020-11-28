@@ -44,7 +44,9 @@ namespace WealthManager
             else
             {
                 services.AddDbContext<WealthManagerDbContext>(
-                    options => options.UseMySql(Configuration.GetConnectionString("WealthManager")));
+                    options => options.UseMySql(
+                        Configuration.GetConnectionString("WealthManager"),
+                        ServerVersion.AutoDetect(Configuration.GetConnectionString("WealthManager"))));
             }
 
             services.AddScoped<IUserService, UserService>();
