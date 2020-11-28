@@ -14,7 +14,10 @@ namespace WealthManager.Services
         private readonly ILoggedInUserInfoProvider loggedInUserInfoProvider;
         private readonly IWmDbTransaction wmDbTransaction;
 
-        public TransactionCategoryService(ITransactionCategoryRepository transactionCategoryRepository, ILoggedInUserInfoProvider loggedInUserInfoProvider, IWmDbTransaction wmDbTransaction)
+        public TransactionCategoryService(
+            ITransactionCategoryRepository transactionCategoryRepository,
+            ILoggedInUserInfoProvider loggedInUserInfoProvider,
+            IWmDbTransaction wmDbTransaction)
         {
             this.transactionCategoryRepository = transactionCategoryRepository;
             this.loggedInUserInfoProvider = loggedInUserInfoProvider;
@@ -30,17 +33,19 @@ namespace WealthManager.Services
         public async Task<int> CreateAsync(TransactionCategoryCreateDto transactionCategoryCreateDto)
         {
             var user = this.loggedInUserInfoProvider.GetLoggedInUser();
-            var validParent = await this.transactionCategoryRepository.AnyAsync(c => c.Id ==  transactionCategoryCreateDto.ParentId && c.UserId == user.Id);
+            var validParent = transactionCategoryCreateDto.ParentId == null ||
+                              await this.transactionCategoryRepository.AnyAsync(
+                                  c => c.Id == transactionCategoryCreateDto.ParentId && c.UserId == user.Id);
             if (!validParent)
             {
                 throw new BadRequestException("Invalid parent category");
             }
-            
+
             var transactionCategory = new TransactionCategory()
             {
                 Name = transactionCategoryCreateDto.Name,
                 ParentId = transactionCategoryCreateDto.ParentId,
-                UserId =  user.Id
+                UserId = user.Id
             };
 
             this.transactionCategoryRepository.Create(transactionCategory);
