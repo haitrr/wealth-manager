@@ -12,6 +12,11 @@ namespace WealthManager.Repositories
     {
         private readonly DbSet<T> dbSet;
 
+        public IQueryable<T> Query()
+        {
+            return this.dbSet.AsQueryable();
+        }
+
         public BaseRepository(WealthManagerDbContext wealthManagerDbContext)
         {
             this.dbSet = wealthManagerDbContext.Set<T>();

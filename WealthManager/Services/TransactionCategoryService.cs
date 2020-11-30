@@ -1,7 +1,9 @@
 namespace WealthManager.Services
 {
     using System.Collections.Generic;
+    using System.Linq;
     using System.Threading.Tasks;
+    using Microsoft.EntityFrameworkCore;
     using WealthManager.Exceptions;
     using WealthManager.JwtToken;
     using WealthManager.Models;
@@ -24,10 +26,14 @@ namespace WealthManager.Services
             this.wmDbTransaction = wmDbTransaction;
         }
 
-        public Task<IEnumerable<TransactionCategory>> ListAsync()
+        public async Task<IEnumerable<TransactionCategory>> ListAsync()
         {
             var user = this.loggedInUserInfoProvider.GetLoggedInUser();
-            return this.transactionCategoryRepository.FindAsync(t => t.UserId == user.Id);
+            return await this.transactionCategoryRepository
+                .Query()
+                .Where(t => t.UserId == user.Id)
+                .OrderBy(t => t.Name)
+                .ToListAsync();
         }
 
         public async Task<int> CreateAsync(TransactionCategoryCreateDto transactionCategoryCreateDto)

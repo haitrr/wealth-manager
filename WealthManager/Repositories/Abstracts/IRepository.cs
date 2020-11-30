@@ -2,6 +2,7 @@ namespace WealthManager.Repositories.Abstracts
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Linq.Expressions;
     using System.Threading.Tasks;
 
@@ -13,5 +14,6 @@ namespace WealthManager.Repositories.Abstracts
         Task<IEnumerable<T>> FindAsync(Expression<Func<T,bool>> filter);
         Task<bool> AnyAsync(Expression<Func<T,bool>> filter);
         Task<T> GetByIdAsync(int id);
+        IQueryable<T> Query();
     }
 }
