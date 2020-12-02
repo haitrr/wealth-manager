@@ -2,6 +2,8 @@ namespace WealthManager.Middleware
 {
     using System;
     using System.Net;
+    using System.Text.Json;
+    using System.Text.Json.Serialization;
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Http;
     using WealthManager.Exceptions;
@@ -39,7 +41,7 @@ namespace WealthManager.Middleware
             context.Response.ContentType = "application/json";
             context.Response.StatusCode = (int)HttpStatusCode.Forbidden;
 
-            return context.Response.WriteAsync(new ErrorDetails(forbiddenException.Message).ToString());
+            return context.Response.WriteAsync(JsonSerializer.Serialize(new ErrorDetails(forbiddenException.Message)));
         }
 
         private static Task HandleNotFoundException(HttpContext context, NotFoundException notFoundException)
@@ -47,7 +49,7 @@ namespace WealthManager.Middleware
             context.Response.ContentType = "application/json";
             context.Response.StatusCode = (int)HttpStatusCode.NotFound;
 
-            return context.Response.WriteAsync(new ErrorDetails(notFoundException.Message).ToString());
+            return context.Response.WriteAsync(JsonSerializer.Serialize(new ErrorDetails(notFoundException.Message)));
         }
 
         private static Task HandleExceptionAsync(Exception e, HttpContext context)
@@ -57,15 +59,14 @@ namespace WealthManager.Middleware
             Console.WriteLine(e.Message);
             Console.WriteLine(e.StackTrace);
 
-            return context.Response.WriteAsync(new ErrorDetails("Internal Server Error.").ToString());
+            return context.Response.WriteAsync(JsonSerializer.Serialize(new ErrorDetails("Internal Server Error.")));
         }
 
         private static Task HandleBadRequestException(HttpContext context, Exception exception)
         {
             context.Response.ContentType = "application/json";
             context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
-
-            return context.Response.WriteAsync(new ErrorDetails(exception.Message).ToString());
+            return context.Response.WriteAsync( JsonSerializer.Serialize(new ErrorDetails(exception.Message)));
         }
     }
 }
