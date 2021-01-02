@@ -106,15 +106,35 @@ namespace WealthManager.DbSeeders
       this.logger.LogInformation("Creating test transaction categories");
       var categories = new List<TransactionCategory>()
             {
-                new TransactionCategory() { Id = 1, Name = "Food and beverage", UserId = user.Id },
-                new TransactionCategory() { Id = 2, Name = "Transportation", UserId = user.Id },
-                new TransactionCategory() { Id = 3, Name = "Taxi", UserId = user.Id, ParentId = 2 },
-                new TransactionCategory() { Id = 4, Name = "Health and fitness", UserId = user.Id },
-                new TransactionCategory() { Id = 5, Name = "Entertainment", UserId = user.Id },
-                new TransactionCategory() { Id = 6, Name = "Friend and lover", UserId = user.Id },
-                new TransactionCategory() { Id = 7, Name = "Education", UserId = user.Id },
-                new TransactionCategory() { Id = 8, Name = "Shopping", UserId = user.Id },
-                new TransactionCategory() { Id = 9, Name = "Bills and Utilities", UserId = user.Id }
+                new TransactionCategory() { Id = 1,IconName="utensils", Name = "Food and beverage", UserId = user.Id },
+                new TransactionCategory() {IconName="car-alt", Id = 2, Name = "Transportation", UserId = user.Id },
+                new TransactionCategory() { Id = 3,IconName="taxi", Name = "Taxi", UserId = user.Id, ParentId = 2 },
+                new TransactionCategory() { Id = 4,IconName="medkit", Name = "Health and fitness", UserId = user.Id },
+                new TransactionCategory() {
+                  Id = 5,
+                  IconName="dice",
+                  Name = "Entertainment",
+                  UserId = user.Id },
+                new TransactionCategory() {
+                  Id = 6,
+                  IconName="grin-hearts",
+                  Name = "Friend and lover",
+                  UserId = user.Id },
+                new TransactionCategory() {
+                  Id = 7,
+                  IconName="book-reader",
+                  Name = "Education",
+                  UserId = user.Id },
+                new TransactionCategory() {
+                  Id = 8,
+                  IconName="shopping-basket",
+                  Name = "Shopping",
+                  UserId = user.Id },
+                new TransactionCategory() {
+                  Id = 9,
+                  IconName="file-invoice-dollar",
+                  Name = "Bills and Utilities",
+                  UserId = user.Id }
             };
       this.dbContext.TransactionCategories.AddRange(categories);
       this.dbContext.SaveChanges();
