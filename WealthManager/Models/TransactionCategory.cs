@@ -1,6 +1,6 @@
 namespace WealthManager.Models
 {
-  public record TransactionCategory
+  public class TransactionCategory
   {
     public int Id { get; set; }
     public int? ParentId { get; set; }
