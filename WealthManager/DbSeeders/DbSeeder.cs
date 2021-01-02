@@ -74,6 +74,7 @@ namespace WealthManager.DbSeeders
     {
       this.logger.LogInformation("Creating test transactions");
       var random = new Random();
+      var randomDate = new Random();
       var transactions = new List<Transaction>();
       foreach (var transactionCategory in categories)
       {
@@ -87,7 +88,7 @@ namespace WealthManager.DbSeeders
               Amount = new Random().Next(1000, 2000000),
               CategoryId = transactionCategory.Id,
               WalletId = wallet.Id,
-              CreatedAt = DateTime.Now.AddDays(-(new Random().Next() % 720)),
+              CreatedAt = DateTime.Now.AddDays(-randomDate.Next(0, 500)),
             };
             this.dbContext.Transactions.Add(t);
             transactions.Add(t);
