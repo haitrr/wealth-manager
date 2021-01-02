@@ -110,10 +110,10 @@ namespace WealthManager.DbSeeders
                 new TransactionCategory() { Id = 3, Name = "Taxi", UserId = user.Id, ParentId = 2 },
                 new TransactionCategory() { Id = 4, Name = "Health and fitness", UserId = user.Id },
                 new TransactionCategory() { Id = 5, Name = "Entertainment", UserId = user.Id },
-                new TransactionCategory() { Id = 5, Name = "Friend and lover", UserId = user.Id },
-                new TransactionCategory() { Id = 6, Name = "Education", UserId = user.Id },
-                new TransactionCategory() { Id = 7, Name = "Shopping", UserId = user.Id },
-                new TransactionCategory() { Id = 8, Name = "Bills and Utilities", UserId = user.Id }
+                new TransactionCategory() { Id = 6, Name = "Friend and lover", UserId = user.Id },
+                new TransactionCategory() { Id = 7, Name = "Education", UserId = user.Id },
+                new TransactionCategory() { Id = 8, Name = "Shopping", UserId = user.Id },
+                new TransactionCategory() { Id = 9, Name = "Bills and Utilities", UserId = user.Id }
             };
       this.dbContext.TransactionCategories.AddRange(categories);
       this.dbContext.SaveChanges();
