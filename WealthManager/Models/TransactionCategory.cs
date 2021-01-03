@@ -7,5 +7,6 @@ namespace WealthManager.Models
     public string Name { get; set; }
     public int UserId { get; set; }
     public string IconName { get; set; }
+    public TransactionCategoryType Type {get; set;}
   }
 }
