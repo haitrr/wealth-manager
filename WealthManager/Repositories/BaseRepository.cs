@@ -27,6 +27,11 @@ namespace WealthManager.Repositories
             this.dbSet.Add(obj);
         }
 
+        public void Update(T obj)
+        {
+            this.dbSet.Update(obj);
+        }
+
         public async Task<IEnumerable<T>> FindAsync()
         {
             return await this.dbSet.ToListAsync();

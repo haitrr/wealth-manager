@@ -10,6 +10,7 @@ namespace WealthManager.Repositories.Abstracts
         where T : class
     {
         void Create(T obj);
+        void Update(T obj);
         Task<IEnumerable<T>> FindAsync();
         Task<IEnumerable<T>> FindAsync(Expression<Func<T,bool>> filter);
         Task<bool> AnyAsync(Expression<Func<T,bool>> filter);

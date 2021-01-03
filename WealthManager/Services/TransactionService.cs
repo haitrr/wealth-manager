@@ -16,6 +16,7 @@ namespace WealthManager.Services
         private readonly IWmDbTransaction wmDbTransaction;
         private readonly ILoggedInUserInfoProvider loggedInUserInfoProvider;
         private readonly IWalletRepository walletRepository;
+
         private readonly ITransactionCategoryRepository transactionCategoryRepository;
 
         public TransactionService(
@@ -36,9 +37,28 @@ namespace WealthManager.Services
         {
             var user = this.loggedInUserInfoProvider.GetLoggedInUser();
             var wallet = await this.walletRepository.GetByIdAsync(transactionCreateDto.WalletId);
+            TransactionCategory category = null;
+            if (transactionCreateDto.CategoryId != null)
+            {
+                category =
+                    await this.transactionCategoryRepository.GetByIdAsync(
+                        transactionCreateDto.CategoryId.Value);
+            }
+
+            var transactionType = TransactionCategoryType.Expense;
+            if (category != null)
+            {
+                transactionType = category.Type;
+            }
+
             if (wallet.UserId != user.Id)
             {
                 throw new ForbiddenException("Wallet not belong to user");
+            }
+
+            if (wallet.Balance < transactionCreateDto.Amount)
+            {
+                throw new BadRequestException("Balance in wallet not enought");
             }
 
             var newTransaction = new Transaction()
@@ -48,8 +68,23 @@ namespace WealthManager.Services
                 WalletId = transactionCreateDto.WalletId,
                 CategoryId = transactionCreateDto.CategoryId,
                 CreatedAt = transactionCreateDto.CreatedAt,
+                CategoryType = transactionType,
             };
+            if (transactionType == TransactionCategoryType.Expense)
+            {
+                wallet.Balance -= transactionCreateDto.Amount;
+            }
+            else if (transactionType == TransactionCategoryType.Income)
+            {
+                wallet.Balance += transactionCreateDto.Amount;
+            }
+            else
+            {
+                throw new NotSupportedException("Transaction category type not supported");
+            }
+
             this.transactionRepository.Create(newTransaction);
+            this.walletRepository.Update(wallet);
             await this.wmDbTransaction.CommitAsync();
             return newTransaction.Id;
         }
@@ -67,12 +102,17 @@ namespace WealthManager.Services
 
             if (transactionQuery.CategoryId != null)
             {
-                TransactionCategory category = await this.transactionCategoryRepository.GetByIdAsync(transactionQuery.CategoryId.Value);
+                TransactionCategory category =
+                    await this.transactionCategoryRepository.GetByIdAsync(
+                        transactionQuery.CategoryId.Value);
                 if (category == null || category.UserId != user.Id)
                 {
                     throw new BadRequestException("Category is not exist");
                 }
-                var childCategories = await this.transactionCategoryRepository.GetChildrenCategoriesAsync(transactionQuery.CategoryId.Value);
+
+                var childCategories =
+                    await this.transactionCategoryRepository.GetChildrenCategoriesAsync(
+                        transactionQuery.CategoryId.Value);
                 var allCategories = new List<TransactionCategory>(childCategories);
                 allCategories.Add(category);
                 var allIds = allCategories.Select(c => (int?)c.Id);
@@ -83,7 +123,7 @@ namespace WealthManager.Services
             {
                 query = query.And(t => t.CreatedAt >= transactionQuery.DateFrom);
             }
-            
+
             if (transactionQuery.DateTo != null)
             {
                 query = query.And(t => t.CreatedAt <= transactionQuery.DateTo);

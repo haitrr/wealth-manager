@@ -10,5 +10,6 @@ namespace WealthManager.Models
         public int Id { get; set; }
         public int? CategoryId { get; set; }
         public DateTime CreatedAt { get; set; }
+        public TransactionCategoryType CategoryType { get; set; }
     }
 }
