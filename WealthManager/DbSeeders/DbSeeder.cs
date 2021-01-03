@@ -14,7 +14,10 @@ namespace WealthManager.DbSeeders
         private readonly UserManager<User> userManager;
         private readonly ILogger<DbSeeder> logger;
 
-        public DbSeeder(WealthManagerDbContext dbContext, UserManager<User> userManager, ILogger<DbSeeder> logger)
+        public DbSeeder(
+            WealthManagerDbContext dbContext,
+            UserManager<User> userManager,
+            ILogger<DbSeeder> logger)
         {
             this.dbContext = dbContext;
             this.userManager = userManager;
@@ -24,10 +27,13 @@ namespace WealthManager.DbSeeders
         public void Seed()
         {
             string userName = "hai";
-            var user = this.dbContext.Users.SingleOrDefault(u => u.UserName == userName);
+            var user =
+                this.dbContext.Users.SingleOrDefault(
+                    u => u.UserName == userName);
             if (user != null)
             {
-                this.logger.LogInformation("User hai exists. Skip seeding database");
+                this.logger.LogInformation(
+                    "User hai exists. Skip seeding database");
                 return;
             }
             else
@@ -88,7 +94,9 @@ namespace WealthManager.DbSeeders
                             Amount = new Random().Next(1000, 2000000),
                             CategoryId = transactionCategory.Id,
                             WalletId = wallet.Id,
-                            CreatedAt = DateTime.Now.AddDays(-randomDate.Next(0, 500)),
+                            CreatedAt =
+                                DateTime.Now.AddDays(
+                                    -randomDate.Next(0, 500)),
                         };
                         this.dbContext.Transactions.Add(t);
                         transactions.Add(t);
@@ -101,52 +109,90 @@ namespace WealthManager.DbSeeders
             return transactions;
         }
 
-        private IEnumerable<TransactionCategory> CreateTestTransactionCategories(User user)
+        private IEnumerable<TransactionCategory>
+            CreateTestTransactionCategories(User user)
         {
             this.logger.LogInformation("Creating test transaction categories");
             var categories = new List<TransactionCategory>()
             {
-                new TransactionCategory()
+                new()
                 {
-                    Id = 1, IconName = "utensils", Name = "Food and beverage", UserId = user.Id
+                    Id = 1,
+                    IconName = "utensils",
+                    Name = "Food and beverage",
+                    UserId = user.Id,
+                    Type = TransactionCategoryType.Expense
                 },
-                new TransactionCategory()
+                new()
                 {
-                    IconName = "car-alt", Id = 2, Name = "Transportation", UserId = user.Id
+                    IconName = "car-alt",
+                    Id = 2,
+                    Name = "Transportation",
+                    UserId = user.Id,
+                    Type = TransactionCategoryType.Expense
                 },
-                new TransactionCategory()
+                new()
                 {
                     Id = 3,
                     IconName = "taxi",
                     Name = "Taxi",
                     UserId = user.Id,
-                    ParentId = 2
+                    ParentId = 2,
+                    Type = TransactionCategoryType.Expense
                 },
-                new TransactionCategory()
+                new()
                 {
-                    Id = 4, IconName = "medkit", Name = "Health and fitness", UserId = user.Id
+                    Id = 4,
+                    IconName = "medkit",
+                    Name = "Health and fitness",
+                    UserId = user.Id,
+                    Type = TransactionCategoryType.Expense
                 },
-                new TransactionCategory() { Id = 5, IconName = "dice", Name = "Entertainment", UserId = user.Id },
-                new TransactionCategory()
+                new()
                 {
-                    Id = 6, IconName = "grin-hearts", Name = "Friend and lover", UserId = user.Id
+                    Id = 5,
+                    IconName = "dice",
+                    Name = "Entertainment",
+                    UserId = user.Id,
+                    Type = TransactionCategoryType.Expense
                 },
-                new TransactionCategory()
+                new()
                 {
-                    Id = 7, IconName = "book-reader", Name = "Education", UserId = user.Id
+                    Id = 6,
+                    IconName = "grin-hearts",
+                    Name = "Friend and lover",
+                    UserId = user.Id,
+                    Type = TransactionCategoryType.Expense
                 },
-                new TransactionCategory()
+                new()
                 {
-                    Id = 8, IconName = "shopping-basket", Name = "Shopping", UserId = user.Id
+                    Id = 7,
+                    IconName = "book-reader",
+                    Name = "Education",
+                    UserId = user.Id,
+                    Type = TransactionCategoryType.Expense
                 },
-                new TransactionCategory()
+                new()
                 {
-                    Id = 9, IconName = "file-invoice-dollar", Name = "Bills and Utilities", UserId = user.Id
+                    Id = 8,
+                    IconName = "shopping-basket",
+                    Name = "Shopping",
+                    UserId = user.Id,
+                    Type = TransactionCategoryType.Expense
+                },
+                new()
+                {
+                    Id = 9,
+                    IconName = "file-invoice-dollar",
+                    Name = "Bills and Utilities",
+                    UserId = user.Id,
+                    Type = TransactionCategoryType.Expense
                 }
             };
             this.dbContext.TransactionCategories.AddRange(categories);
             this.dbContext.SaveChanges();
-            this.logger.LogInformation("Done creating test transaction categories");
+            this.logger.LogInformation(
+                "Done creating test transaction categories");
             return categories;
         }
 
@@ -155,8 +201,20 @@ namespace WealthManager.DbSeeders
             this.logger.LogInformation("Creating test wallets");
             var wallets = new List<Wallet>()
             {
-                new Wallet() { Name = "Cash", Id = 1, Balance = 1000000, UserId = user.Id },
-                new Wallet() { Name = "Bank", Id = 2, Balance = 20000000, UserId = user.Id },
+                new()
+                {
+                    Name = "Cash",
+                    Id = 1,
+                    Balance = 1000000,
+                    UserId = user.Id
+                },
+                new()
+                {
+                    Name = "Bank",
+                    Id = 2,
+                    Balance = 20000000,
+                    UserId = user.Id
+                },
             };
 
             foreach (var wallet in wallets)
