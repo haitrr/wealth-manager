@@ -187,6 +187,14 @@ namespace WealthManager.DbSeeders
                     Name = "Bills and Utilities",
                     UserId = user.Id,
                     Type = TransactionCategoryType.Expense
+                },
+                new()
+                {
+                    Id = 10,
+                    IconName = "money-bill",
+                    Name = "Salary",
+                    UserId = user.Id,
+                    Type = TransactionCategoryType.Income
                 }
             };
             this.dbContext.TransactionCategories.AddRange(categories);
