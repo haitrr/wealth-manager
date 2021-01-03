@@ -29,30 +29,30 @@ namespace WealthManager.Services
         public async Task<IEnumerable<TransactionCategory>> ListAsync()
         {
             var user = this.loggedInUserInfoProvider.GetLoggedInUser();
-            return await this.transactionCategoryRepository
-                .Query()
+            return await this.transactionCategoryRepository.Query()
                 .Where(t => t.UserId == user.Id)
                 .OrderBy(t => t.Name)
                 .ToListAsync();
         }
 
-        public async Task<int> CreateAsync(TransactionCategoryCreateDto transactionCategoryCreateDto)
+        public async Task<int> CreateAsync(
+            TransactionCategoryCreateDto transactionCategoryCreateDto)
         {
             var user = this.loggedInUserInfoProvider.GetLoggedInUser();
             var validParent = transactionCategoryCreateDto.ParentId == null ||
                               await this.transactionCategoryRepository.AnyAsync(
-                                  c => c.Id == transactionCategoryCreateDto.ParentId && c.UserId == user.Id);
+                                  c => c.Id == transactionCategoryCreateDto.ParentId &&
+                                       c.UserId == user.Id);
             if (!validParent)
             {
                 throw new BadRequestException("Invalid parent category");
             }
 
-            var transactionCategory = new TransactionCategory()
-            {
-                Name = transactionCategoryCreateDto.Name,
-                ParentId = transactionCategoryCreateDto.ParentId,
-                UserId = user.Id
-            };
+            var transactionCategory = new TransactionCategory(
+                transactionCategoryCreateDto.Name,
+                transactionCategoryCreateDto.iconName,
+                transactionCategoryCreateDto.type,
+                user.Id) { ParentId = transactionCategoryCreateDto.ParentId };
 
             this.transactionCategoryRepository.Create(transactionCategory);
             await this.wmDbTransaction.CommitAsync();

@@ -61,14 +61,13 @@ namespace WealthManager.Services
                 throw new BadRequestException("Balance in wallet not enought");
             }
 
-            var newTransaction = new Transaction()
+            var newTransaction = new Transaction(transactionType)
             {
                 Amount = transactionCreateDto.Amount,
                 UserId = user.Id,
                 WalletId = transactionCreateDto.WalletId,
                 CategoryId = transactionCreateDto.CategoryId,
                 CreatedAt = transactionCreateDto.CreatedAt,
-                CategoryType = transactionType,
             };
             if (transactionType == TransactionCategoryType.Expense)
             {
