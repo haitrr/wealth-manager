@@ -17,9 +17,6 @@ namespace WealthManager
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-          var converter = new ValueConverter<TransactionCategoryType, string>(
-    v => v.Value,
-    v => TransactionCategoryType.FromString(v));
             modelBuilder.Entity<Wallet>()
                 .HasOne<User>()
                 .WithMany()
@@ -40,9 +37,6 @@ namespace WealthManager
                 .HasOne<User>()
                 .WithMany()
                 .HasForeignKey(transaction => transaction.UserId);
-            modelBuilder.Entity<TransactionCategory>()
-                .Property(c => c.Type)
-                .HasConversion(converter);
             base.OnModelCreating(modelBuilder);
         }
 

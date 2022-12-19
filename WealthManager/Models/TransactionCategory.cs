@@ -5,7 +5,7 @@ namespace WealthManager.Models
         public TransactionCategory(
             string name,
             string iconName,
-            TransactionCategoryType type,
+            string type,
             int userId)
         {
             this.Name = name;
@@ -19,6 +19,6 @@ namespace WealthManager.Models
         public string Name { get; set; }
         public int UserId { get; set; }
         public string IconName { get; set; }
-        public TransactionCategoryType Type { get; set; }
+        public string Type { get; set; }
     }
 }

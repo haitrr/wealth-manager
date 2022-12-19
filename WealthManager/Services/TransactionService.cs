@@ -45,7 +45,7 @@ namespace WealthManager.Services
                         transactionCreateDto.CategoryId.Value);
             }
 
-            var transactionType = TransactionCategoryType.Expense;
+            var transactionType = "expense";
             if (category != null)
             {
                 transactionType = category.Type;
@@ -61,19 +61,20 @@ namespace WealthManager.Services
                 throw new BadRequestException("Balance in wallet not enought");
             }
 
-            var newTransaction = new Transaction(transactionType)
+            var newTransaction = new Transaction
             {
                 Amount = transactionCreateDto.Amount,
+                CategoryType = transactionType,
                 UserId = user.Id,
                 WalletId = transactionCreateDto.WalletId,
                 CategoryId = transactionCreateDto.CategoryId,
                 CreatedAt = transactionCreateDto.CreatedAt,
             };
-            if (transactionType == TransactionCategoryType.Expense)
+            if (transactionType == "expense")
             {
                 wallet.Balance -= transactionCreateDto.Amount;
             }
-            else if (transactionType == TransactionCategoryType.Income)
+            else if (transactionType == "income")
             {
                 wallet.Balance += transactionCreateDto.Amount;
             }

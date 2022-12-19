@@ -85,9 +85,10 @@ namespace WealthManager.DbSeeders
                 {
                     for (int i = 0; i < 300; i++)
                     {
-                        var t = new Transaction(transactionCategory.Type)
+                        var t = new Transaction()
                         {
                             UserId = user.Id,
+                            CategoryType = transactionCategory.Type,
                             Amount = new Random().Next(1000, 2000000),
                             CategoryId = transactionCategory.Id,
                             WalletId = wallet.Id,
@@ -109,42 +110,42 @@ namespace WealthManager.DbSeeders
             this.logger.LogInformation("Creating test transaction categories");
             var categories = new List<TransactionCategory>()
             {
-                new("Food and beverage", "utensils", TransactionCategoryType.Expense, user.Id)
+                new("Food and beverage", "utensils", "expense", user.Id)
                 {
                     Id = 1,
                 },
-                new("Transportation", "car-alt", TransactionCategoryType.Expense, user.Id)
+                new("Transportation", "car-alt", "expense", user.Id)
                 {
                     Id = 2,
                 },
-                new("Taxi", "taxi", TransactionCategoryType.Expense, user.Id) { Id = 3, },
-                new("Health and fitness", "medkit", TransactionCategoryType.Expense, user.Id)
+                new("Taxi", "taxi", "expense", user.Id) { Id = 3, },
+                new("Health and fitness", "medkit", "expense", user.Id)
                 {
                     Id = 4,
                 },
-                new("Entertainment", "dice", TransactionCategoryType.Expense, user.Id)
+                new("Entertainment", "dice", "expense", user.Id)
                 {
                     Id = 5,
                 },
                 new(
                     "Friend and lovers",
                     "grin-hearts",
-                    TransactionCategoryType.Expense,
+                    "expense",
                     user.Id) { Id = 6, },
-                new("Education", "book-reader", TransactionCategoryType.Expense, user.Id)
+                new("Education", "book-reader", "expense", user.Id)
                 {
                     Id = 7,
                 },
-                new("Shopping", "shopping-basket", TransactionCategoryType.Expense, user.Id)
+                new("Shopping", "shopping-basket", "expense", user.Id)
                 {
                     Id = 8,
                 },
                 new(
                     "Bills and Utilities",
                     "file-invoice-dollar",
-                    TransactionCategoryType.Expense,
+                    "expense",
                     user.Id) { Id = 9, },
-                new("Salary", "money-bill", TransactionCategoryType.Income, user.Id)
+                new("Salary", "money-bill", "income", user.Id)
                 {
                     Id = 10,
                 }
