@@ -4,4 +4,4 @@ api:
 
 .PHONY: web
 web:
-	cd web/wealth-manager && yarn run dev
+	cd web && yarn run dev
