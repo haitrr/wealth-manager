@@ -1,11 +1,13 @@
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useMutation } from 'react-query';
+import { login } from '../../api';
 
 export default function LoginPage() {
   const router = useRouter();
   const [formData, setFormData] = useState({
-    email: '',
+    username: '',
     password: '',
   });
 
@@ -17,12 +19,15 @@ export default function LoginPage() {
     }));
   };
 
+  const { mutate } = useMutation('login', async () => {
+    const response = await login(formData.username, formData.password);
+    localStorage.setItem('token', response.token);
+    router.push('/');
+  });
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // Here, you can add your login logic.
-    // For simplicity, we'll just redirect to the home page on submit.
-    router.push('/');
+    mutate();
   };
 
   return (
@@ -32,9 +37,9 @@ export default function LoginPage() {
         <div>
           <label>Email:</label>
           <input
-            type="email"
-            name="email"
-            value={formData.email}
+            type="username"
+            name="username"
+            value={formData.username}
             onChange={handleChange}
             required
           />
