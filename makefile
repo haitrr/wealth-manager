@@ -4,4 +4,4 @@ api:
 
 .PHONY: web
 web:
-	cd web && yarn run dev
+	cd web && bun run dev
