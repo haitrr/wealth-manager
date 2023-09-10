@@ -1,6 +1,7 @@
 namespace WealthManager.Controllers
 {
     using System.Threading.Tasks;
+    using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
     using WealthManager.Services.Abstracts;
 
@@ -20,6 +21,19 @@ namespace WealthManager.Controllers
             await this.userService.CreateAsync(userCreateDto);
             return this.Ok();
         }
+
+        [HttpGet("me")]
+        [Authorize]
+        public async Task<IActionResult> GetAsync()
+        {
+            var user = await this.userService.GetLoggedInUserAsync();
+            if(user == null)
+            {
+                return this.Unauthorized(new {});
+            }
+            return this.Ok(user.SerializeAuthView());
+        }
+
     }
 
     public class UserCreateDto

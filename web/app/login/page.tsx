@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useMutation } from 'react-query';
 import { login } from '../../api';
+import { setJwtCookie } from '@/token';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -21,7 +22,7 @@ export default function LoginPage() {
 
   const { mutate } = useMutation('login', async () => {
     const response = await login(formData.username, formData.password);
-    localStorage.setItem('token', response.token);
+    // setJwtCookie(response.token);
     router.push('/');
   });
 

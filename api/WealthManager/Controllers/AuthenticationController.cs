@@ -19,6 +19,12 @@ namespace WealthManager.Controllers
         public async Task<IActionResult> LoginAsync([FromBody] LoginDto loginDto)
         {
             var token = await this.authenticationService.LoginAsync(loginDto);
+            CookieOptions options = new CookieOptions
+            {
+                Expires = DateTime.Now.AddDays(7),
+                HttpOnly = true,
+            };
+            this.Response.Cookies.Append("token", token, options);
             return Ok(new { Token = token });
         }
     }

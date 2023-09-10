@@ -1,6 +1,6 @@
 .PHONY: api
 api:
-	cd api/WealthManager/ && dotnet run
+	cd api/WealthManager/ && dotnet watch run
 
 .PHONY: web
 web:

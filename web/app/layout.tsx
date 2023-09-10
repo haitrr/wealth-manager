@@ -1,10 +1,11 @@
 "use client";
-import './globals.css'
-import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
-import { QueryClient, QueryClientProvider } from 'react-query'
+import { AuthProvider } from "@/states/auth";
+import "./globals.css";
+import {Inter} from "next/font/google";
+import React from "react";
+import {QueryClient, QueryClientProvider} from "react-query";
 
-const inter = Inter({ subsets: ['latin'] })
+const inter = Inter({subsets: ["latin"]});
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -12,20 +13,18 @@ const queryClient = new QueryClient({
       staleTime: Infinity,
     },
   },
-})
+});
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default function RootLayout({children}: {children: React.ReactNode}) {
   return (
     <html lang="en">
       <body className={inter.className}>
-        <QueryClientProvider client={queryClient}>
-          {children}
-        </QueryClientProvider>
-        </body>
+        <AuthProvider>
+          <QueryClientProvider client={queryClient}>
+            {children}
+          </QueryClientProvider>
+        </AuthProvider>
+      </body>
     </html>
-  )
+  );
 }

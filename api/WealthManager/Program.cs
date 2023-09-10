@@ -23,7 +23,7 @@ services.AddCors(options =>
     options.AddDefaultPolicy(
         builder =>
         {
-            builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
+            builder.SetIsOriginAllowed(origin => true).AllowAnyMethod().AllowAnyHeader().AllowCredentials();
         });
 });
 services.AddControllers();
@@ -74,6 +74,14 @@ services.AddAuthentication(
     .AddJwtBearer(
         options =>
         {
+             options.Events = new JwtBearerEvents
+            {
+                OnMessageReceived = context =>
+                {
+                    context.Token = context.Request.Cookies["token"];
+                    return Task.CompletedTask;
+                }
+            };
             options.RequireHttpsMetadata = false;
             options.RequireHttpsMetadata = false;
             options.SaveToken = true;
