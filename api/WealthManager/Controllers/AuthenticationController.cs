@@ -27,5 +27,12 @@ namespace WealthManager.Controllers
             this.Response.Cookies.Append("token", token, options);
             return Ok(new { Token = token });
         }
+
+        [HttpPost]
+        public IActionResult Logout()
+        {
+            this.Response.Cookies.Delete("token");
+            return Ok(new { });
+        }
     }
 }
