@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { useQuery } from 'react-query';
 import { getAuthUser } from '@/api';
 import { useAuthContext } from '@/states/auth';
+import Link from 'next/link';
 
 export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
@@ -25,16 +26,17 @@ export default function Home() {
     </div>
   }
   if(auth.isAuthenticated) {
-    console.log(auth)
     return (
       <main className={styles.main}>
         <h1>Welcome logged in user {auth.user.id} {auth.user.name}</h1>
+        <Link href="/logout">Logout</Link>
       </main>
     )
   }
   return (
     <main className={styles.main}>
       Welcome to wealth manager
+      <Link href="/login">Login</Link>
     </main>
   )
 }
