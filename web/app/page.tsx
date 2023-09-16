@@ -11,15 +11,19 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
   const [auth, setAuth] = useAuthContext();
   useQuery('auth', async () => {
+    setIsLoading(true)
     try {
     const data = await getAuthUser();
     if(data) {
       setAuth({isAuthenticated: true, user: data});
     }}
+    catch(e) {
+      setAuth({isAuthenticated: false, user: null})
+        }
     finally{
       setIsLoading(false);
     }
-  })
+  }, {refetchOnMount: "always"})
   if(isLoading) {
     return <div>
       Loading...

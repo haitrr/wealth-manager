@@ -33,3 +33,17 @@ export const getAuthUser = async () => {
     throw error;
   }
 };
+
+export const logout = async () => {
+  try {
+    const response = await axios.post(`${API_URL}/authentication/logout`, {}, { withCredentials: true });
+
+    if (response.status === 200) {
+      return response.data;
+    } else {
+      throw new Error('Logout failed');
+    }
+  } catch (error) {
+    throw error;
+  }
+};
