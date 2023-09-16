@@ -6,6 +6,7 @@ import { useQuery } from 'react-query';
 import { getAuthUser } from '@/api';
 import { useAuthContext } from '@/states/auth';
 import Link from 'next/link';
+import Transactions from './transactions';
 
 export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
@@ -34,6 +35,7 @@ export default function Home() {
       <main className={styles.main}>
         <h1>Welcome logged in user {auth.user.id} {auth.user.name}</h1>
         <Link href="/logout">Logout</Link>
+      <Transactions/>
       </main>
     )
   }

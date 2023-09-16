@@ -47,3 +47,17 @@ export const logout = async () => {
     throw error;
   }
 };
+
+export const getTransactions = async () => {
+  try {
+    const response = await axios.get(`${API_URL}/transactions`, { withCredentials: true });
+
+    if (response.status === 200) {
+      return response.data;
+    } else {
+      throw new Error('Failed to get transactions');
+    }
+  } catch (error) {
+    throw error;
+  }
+};
