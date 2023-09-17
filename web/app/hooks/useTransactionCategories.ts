@@ -8,7 +8,6 @@ const useTransactionCategories = () => {
         try {
 
         const data = await getTransactionCategories()
-        console.log(data)
         setCategories(data["items"])
         }
         catch {

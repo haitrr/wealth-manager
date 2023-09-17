@@ -1,4 +1,7 @@
 'use client';
+
+import useTransactionCategories from "@/app/hooks/useTransactionCategories";
+
 const AddTransactionPage = () => {
     return (
         <div>
@@ -12,9 +15,14 @@ const AddTransactionForm = () => {
     const addTransaction = () => {
 
     }
+    const [categories] = useTransactionCategories()
     return <form onSubmit={addTransaction}>
         <input type="number" placeholder="Amount"/>
-        <input type="select" placeholder="Categories"/>
+        <select placeholder="Categories">
+            {categories.map((category) => {
+                return <option key={category.id} value={category.id}>{category.name}</option>
+            })}
+            </select>
         <input type="text" placeholder="Description"/>
         <button type="submit">Add Transaction</button>
     </form>
