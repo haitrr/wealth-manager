@@ -1,6 +1,11 @@
 'use client';
 
+import { addTransaction } from "@/api";
 import useTransactionCategories from "@/app/hooks/useTransactionCategories";
+import useWallets from "@/app/hooks/useWallets";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { useMutation } from "react-query";
 
 const AddTransactionPage = () => {
     return (
@@ -12,18 +17,41 @@ const AddTransactionPage = () => {
 }
 
 const AddTransactionForm = () => {
-    const addTransaction = () => {
+    const router = useRouter();
+    const [formData, setFormData] = useState({});
+    const handleChange = (e) => {
+        e.preventDefault();
+        const {name, value} = e.target;
+        setFormData((prevData) => ({
+            ...prevData,
+            [name]: value,
+        }));
+    }
 
+    const {mutate} = useMutation('addTransaction', async () => {
+        await addTransaction(formData.amount, formData.categoryId, formData.walletId, formData.description);
+        router.push('/transactions');
+    })
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        mutate()
     }
     const [categories] = useTransactionCategories()
-    return <form onSubmit={addTransaction}>
-        <input type="number" placeholder="Amount"/>
-        <select placeholder="Categories">
+    const [wallets] = useWallets()
+    return <form onSubmit={handleSubmit} >
+        <input type="number" placeholder="Amount" name="amount" onChange={handleChange}/>
+        <select placeholder="Categories" name="categoryId" onChange={handleChange}>
             {categories.map((category) => {
                 return <option key={category.id} value={category.id}>{category.name}</option>
             })}
             </select>
-        <input type="text" placeholder="Description"/>
+        <select placeholder="Wallets" name="walletId" onChange={handleChange}>
+            {wallets.map((wallet) => {
+                return <option key={wallet.id} value={wallet.id}>{wallet.name}</option>
+            })}
+            </select>
+        <input type="text" placeholder="Description" onChange={handleChange}/>
         <button type="submit">Add Transaction</button>
     </form>
 }

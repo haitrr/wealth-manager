@@ -37,6 +37,10 @@ namespace WealthManager.Services
         {
             var user = this.loggedInUserInfoProvider.GetLoggedInUser();
             var wallet = await this.walletRepository.GetByIdAsync(transactionCreateDto.WalletId);
+            if(wallet == null)
+            {
+                throw new BadRequestException("Wallet is not exist");
+            }
             TransactionCategory category = null;
             if (transactionCreateDto.CategoryId != null)
             {

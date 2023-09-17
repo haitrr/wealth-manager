@@ -88,3 +88,34 @@ export const getTransactionCategories = async () => {
     throw error;
   }
 };
+
+export const addTransaction = async (amount, categoryId, walletId, description) => {
+  try {
+    const response = await axios.post(`${API_URL}/transactions`, {
+      amount,
+      categoryId, description, walletId
+    }, { withCredentials: true });
+
+    if (response.status === 200) {
+      return response.data;
+    } else {
+      throw new Error('Login failed');
+    }
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getWallets = async () => {
+  try {
+    const response = await axios.get(`${API_URL}/wallets`, { withCredentials: true });
+
+    if (response.status === 200) {
+      return response.data;
+    } else {
+      throw new Error('Failed to get transactions');
+    }
+  } catch (error) {
+    throw error;
+  }
+};
