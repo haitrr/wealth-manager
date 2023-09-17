@@ -6,7 +6,7 @@ import { useQuery } from 'react-query';
 import { getAuthUser } from '@/api';
 import { useAuthContext } from '@/states/auth';
 import Link from 'next/link';
-import Transactions from './transactions';
+import Transactions from '../components/transactions';
 
 export default function Home() {
   const [auth] = useAuthContext();
