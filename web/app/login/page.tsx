@@ -1,12 +1,14 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useMutation } from 'react-query';
 import { login } from '../../api';
 import { setJwtCookie } from '@/token';
+import { useAuthContext } from '@/states/auth';
 
 export default function LoginPage() {
   const router = useRouter();
+  const [auth] = useAuthContext();
   const [formData, setFormData] = useState({
     username: '',
     password: '',
@@ -30,6 +32,13 @@ export default function LoginPage() {
     e.preventDefault();
     mutate();
   };
+
+  useEffect(() => {
+    
+  if(auth.isAuthenticated) {
+    router.push('/');
+  }
+  }, [auth.isAuthenticated, router])
 
   return (
     <div>

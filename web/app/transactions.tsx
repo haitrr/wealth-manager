@@ -46,7 +46,7 @@ const Transactions = () => {
     return <div>
         <h1>Transactions</h1>
         {transactions.map((transaction) => {
-            return <div>{transaction.amount} - {getCategoryName(transaction.categoryId)}</div>
+            return <div key={transaction.id}>{transaction.amount} - {getCategoryName(transaction.categoryId)}</div>
         })}
         </div>
 }

@@ -19,11 +19,11 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
   return (
     <html lang="en">
       <body className={inter.className}>
-        <AuthProvider>
           <QueryClientProvider client={queryClient}>
+        <AuthProvider>
             {children}
-          </QueryClientProvider>
         </AuthProvider>
+          </QueryClientProvider>
       </body>
     </html>
   );
