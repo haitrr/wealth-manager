@@ -1,2 +1,0 @@
-# wealth-manager
-Wealth manger
