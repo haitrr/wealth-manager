@@ -24,6 +24,7 @@ export default async function Home({}) {
   (SELECT COALESCE(SUM(value), 0) FROM "Transaction" WHERE "categoryId" IN (SELECT id FROM "Category" WHERE "type" = 'INCOME')) - 
   (SELECT COALESCE(SUM(value), 0) FROM "Transaction" WHERE "categoryId" IN (SELECT id FROM "Category" WHERE "type" = 'EXPENSE')) AS balance;
 ` as {balance: Decimal}[];
+
   return (
     <div>
       <div>Wealth Manager</div>
@@ -32,7 +33,7 @@ export default async function Home({}) {
       <div>Transactions</div>
       {transactions.map((transaction) => (
         <div
-          className="flex gap-4 p-4 border-2 border-red-50"
+          className={`flex gap-4 p-4 border-2 border-red-50 ${transaction.category.type === "INCOME" ? "text-green-500" : "text-red-500"}`}
           key={transaction.id}
         >
           <div>{dayjs(transaction.date).fromNow()}</div>
