@@ -1,2 +1,2 @@
 dev:
-	cd wealth-manager && npm run dev
+	npm run dev
