@@ -16,6 +16,7 @@ model Transaction {
     value      Decimal
     category   Category @relation(fields: [categoryId], references: [id])
     categoryId String
+    @@index([date], type: BTree)
 }
 
 model Category {
