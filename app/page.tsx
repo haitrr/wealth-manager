@@ -13,6 +13,11 @@ const formatVND = (amount: number) => {
 
 export default async function Home({}) {
   const transactions = await prisma.transaction.findMany({
+    where: {
+      date: {
+        gte: dayjs().subtract(1, "month").toDate(),
+      },
+    },
     select: {
       category: true,
       date: true,
