@@ -24,6 +24,9 @@ export default async function Home({}) {
       id: true,
       value: true,
     },
+    orderBy: {
+      date: "desc",
+    }
   });
   const [{balance}] = await prisma.$queryRaw`SELECT 
   (SELECT COALESCE(SUM(value), 0) FROM "Transaction" WHERE "categoryId" IN (SELECT id FROM "Category" WHERE "type" = 'INCOME')) - 
@@ -38,10 +41,10 @@ export default async function Home({}) {
       <div>Transactions</div>
       {transactions.map((transaction) => (
         <div
-          className={`flex gap-4 p-4 border-2 border-red-50 ${transaction.category.type === "INCOME" ? "text-green-500" : "text-red-500"}`}
+          className={`flex gap-4 p-4 border-2 border-red-50 ${transaction.category.type === "INCOME" ? "text-green-300" : "text-red-300"}`}
           key={transaction.id}
         >
-          <div>{dayjs(transaction.date).fromNow()}</div>
+          <div>{dayjs(transaction.date).format("DD-MM")}</div>
           <div>{formatVND(transaction.value.toNumber())}</div>
           <div>{transaction.category.name}</div>
         </div>
