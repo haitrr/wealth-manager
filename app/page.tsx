@@ -11,7 +11,8 @@ export default async function Home({}) {
   const transactions = await prisma.transaction.findMany({
     where: {
       date: {
-        gte: dayjs().subtract(1, "month").toDate(),
+        // show transactions from the beginning of the month
+        gte: dayjs().set("date", 1).toDate(),
       },
     },
     select: {
