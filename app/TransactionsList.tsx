@@ -16,7 +16,7 @@ const TransactionsList = async ({transactions}: Props) => {
               : "text-red-300"}`}
           key={transaction.id}
         >
-          <div>{dayjs(transaction.date).format("DD-MM")}</div>
+          <div>{dayjs(transaction.date).format("MMM D")}</div>
           <div>{formatVND(transaction.value.toNumber())}</div>
           <div>{transaction.category.name}</div>
         </div>
