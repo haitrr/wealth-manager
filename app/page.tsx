@@ -5,16 +5,25 @@ import TransactionsList from "./TransactionsList";
 import AccountBalance from "./AccountBalance";
 import prisma from "@/lib/prisma";
 import TransactionForm from "./TransactionForm";
-import { formatVND } from "@/utils/currency";
+import {formatVND} from "@/utils/currency";
 
-export default async function Home({}) {
-  const categories = await prisma.category.findMany();
+const getThisMonthTransactions = async () => {
   const transactions = await prisma.transaction.findMany({
     where: {
-      date: {
-        // show transactions from the beginning of the month
-        gte: dayjs().set("date", 1).toDate(),
-      },
+      AND: [
+        {
+          date: {
+            // show transactions from the beginning of the month
+            gte: new Date(2024, 2, 1),
+          },
+        },
+        {
+          date: {
+            // show transactions from the beginning of the month
+            lt: new Date(2024, 3, 1),
+          },
+        },
+      ],
     },
     select: {
       category: true,
@@ -26,9 +35,24 @@ export default async function Home({}) {
       date: "desc",
     },
   });
+  console.log(transactions);
+  return transactions.map((transaction) => {
+    return {
+      ...transaction,
+      value: transaction.value.toNumber(),
+    };
+  });
+};
 
-  const totalIncome =  transactions.filter((transaction) => transaction.category.type === "INCOME").reduce((acc, transaction) => acc + transaction.value.toNumber(), 0);
-  const totalExpense = transactions.filter((transaction) => transaction.category.type === "EXPENSE").reduce((acc, transaction) => acc + transaction.value.toNumber(), 0);
+export default async function Home({}) {
+  const categories = await prisma.category.findMany();
+  const transactions = await getThisMonthTransactions();
+  const totalIncome = transactions
+    .filter((transaction) => transaction.category.type === "INCOME")
+    .reduce((acc, transaction) => acc + transaction.value, 0);
+  const totalExpense = transactions
+    .filter((transaction) => transaction.category.type === "EXPENSE")
+    .reduce((acc, transaction) => acc + transaction.value, 0);
   const netIncome = totalIncome - totalExpense;
 
   return (
@@ -42,7 +66,7 @@ export default async function Home({}) {
       <div>{formatVND(totalExpense)}</div>
       <div>Net Income</div>
       <div>{formatVND(netIncome)}</div>
-      <TransactionForm categories={categories}/>
+      <TransactionForm categories={categories} />
       <div>Transactions</div>
       <TransactionsList transactions={transactions} />
     </div>

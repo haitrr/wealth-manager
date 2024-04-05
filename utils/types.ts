@@ -3,7 +3,7 @@ import  prisma from "@prisma/client";
 export type Transaction = {
     date: Date;
     id: string;
-    value: prisma.Prisma.Decimal;
+    value: number;
     category: Category;
 }
 export type Category = {
