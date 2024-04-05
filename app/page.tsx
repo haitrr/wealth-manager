@@ -8,6 +8,23 @@ import TransactionForm from "./TransactionForm";
 
 export default async function Home({}) {
   const categories = await prisma.category.findMany();
+  const transactions = await prisma.transaction.findMany({
+    where: {
+      date: {
+        gte: dayjs().subtract(1, "month").toDate(),
+      },
+    },
+    select: {
+      category: true,
+      date: true,
+      id: true,
+      value: true,
+    },
+    orderBy: {
+      date: "desc",
+    },
+  });
+
   return (
     <div>
       <div>Wealth Manager</div>
@@ -15,7 +32,7 @@ export default async function Home({}) {
       <AccountBalance />
       <TransactionForm categories={categories}/>
       <div>Transactions</div>
-      <TransactionsList />
+      <TransactionsList transactions={transactions} />
     </div>
   );
 }

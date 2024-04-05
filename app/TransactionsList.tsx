@@ -1,25 +1,12 @@
 import dayjs from "dayjs";
-import prisma from "../lib/prisma";
 import { formatVND } from "@/utils/currency";
+import { Transaction } from "@/utils/types";
 
-const TransactionsList = async () => {
-  const transactions = await prisma.transaction.findMany({
-    where: {
-      date: {
-        gte: dayjs().subtract(1, "month").toDate(),
-      },
-    },
-    select: {
-      category: true,
-      date: true,
-      id: true,
-      value: true,
-    },
-    orderBy: {
-      date: "desc",
-    },
-  });
+type Props = {
+  transactions: Transaction[];
+}
 
+const TransactionsList = async ({transactions}: Props) => {
   return (
     <div>
       {transactions.map((transaction) => (

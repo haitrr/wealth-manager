@@ -2,7 +2,9 @@
 import createTransaction from "@/server-actions/transaction";
 import CategorySelect from "./CategorySelect";
 import dayjs from "dayjs";
-import { Category, Transaction } from "@/utils/types";
+import { Category } from "@/utils/types";
+
+import {useRouter} from "next/navigation"
 
 
 type Props = {
@@ -10,13 +12,16 @@ type Props = {
 }
 
 const TransactionForm = ({categories}: Props) => {
+  const router = useRouter();
   const handleSubmit = async (event: any) => {
     console.log("event", event);
     event.preventDefault();
     const formData = new FormData(event.target);
-    const transaction = Object.fromEntries(formData) as Transaction;
+    const transaction = Object.fromEntries(formData) as any;
     transaction.date = dayjs(transaction.date).toISOString();
     const newTransaction = await createTransaction(transaction);
+    router.refresh()
+    event.target.reset();
     console.log("created transaction", newTransaction);
   };
 
