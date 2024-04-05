@@ -16,6 +16,7 @@ model Transaction {
     value      Decimal
     category   Category @relation(fields: [categoryId], references: [id])
     categoryId String
+
     @@index([date], type: BTree)
 }
 
@@ -24,6 +25,9 @@ model Category {
     name         String
     transactions Transaction[]
     type         CategoryType
+    parentId     String?
+    children     Category[]    @relation("ParentCategory")
+    parent       Category?     @relation("ParentCategory", fields: [parentId], references: [id])
 }
 
 enum CategoryType {
