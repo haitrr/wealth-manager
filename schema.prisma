@@ -33,4 +33,8 @@ model Category {
 enum CategoryType {
     INCOME
     EXPENSE
+    DEBT
+    LOAN
+    DEBT_COLLECTION
+    LOAN_PAYMENT
 }
