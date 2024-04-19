@@ -57,9 +57,10 @@ export default async function Home({}) {
 
   return (
     <div>
-      <div>Wealth Manager</div>
-      <div>Balance</div>
-      <AccountBalance />
+      <div className="flex p-1 flex-col items-center">
+        <div>Balance</div>
+        <AccountBalance />
+      </div>
       <div>Income</div>
       <div>{formatVND(totalIncome)}</div>
       <div>Expense</div>
