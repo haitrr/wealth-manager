@@ -10,7 +10,7 @@ const AccountBalance = async () => {
 
   const color = balance.toNumber() >= 0 ? "text-green-500" : "text-red-500";
 
-  return <div className={color}>{formatVND(balance.toNumber())}</div>;
+  return <div className={`${color} text-xl`}>{formatVND(balance.toNumber())}</div>;
 };
 
 export default AccountBalance;
