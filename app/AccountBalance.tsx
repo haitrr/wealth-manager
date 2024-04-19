@@ -8,7 +8,9 @@ const AccountBalance = async () => {
   (SELECT COALESCE(SUM(value), 0) FROM "Transaction" WHERE "categoryId" IN (SELECT id FROM "Category" WHERE "type" = 'EXPENSE')) AS balance;
 `) as { balance: Decimal; }[];
 
-  return <div>{formatVND(balance.toNumber())}</div>;
+  const color = balance.toNumber() >= 0 ? "text-green-500" : "text-red-500";
+
+  return <div className={color}>{formatVND(balance.toNumber())}</div>;
 };
 
 export default AccountBalance;
