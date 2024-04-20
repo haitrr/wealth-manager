@@ -1,23 +1,11 @@
 import dayjs from "dayjs";
 import {formatVND, getColor} from "@/utils/currency";
 import {Transaction} from "@/utils/types";
+import {getDayOfWeek} from "@/utils/date";
+import { TransactionItem } from "./TransactionItem";
 
 type Props = {
   transactions: Transaction[];
-};
-
-const formatDate = (date: dayjs.Dayjs) => {
-  return date.format("MMM D YYYY");
-};
-
-const getDayOfWeek = (date: dayjs.Dayjs) => {
-  if (formatDate(date) === formatDate(dayjs())) {
-    return "Today";
-  }
-  if (formatDate(date) === formatDate(dayjs().subtract(1, "day"))) {
-    return "Yesterday";
-  }
-  return date.format("dddd");
 };
 
 const TransactionsList = async ({transactions}: Props) => {
@@ -29,8 +17,6 @@ const TransactionsList = async ({transactions}: Props) => {
     }
     transactionsByDate[date].push(tr);
   });
-  console.log(transactions);
-  console.log(transactionsByDate);
 
   return (
     <div>
@@ -47,10 +33,10 @@ const TransactionsList = async ({transactions}: Props) => {
           } else {
             netIncome -= transaction.value;
           }
-        })
+        });
         return (
-          <div key={date}>
-            <div className="flex items-center justify-between p-2 bg-gray-800">
+          <div key={date} className="bg-gray-800">
+            <div className="flex items-center justify-between p-2">
               <div className="flex gap-2">
                 <span className="text-lg">{day}</span>
                 <div className="text-xs">
@@ -62,27 +48,17 @@ const TransactionsList = async ({transactions}: Props) => {
                 {formatVND(netIncome)}
               </div>
             </div>
+            {dateTransactions.map((transaction) => {
+              return (
+                <TransactionItem
+                  key={transaction.id}
+                  transaction={transaction}
+                />
+              );
+            })}
           </div>
         );
       })}
-    </div>
-  );
-  return (
-    <div>
-      {transactions.map((transaction) => (
-        <div
-          className={`flex gap-4 p-4 border-2 border-red-50 ${
-            transaction.category.type === "INCOME"
-              ? "text-green-300"
-              : "text-red-300"
-          }`}
-          key={transaction.id}
-        >
-          <div>{dayjs(transaction.date).format("MMM D")}</div>
-          <div>{formatVND(transaction.value)}</div>
-          <div>{transaction.category.name}</div>
-        </div>
-      ))}
     </div>
   );
 };
