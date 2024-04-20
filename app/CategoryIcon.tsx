@@ -1,8 +1,8 @@
 export function CategoryIcon() {
   return (
     <svg
-      width={20}
-      height={20}
+      width={32}
+      height={32}
       viewBox="0 0 1024 1024"
       version="1.1"
       xmlns="http://www.w3.org/2000/svg"
