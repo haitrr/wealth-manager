@@ -14,7 +14,6 @@ type Props = {
 const TransactionForm = ({categories}: Props) => {
   const router = useRouter();
   const handleSubmit = async (event: any) => {
-    console.log("event", event);
     event.preventDefault();
     const formData = new FormData(event.target);
     const transaction = Object.fromEntries(formData) as any;
@@ -22,7 +21,6 @@ const TransactionForm = ({categories}: Props) => {
     const newTransaction = await createTransaction(transaction);
     router.refresh()
     event.target.reset();
-    console.log("created transaction", newTransaction);
   };
 
   return (

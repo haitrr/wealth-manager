@@ -35,7 +35,7 @@ const getThisMonthTransactions = async () => {
       date: "desc",
     },
   });
-  console.log(transactions);
+
   return transactions.map((transaction) => {
     return {
       ...transaction,
