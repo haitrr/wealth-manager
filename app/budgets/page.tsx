@@ -1,21 +1,16 @@
 import prisma from "@/lib/prisma";
-import { Money } from "../Money";
+import {BudgetItem} from "./BudgetItem";
 
 export default async function BudgetPage() {
-  const budgets = await prisma.budget.findMany();
+  const budgets = await prisma.budget.findMany({include: {categories: true}});
   return (
     <div className="p-2 ">
-      <div className="flex justify-center">
+      <div className="flex justify-center text-lg">
         <h1>Budgets</h1>
       </div>
-      <div >
+      <div>
         {budgets.map((budget) => {
-          return (
-            <div className="flex justify-between" key={budget.id}>
-              <div>{budget.name}</div>
-              <Money value={budget.value.toNumber()} />
-            </div>
-          );
+          return <BudgetItem key={budget.id} budget={budget} />;
         })}
       </div>
     </div>
