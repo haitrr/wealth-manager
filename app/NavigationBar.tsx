@@ -28,10 +28,10 @@ function MenuItem({item}: Props) {
 
 export function NavigationBar() {
   return (
-    <nav className="flex sticky bottom-0 justify-between p-2 bg-gray-900 text-white">
+    <div className="flex sticky bottom-0 justify-between p-2 bg-gray-900 text-white">
       {menuItems.map((item) => {
         return <MenuItem key={item.href} item={item} />;
       })}
-    </nav>
+    </div>
   );
 }
