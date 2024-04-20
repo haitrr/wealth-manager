@@ -22,11 +22,17 @@ export async function BudgetItem({budget}: Props) {
     },
     _sum: {value: true},
   });
+  const left = budget.value.toNumber() - (used._sum.value?.toNumber() ?? 0);
   return (
-    <div className="flex justify-between">
+    <div className="flex justify-between items-center bg-gray-900 p-2 rounded">
       <div>{budget.name}</div>
-      <Money value={used._sum.value?.toNumber() ?? 0} />
-      <Money value={budget.value.toNumber()} />
+      <div className="flex flex-col justify-end items-end" >
+        <Money value={budget.value.toNumber()} />
+        <div className="flex gap-1 items-center">
+          <span className="text-gray-500">{left > 0 ? "Left" : "Overspent"}</span>
+          <Money value={left} />
+        </div>
+      </div>
     </div>
   );
 }
