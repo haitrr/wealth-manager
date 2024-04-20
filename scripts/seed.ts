@@ -13,6 +13,7 @@ export const seed = async () => {
         // Reset db
         await prisma.transaction.deleteMany();
         await prisma.category.deleteMany();
+        await prisma.budget.deleteMany();
 
         // categories
         const foodId = randomUUID()
@@ -27,16 +28,14 @@ export const seed = async () => {
 
         // transactions
         const transactions = [
-            { date: dayjs().toISOString(), value: 100000, categoryId: foodId },
-            { date: dayjs().subtract(1, 'day').toISOString(), value: 200000, categoryId: salaryId },
+            { date: dayjs().startOf("month").toISOString(), value: 30_000_000, categoryId: salaryId },
         ];
-        for (let i = 0; i < 300; i++) {
-            for (let j = 0; j < 7; j++) {
-                const categoryId = j % 2 === 0 ? foodId : salaryId;
+        for (let i = 0; i < 100; i++) {
+            for (let j = 0; j < 4; j++) {
                 transactions.push({
                     date: dayjs().subtract(i, 'day').toISOString(),
-                    value: Math.floor(Math.random() * 1000000),
-                    categoryId: categoryId
+                    value: Math.floor(Math.random() * 100_000 + 50_000),
+                    categoryId: foodId
                 });
             }
         }
