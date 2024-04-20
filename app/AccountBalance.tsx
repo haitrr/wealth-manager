@@ -1,6 +1,7 @@
 import { formatVND } from "@/utils/currency";
 import prisma from "../lib/prisma";
 import { Decimal } from "@prisma/client/runtime/library";
+import { Money } from "./Money";
 
 const AccountBalance = async () => {
   const [{ balance }] = (await prisma.$queryRaw`SELECT 
@@ -8,9 +9,7 @@ const AccountBalance = async () => {
   (SELECT COALESCE(SUM(value), 0) FROM "Transaction" WHERE "categoryId" IN (SELECT id FROM "Category" WHERE "type" = 'EXPENSE')) AS balance;
 `) as { balance: Decimal; }[];
 
-  const color = balance.toNumber() >= 0 ? "text-green-500" : "text-red-500";
-
-  return <div className={`${color} text-xl`}>{formatVND(balance.toNumber())}</div>;
+  return <Money value={balance.toNumber()} className="text-xl" />;
 };
 
 export default AccountBalance;
