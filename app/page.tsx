@@ -14,13 +14,13 @@ const getThisMonthTransactions = async () => {
         {
           date: {
             // show transactions from the beginning of the month
-            gte: new Date(2024, 2, 1),
+            gte: dayjs().startOf("month").toDate(),
           },
         },
         {
           date: {
             // show transactions from the beginning of the month
-            lt: new Date(2024, 3, 1),
+            lt: dayjs().endOf("month").toDate(),
           },
         },
       ],
@@ -81,8 +81,6 @@ export default async function Home({}) {
           </div>
         </div>
       </div>
-      <TransactionForm categories={categories} />
-      <div>Transactions</div>
       <TransactionsList transactions={transactions} />
     </div>
   );
