@@ -1,4 +1,4 @@
-import  prisma from "@prisma/client";
+import prisma from "@prisma/client";
 
 export type Transaction = {
     date: Date;
@@ -9,5 +9,7 @@ export type Transaction = {
 export type Category = {
     id?: string;
     name: string;
-    type: "INCOME" | "EXPENSE";
+    type: "INCOME" | "EXPENSE" | "DEBT" | "LOAN"
+    | "DEBT_COLLECTION"
+    | "LOAN_PAYMENT";
 }

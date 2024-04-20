@@ -7,7 +7,7 @@ type Props = {
   name: string;
 };
 
-const CategorySelect = async ({categories, name}: Props) => {
+const CategorySelect = ({categories, name}: Props) => {
   return (
     <select name={name} className="text-slate-950">
       {categories.map((category) => (
