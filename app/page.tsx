@@ -4,7 +4,6 @@ dayjs.extend(relativeTime);
 import TransactionsList from "./TransactionsList";
 import AccountBalance from "./AccountBalance";
 import prisma from "@/lib/prisma";
-import TransactionForm from "./TransactionForm";
 import {formatVND, getColor} from "@/utils/currency";
 import { Money } from "./Money";
 
@@ -46,7 +45,6 @@ const getThisMonthTransactions = async () => {
 };
 
 export default async function Home({}) {
-  const categories = await prisma.category.findMany();
   const transactions = await getThisMonthTransactions();
   const totalIncome = transactions
     .filter((transaction) => transaction.category.type === "INCOME")
