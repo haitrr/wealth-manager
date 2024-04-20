@@ -29,7 +29,17 @@ export const seed = async () => {
             { date: dayjs().toISOString(), value: 100000, categoryId: foodId },
             { date: dayjs().subtract(1, 'day').toISOString(), value: 200000, categoryId: salaryId },
         ];
-        await prisma.transaction.createMany({data: transactions})
+        for (let i = 0; i < 300; i++) {
+            for (let j = 0; j < 7; j++) {
+                const categoryId = j % 2 === 0 ? foodId : salaryId;
+                transactions.push({
+                    date: dayjs().subtract(i, 'day').toISOString(),
+                    value: Math.floor(Math.random() * 1000000),
+                    categoryId: categoryId
+                });
+            }
+        }
+        await prisma.transaction.createMany({ data: transactions })
     } catch (err) {
         console.error(err);
     }
