@@ -4,6 +4,7 @@ import dayjs from "dayjs";
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 import { CategoryType } from "@prisma/client";
 import { randomUUID } from "crypto";
+import { Decimal } from "@prisma/client/runtime/library";
 dayjs.extend(customParseFormat);
 
 
@@ -40,6 +41,21 @@ export const seed = async () => {
             }
         }
         await prisma.transaction.createMany({ data: transactions })
+
+        // budgets
+        await prisma.budget.create({
+            data: {
+                name: "Monthly food",
+                startDate: dayjs().startOf('month').toDate(),
+                period: "MONTHLY",
+                value: new Decimal(10_000_000),
+                repeat: true,
+                categories: {
+                    connect: {id: foodId}
+                }
+            }
+        })
+
     } catch (err) {
         console.error(err);
     }
