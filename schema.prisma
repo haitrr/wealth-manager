@@ -28,6 +28,7 @@ model Category {
     parentId     String?
     children     Category[]    @relation("ParentCategory")
     parent       Category?     @relation("ParentCategory", fields: [parentId], references: [id])
+    icon         String?
 }
 
 enum CategoryType {
