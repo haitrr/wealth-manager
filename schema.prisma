@@ -29,6 +29,25 @@ model Category {
     children     Category[]    @relation("ParentCategory")
     parent       Category?     @relation("ParentCategory", fields: [parentId], references: [id])
     icon         String?
+    budgets      Budget[]
+}
+
+model Budget {
+    id         String       @id @default(cuid())
+    name       String
+    categories Category[]
+    value      Decimal
+    startDate  DateTime
+    period     BudgetPeriod
+    repeat     Boolean
+}
+
+enum BudgetPeriod {
+    DAILY
+    WEEKLY
+    MONTHLY
+    QUARTERLY
+    YEARLY
 }
 
 enum CategoryType {
