@@ -8,7 +8,7 @@ type Props = {
 
 export function TransactionItem({ transaction }: Props) {
   return (
-    <div className="flex justify-between text-xl p-1 ml-4 items-center">
+    <div className="flex justify-between border-gray-700 border-b text-lg p-2 ml-4 items-center">
       <div className="flex gap-1 items-center">
         <CategoryIcon />
         <div>{transaction.category.name}</div>

@@ -37,10 +37,10 @@ const TransactionsList = async ({transactions}: Props) => {
         });
         return (
           <div key={date} className="bg-gray-800">
-            <div className="flex items-center justify-between p-2">
-              <div className="flex gap-2">
-                <span className="text-lg">{day}</span>
-                <div className="text-xs">
+            <div className="flex items-center justify-between p-2 text-xl">
+              <div className="flex gap-2 items-center">
+                <span className="text-xl">{day}</span>
+                <div className="text-sm">
                   <div>{dayOfWeek}</div>
                   <div>{monthYear}</div>
                 </div>
