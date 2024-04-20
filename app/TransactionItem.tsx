@@ -8,8 +8,8 @@ type Props = {
 
 export function TransactionItem({ transaction }: Props) {
   return (
-    <div className="flex justify-between p-1">
-      <div className="flex gap-1">
+    <div className="flex justify-between text-lg p-1 ml-4 items-center">
+      <div className="flex gap-1 items-center">
         <CategoryIcon />
         <div>{transaction.category.name}</div>
       </div>
