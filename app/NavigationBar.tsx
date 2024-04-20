@@ -2,21 +2,22 @@
 import {usePathname} from "next/navigation";
 
 const menuItems = [
-  {label: "Home", href: "/"},
-  {label: "Budgets", href: "/budgets"},
-  {label: "Settings", href: "/settings"},
+  {label: "Home", href: "/", pattern: /^\/$/},
+  {label: "Budgets", href: "/budgets", pattern: /^\/budgets.*/},
+  {label: "Settings", href: "/settings", pattern: /^\/settings.*/},
 ];
 
 type Props = {
   item: {
     label: string;
     href: string;
+    pattern: RegExp;
   };
 };
 
 function MenuItem({item}: Props) {
   const pathName = usePathname();
-  const isActive = pathName === item.href;
+  const isActive = pathName.match(item.pattern);
   const textColor = isActive ? "text-blue-500" : "text-gray-500";
   return (
     <div className={`${textColor}`}>
@@ -27,7 +28,7 @@ function MenuItem({item}: Props) {
 
 export function NavigationBar() {
   return (
-    <div className="flex sticky bottom-0 justify-between p-2 bg-gray-900 text-white">
+    <div className="flex sticky bottom-0 justify-between p-4 bg-gray-900 text-xl">
       {menuItems.map((item) => {
         return <MenuItem key={item.href} item={item} />;
       })}
