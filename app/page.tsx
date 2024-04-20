@@ -6,6 +6,7 @@ import AccountBalance from "./AccountBalance";
 import prisma from "@/lib/prisma";
 import TransactionForm from "./TransactionForm";
 import {formatVND, getColor} from "@/utils/currency";
+import { Money } from "./Money";
 
 const getThisMonthTransactions = async () => {
   const transactions = await prisma.transaction.findMany({
@@ -76,9 +77,7 @@ export default async function Home({}) {
         </div>
         <div className="flex justify-between p-2 border-t border-gray-800">
           <div>Net Income</div>
-          <div className={`${getColor(-netIncome)}`}>
-            {formatVND(netIncome)}
-          </div>
+          <Money value={netIncome} />
         </div>
       </div>
       <TransactionsList transactions={transactions} />

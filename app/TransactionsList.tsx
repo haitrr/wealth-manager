@@ -3,6 +3,7 @@ import {formatVND, getColor} from "@/utils/currency";
 import {Transaction} from "@/utils/types";
 import {getDayOfWeek} from "@/utils/date";
 import { TransactionItem } from "./TransactionItem";
+import { Money } from "./Money";
 
 type Props = {
   transactions: Transaction[];
@@ -44,9 +45,7 @@ const TransactionsList = async ({transactions}: Props) => {
                   <div>{monthYear}</div>
                 </div>
               </div>
-              <div className={`${getColor(netIncome)}`}>
-                {formatVND(netIncome)}
-              </div>
+              <Money value={netIncome} />
             </div>
             {dateTransactions.map((transaction) => {
               return (
