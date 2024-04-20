@@ -18,7 +18,6 @@ function MenuItem({item}: Props) {
   const pathName = usePathname();
   const isActive = pathName === item.href;
   const textColor = isActive ? "text-blue-500" : "text-gray-500";
-  console.log(item, textColor);
   return (
     <div className={`${textColor}`}>
       <a href={item.href}>{item.label}</a>
