@@ -39,7 +39,7 @@ export async function BudgetProgress({budget}: Props) {
   console.log(left, expectedLeft, left - expectedLeft);
   const progressColor = expectedLeft > left ? "bg-red-500" : "bg-green-500";
   return (
-    <div className="flex-1 h-2 w-full relative bg-gray-800 rounded-full">
+    <div className="flex-1 h-2 w-full relative bg-gray-800 rounded-full mb-2">
       <div
         className={`h-2 w-full ${progressColor} rounded-full`}
         style={{width: `${progress}%`}}

@@ -2,6 +2,8 @@ import {Money} from "@/app/Money";
 import prisma from "@/lib/prisma";
 import {BudgetProgress} from "../BudgetProgress";
 import {getBudgetSpentAmount} from "../BudgetItem";
+import dayjs from "dayjs";
+import { getBudgetEndDate } from "@/utils/date";
 
 export default async function BudgetDetailPage({params}) {
   const {id} = params;
@@ -14,10 +16,13 @@ export default async function BudgetDetailPage({params}) {
   }
   const spent = await getBudgetSpentAmount(budget);
   const left = budget.value.toNumber() - spent;
+  const startDate = budget.startDate;
+const endDate = getBudgetEndDate(budget);
+const dayLeft = dayjs(endDate).diff(dayjs(), "day");
 
   return (
     <div>
-      <div className="flex p-2 flex-col gap-1 justify-center text-lg items-center">
+      <div className="flex p-4 flex-col gap-1 justify-center text-lg items-center">
         <div>{budget.name}</div>
         <Money value={budget.value.toNumber()} />
         <div className="flex justify-between w-full">
@@ -31,6 +36,10 @@ export default async function BudgetDetailPage({params}) {
           </div>
         </div>
         <BudgetProgress budget={budget} />
+      <div className="flex justify-start w-full flex-col">
+        <div>{`${dayjs(startDate).format("DD/MM")} - ${dayjs(endDate).format("DD/MM")}`}</div>
+        <div>{`${dayLeft} days left`}</div>
+      </div>
       </div>
     </div>
   );
