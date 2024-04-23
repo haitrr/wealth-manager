@@ -3,6 +3,7 @@ import {Money} from "../Money";
 import {Budget} from "@prisma/client";
 import {getBudgetEndDate} from "@/utils/date";
 import { BudgetProgress } from "./BudgetProgress";
+import Link from "next/link";
 type Props = {
   budget: Budget & {categories: {id: string}[]};
 };
@@ -26,6 +27,7 @@ export async function BudgetItem({budget}: Props) {
   const spent = used._sum.value?.toNumber() ?? 0;
   const left = budget.value.toNumber() - spent;
   return (
+    <Link href={`/budgets/${budget.id}`}>
     <div className="bg-gray-900 p-2 rounded">
       <div className="flex justify-between items-center">
         <div>{budget.name}</div>
@@ -46,6 +48,7 @@ export async function BudgetItem({budget}: Props) {
         spent={spent}
       />
     </div>
+    </Link>
   );
 }
 
