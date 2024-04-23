@@ -9,22 +9,7 @@ type Props = {
 };
 
 export async function BudgetItem({budget}: Props) {
-  const endDate = getBudgetEndDate(budget);
-  const used = await prisma.transaction.aggregate({
-    where: {
-      AND: [
-        {date: {gte: budget.startDate}},
-        {date: {lt: endDate}},
-        {
-          category: {
-            id: {in: budget.categories.map((category) => category.id)},
-          },
-        },
-      ],
-    },
-    _sum: {value: true},
-  });
-  const spent = used._sum.value?.toNumber() ?? 0;
+  const spent = await getBudgetSpentAmount(budget);
   const left = budget.value.toNumber() - spent;
   return (
     <Link href={`/budgets/${budget.id}`}>
@@ -42,13 +27,28 @@ export async function BudgetItem({budget}: Props) {
         </div>
       </div>
       <BudgetProgress
-        startDate={budget.startDate}
-        endDate={endDate}
-        value={budget.value.toNumber()}
-        spent={spent}
+        budget={budget}
       />
     </div>
     </Link>
   );
 }
 
+export const getBudgetSpentAmount = async (budget: Budget & {categories: {id: string}[]}) => {
+  const endDate = getBudgetEndDate(budget);
+  const used =  await prisma.transaction.aggregate({
+    where: {
+      AND: [
+        {date: {gte: budget.startDate}},
+        {date: {lt: endDate}},
+        {
+          category: {
+            id: {in: budget.categories.map((category) => category.id)},
+          },
+        },
+      ],
+    },
+    _sum: {value: true},
+  });
+  return used._sum.value?.toNumber() ?? 0;
+}
