@@ -5,7 +5,11 @@ import {getBudgetSpentAmount} from "../BudgetItem";
 import dayjs from "dayjs";
 import { getBudgetEndDate } from "@/utils/date";
 
-export default async function BudgetDetailPage({params}) {
+type Props = {
+    params: {id: string};
+}
+
+export default async function BudgetDetailPage({params}: Props) {
   const {id} = params;
   const budget = await prisma.budget.findUnique({
     where: {id},
