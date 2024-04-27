@@ -4,6 +4,8 @@ import {BudgetProgress} from "../BudgetProgress";
 import {getBudgetSpentAmount} from "../BudgetItem";
 import dayjs from "dayjs";
 import { getBudgetEndDate } from "@/utils/date";
+import { VegaLite, VisualizationSpec } from "react-vega";
+import { BudgetChart } from "./BudgetChart";
 
 type Props = {
     params: {id: string};
@@ -44,6 +46,7 @@ const dayLeft = dayjs(endDate).diff(dayjs(), "day");
         <div>{`${dayjs(startDate).format("DD/MM")} - ${dayjs(endDate).format("DD/MM")}`}</div>
         <div>{`${dayLeft} days left`}</div>
       </div>
+      <BudgetChart/>
       </div>
     </div>
   );
