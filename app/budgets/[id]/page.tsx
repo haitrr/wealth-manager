@@ -17,6 +17,7 @@ export default async function BudgetDetailPage({params}: Props) {
     where: {id},
     include: {categories: {select: {id: true}}},
   });
+
   if (!budget) {
     return <div>Not found</div>;
   }
@@ -25,6 +26,20 @@ export default async function BudgetDetailPage({params}: Props) {
   const startDate = budget.startDate;
 const endDate = getBudgetEndDate(budget);
 const dayLeft = dayjs(endDate).diff(dayjs(), "day");
+
+  const transactions = await prisma.transaction.findMany({
+    where: {
+      date: {
+        gte: budget.startDate,
+        lt: getBudgetEndDate(budget),
+      },
+      category: {
+        id: {
+          in: budget.categories.map((category) => category.id),
+        },
+      },
+    },
+  });
 
   return (
     <div>
@@ -46,7 +61,7 @@ const dayLeft = dayjs(endDate).diff(dayjs(), "day");
         <div>{`${dayjs(startDate).format("DD/MM")} - ${dayjs(endDate).format("DD/MM")}`}</div>
         <div>{`${dayLeft} days left`}</div>
       </div>
-      <BudgetChart/>
+      <BudgetChart budget={budget} transactions={transactions}/>
       </div>
     </div>
   );
