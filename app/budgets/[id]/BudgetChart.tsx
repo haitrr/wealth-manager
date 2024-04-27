@@ -10,38 +10,51 @@ export function BudgetChart({transactions, budget}) {
   const endDate = dayjs(getBudgetEndDate(budget)).format("YYYY-MM-DD");
   const spec: VisualizationSpec = {
     $schema: "https://vega.github.io/schema/vega-lite/v5.json",
-    mark: "line",
-    transform: [
+    data: {name: "values"},
+    layer: [
       {
-        sort: [{field: "date"}],
-        window: [{op: "sum", field: "value", as: "cumulative_spent"}],
-        frame: [null, 0],
+        mark: "line",
+        transform: [
+          {
+            sort: [{field: "date"}],
+            window: [{op: "sum", field: "value", as: "cumulative_spent"}],
+            frame: [null, 0],
+          },
+        ],
+        encoding: {
+          x: {
+            field: "date",
+            type: "temporal",
+            title: null,
+            scale: {domain: [startDate, endDate]},
+            axis: {
+              labels: false,
+              grid: false,
+              ticks: false,
+            },
+          },
+          y: {
+            field: "cumulative_spent",
+            type: "quantitative",
+            title: null,
+            axis: {
+              labelFontSize: 8,
+              ticks: false,
+            },
+            scale: {
+              domain: [0, Number(budget.value) * 1.2],
+            },
+          },
+          strokeDash: {field: "predicted", type: "nominal"},
+        },
+        data: {name: "values"},
+      },
+      {
+        data: {values: [{}]},
+        mark: {type: "rule", size: 2, strokeDash: [2, 2]},
+        encoding: {y: {datum: Number(budget.value)}},
       },
     ],
-    encoding: {
-      x: {
-        field: "date",
-        type: "temporal",
-        title: null,
-        scale: {domain: [startDate, endDate]},
-        axis: {
-          labels: false,
-          grid: false,
-          ticks: false,
-        },
-      },
-      y: {
-        field: "cumulative_spent",
-        type: "quantitative",
-        title: null,
-        axis: {
-          labelFontSize: 8,
-          ticks: false,
-        },
-      },
-      strokeDash: {field: "predicted", type: "nominal"},
-    },
-    data: {name: "values"},
     width: "container",
     config: {
       legend: {disable: true},
@@ -80,6 +93,7 @@ export function BudgetChart({transactions, budget}) {
     }
   });
   data.sort((a, b) => dayjs(a.date).diff(dayjs(b.date)));
+  console.log(JSON.stringify(data), JSON.stringify(spec));
   return (
     <div className="w-full flex ">
       <VegaLite
