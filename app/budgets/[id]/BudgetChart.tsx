@@ -4,6 +4,17 @@ import {getBudgetEndDate} from "@/utils/date";
 import dayjs from "dayjs";
 import {get} from "http";
 import {VegaLite, VisualizationSpec} from "react-vega";
+import { scheme } from "vega";
+
+
+// Define an interpolator function that maps from [0,1] to colors
+function grey(f) {
+    var g = Math.max(0, Math.min(255, Math.round(255 * f))) + '';
+    return 'rgb(' + g + ', ' + g + ', ' + g + ')';
+  }
+  
+  // Register the interpolator. Now the scheme "mygrey" can be used in Vega specs
+scheme("mygrey", grey);
 
 export function BudgetChart({transactions, budget}) {
   const startDate = dayjs(budget.startDate).format("YYYY-MM-DD");
@@ -40,6 +51,7 @@ export function BudgetChart({transactions, budget}) {
             axis: {
               labelFontSize: 8,
               ticks: false,
+              grid: false,
             },
             scale: {
               domain: [0, Number(budget.value) * 1.2],
@@ -58,6 +70,11 @@ export function BudgetChart({transactions, budget}) {
     width: "container",
     config: {
       legend: {disable: true},
+      "background": "#222",
+      "view": {"stroke": "#888"},
+      "title": {"color": "#fff", "subtitleColor": "#fff"},
+      "style": {"guide-label": {"fill": "#fff"}, "guide-title": {"fill": "#fff"}},
+      "axis": {"domainColor": "#fff", "gridColor": "#888", "tickColor": "#fff"}
     },
   };
   const data = transactions.map((transaction) => ({
