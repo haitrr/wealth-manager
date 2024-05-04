@@ -4,6 +4,7 @@ import {Budget} from "@prisma/client";
 import {getBudgetEndDate} from "@/utils/date";
 import { BudgetProgress } from "./BudgetProgress";
 import Link from "next/link";
+import { getAllBudgetCategoriesIds } from "@/utils/budget";
 type Props = {
   budget: Budget & {categories: {id: string}[]};
 };
@@ -36,6 +37,7 @@ export async function BudgetItem({budget}: Props) {
 
 export const getBudgetSpentAmount = async (budget: Budget & {categories: {id: string}[]}) => {
   const endDate = getBudgetEndDate(budget);
+  const categories = await getAllBudgetCategoriesIds(budget)
   const used =  await prisma.transaction.aggregate({
     where: {
       AND: [
@@ -43,7 +45,7 @@ export const getBudgetSpentAmount = async (budget: Budget & {categories: {id: st
         {date: {lt: endDate}},
         {
           category: {
-            id: {in: budget.categories.map((category) => category.id)},
+            id: {in: categories},
           },
         },
       ],

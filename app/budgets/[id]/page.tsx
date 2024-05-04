@@ -6,6 +6,7 @@ import dayjs from "dayjs";
 import { getBudgetEndDate } from "@/utils/date";
 import { BudgetChart } from "./BudgetChart";
 import TransactionsList from "@/app/TransactionsList";
+import { getAllBudgetCategoriesIds } from "@/utils/budget";
 
 type Props = {
     params: {id: string};
@@ -17,6 +18,8 @@ export default async function BudgetDetailPage({params}: Props) {
     where: {id},
     include: {categories: {select: {id: true}}},
   });
+
+  const categoryIds = await getAllBudgetCategoriesIds(budget);
 
   if (!budget) {
     return <div>Not found</div>;
@@ -35,7 +38,7 @@ const dayLeft = dayjs(endDate).diff(dayjs(), "day");
       },
       category: {
         id: {
-          in: budget.categories.map((category) => category.id),
+          in: categoryIds,
         },
       },
     },
