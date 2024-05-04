@@ -4,7 +4,6 @@ import {BudgetProgress} from "../BudgetProgress";
 import {getBudgetSpentAmount} from "../BudgetItem";
 import dayjs from "dayjs";
 import { getBudgetEndDate } from "@/utils/date";
-import { VegaLite, VisualizationSpec } from "react-vega";
 import { BudgetChart } from "./BudgetChart";
 
 type Props = {

@@ -3,20 +3,14 @@
 import {Money} from "@/app/Money";
 import {getBudgetEndDate} from "@/utils/date";
 import dayjs from "dayjs";
-import {get} from "http";
 import {VegaLite, VisualizationSpec} from "react-vega";
-import {scheme} from "vega";
 
-// Define an interpolator function that maps from [0,1] to colors
-function grey(f) {
-  var g = Math.max(0, Math.min(255, Math.round(255 * f))) + "";
-  return "rgb(" + g + ", " + g + ", " + g + ")";
-}
+type Props = {
+  transactions: any[];
+  budget: any;
+};
 
-// Register the interpolator. Now the scheme "mygrey" can be used in Vega specs
-scheme("mygrey", grey);
-
-export function BudgetChart({transactions, budget}) {
+export function BudgetChart({transactions, budget}: Props) {
   const startDate = dayjs(budget.startDate).format("YYYY-MM-DD");
   const endDate = dayjs(getBudgetEndDate(budget)).format("YYYY-MM-DD");
   const spec: VisualizationSpec = {
@@ -155,7 +149,11 @@ export function BudgetChart({transactions, budget}) {
   );
 }
 
-function DetailItem({children}) {
+type DetailItemProps = {
+  children: React.ReactNode;
+};
+
+function DetailItem({children}: DetailItemProps) {
   return (
     <div className="flex justify-between items-center text-sm p-0.5">
       {children}
