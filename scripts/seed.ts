@@ -54,6 +54,18 @@ export const seed = async () => {
                 }
             }
         })
+        await prisma.budget.create({
+            data: {
+                name: "Yearly food",
+                startDate: dayjs().startOf('year').toDate(),
+                period: "YEARLY",
+                value: new Decimal(112_000_000),
+                repeat: true,
+                categories: {
+                    connect: {id: foodId}
+                },
+            }
+        })
 
     } catch (err) {
         console.error(err);
