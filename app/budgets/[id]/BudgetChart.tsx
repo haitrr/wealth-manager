@@ -1,5 +1,6 @@
 "use client";
 
+import {Money} from "@/app/Money";
 import {getBudgetEndDate} from "@/utils/date";
 import dayjs from "dayjs";
 import {get} from "http";
@@ -102,7 +103,11 @@ export function BudgetChart({transactions, budget}) {
     0,
   );
   const dayPassed = dayjs().diff(dayjs(startDate), "day");
+  const dayLeft = dayjs(endDate).diff(dayjs(), "day");
+  const suggestedSpend = Number(budget.value) - totalSpent;
+  const suggestedSpendPerDay = Math.round(suggestedSpend / dayLeft);
   const spentPerDay = Math.round(totalSpent / dayPassed);
+  const projectedSpent = totalSpent + dayLeft * spentPerDay;
   const predictedData = Array.from(
     {length: dayjs(endDate).diff(dayjs(), "day")},
     (_, i) => {
@@ -125,13 +130,35 @@ export function BudgetChart({transactions, budget}) {
   });
   data.sort((a, b) => dayjs(a.date).diff(dayjs(b.date)));
   return (
-    <div className="w-full flex ">
+    <div className="w-full flex flex-col">
       <VegaLite
         className="w-full"
         actions={false}
         spec={spec}
         data={{values: data}}
       />
+      <div className="p-1 bg-gray-900">
+        <DetailItem>
+          <div>Spent per day</div>
+          <Money value={spentPerDay} />
+        </DetailItem>
+        <DetailItem>
+          <div>Projected spending</div>
+          <Money value={projectedSpent} />
+        </DetailItem>
+        <DetailItem>
+          <div>Suggested spend per day</div>
+          <Money value={suggestedSpendPerDay} />
+        </DetailItem>
+      </div>
+    </div>
+  );
+}
+
+function DetailItem({children}) {
+  return (
+    <div className="flex justify-between items-center text-sm p-0.5">
+      {children}
     </div>
   );
 }
