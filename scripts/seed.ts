@@ -41,8 +41,8 @@ export const seed = async () => {
         // transactions
         const transactions = [
             { date: dayjs().startOf("month").toISOString(), value: 30_000_000, categoryId: salaryId },
-            // rental 6_000_000 to 7_000_000 at 5th of the month
-            { date: dayjs().startOf("month").add(5, 'day').toISOString(), value: getRandomNumber(6_000, 7_000)*1000, categoryId: rentalId },
+            // rental 6_000_000 to 7_000_000 at start of the month
+            { date: dayjs().startOf("month").toISOString(), value: getRandomNumber(6_000, 7_000)*1000, categoryId: rentalId },
         ];
         for (let i = 0; i < 100; i++) {
             // 4 food transactions from 10k to 50k
