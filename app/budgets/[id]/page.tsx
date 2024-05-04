@@ -5,6 +5,7 @@ import {getBudgetSpentAmount} from "../BudgetItem";
 import dayjs from "dayjs";
 import { getBudgetEndDate } from "@/utils/date";
 import { BudgetChart } from "./BudgetChart";
+import TransactionsList from "@/app/TransactionsList";
 
 type Props = {
     params: {id: string};
@@ -38,6 +39,14 @@ const dayLeft = dayjs(endDate).diff(dayjs(), "day");
         },
       },
     },
+    select: {
+      category: true,
+      value: true,
+      date: true
+    },
+    orderBy: {
+      date: "desc",
+    }
   });
 
   return (
@@ -61,6 +70,7 @@ const dayLeft = dayjs(endDate).diff(dayjs(), "day");
         <div>{`${dayLeft} days left`}</div>
       </div>
       <BudgetChart budget={budget} transactions={transactions}/>
+      <TransactionsList transactions={transactions} />
       </div>
     </div>
   );
