@@ -4,16 +4,15 @@ import {getBudgetEndDate} from "@/utils/date";
 import dayjs from "dayjs";
 import {get} from "http";
 import {VegaLite, VisualizationSpec} from "react-vega";
-import { scheme } from "vega";
-
+import {scheme} from "vega";
 
 // Define an interpolator function that maps from [0,1] to colors
 function grey(f) {
-    var g = Math.max(0, Math.min(255, Math.round(255 * f))) + '';
-    return 'rgb(' + g + ', ' + g + ', ' + g + ')';
-  }
-  
-  // Register the interpolator. Now the scheme "mygrey" can be used in Vega specs
+  var g = Math.max(0, Math.min(255, Math.round(255 * f))) + "";
+  return "rgb(" + g + ", " + g + ", " + g + ")";
+}
+
+// Register the interpolator. Now the scheme "mygrey" can be used in Vega specs
 scheme("mygrey", grey);
 
 export function BudgetChart({transactions, budget}) {
@@ -24,7 +23,11 @@ export function BudgetChart({transactions, budget}) {
     data: {name: "values"},
     layer: [
       {
-        mark: "line",
+        mark: {
+          type: "line",
+          stroke: "green",
+          clip: true,
+        },
         transform: [
           {
             sort: [{field: "date"}],
@@ -37,7 +40,12 @@ export function BudgetChart({transactions, budget}) {
             field: "date",
             type: "temporal",
             title: null,
-            scale: {domain: [startDate, endDate]},
+            scale: {
+              domain: [
+                dayjs(startDate).format("YYYY-MM-DD"),
+                dayjs(endDate).add(1, "day").format("YYYY-MM-DD"),
+              ],
+            },
             axis: {
               labels: false,
               grid: false,
@@ -57,24 +65,31 @@ export function BudgetChart({transactions, budget}) {
               domain: [0, Number(budget.value) * 1.2],
             },
           },
-          strokeDash: {field: "predicted", type: "nominal"},
+          strokeDash: {
+            field: "predicted",
+            type: "nominal",
+            scale: {
+              range: [[1, 1]],
+              domain: [true, true],
+            },
+          },
         },
         data: {name: "values"},
       },
       {
         data: {values: [{}]},
-        mark: {type: "rule", size: 2, strokeDash: [2, 2]},
+        mark: {type: "rule", stroke: "blue", size: 2, strokeDash: [2, 2]},
         encoding: {y: {datum: Number(budget.value)}},
       },
     ],
     width: "container",
     config: {
       legend: {disable: true},
-      "background": "#222",
-      "view": {"stroke": "#888"},
-      "title": {"color": "#fff", "subtitleColor": "#fff"},
-      "style": {"guide-label": {"fill": "#fff"}, "guide-title": {"fill": "#fff"}},
-      "axis": {"domainColor": "#fff", "gridColor": "#888", "tickColor": "#fff"}
+      background: "#222",
+      view: {stroke: "#888"},
+      title: {color: "#fff", subtitleColor: "#fff"},
+      style: {"guide-label": {fill: "#fff"}, "guide-title": {fill: "#fff"}},
+      axis: {domainColor: "#fff", gridColor: "#888", tickColor: "#fff"},
     },
   };
   const data = transactions.map((transaction) => ({
@@ -86,9 +101,8 @@ export function BudgetChart({transactions, budget}) {
     (acc, transaction) => acc + transaction.value,
     0,
   );
-  const spentPerDay = Math.round(
-    totalSpent / dayjs(endDate).diff(dayjs(startDate), "day"),
-  );
+  const dayPassed = dayjs().diff(dayjs(startDate), "day");
+  const spentPerDay = Math.round(totalSpent / dayPassed);
   const predictedData = Array.from(
     {length: dayjs(endDate).diff(dayjs(), "day")},
     (_, i) => {
