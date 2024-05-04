@@ -124,7 +124,6 @@ export function BudgetChart({transactions, budget}) {
     }
   });
   data.sort((a, b) => dayjs(a.date).diff(dayjs(b.date)));
-  console.log(JSON.stringify(data), JSON.stringify(spec));
   return (
     <div className="w-full flex ">
       <VegaLite
