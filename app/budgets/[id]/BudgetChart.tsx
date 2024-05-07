@@ -101,6 +101,7 @@ export function BudgetChart({transactions, budget}: Props) {
   const suggestedSpend = Number(budget.value) - totalSpent;
   const suggestedSpendPerDay = Math.round(suggestedSpend / dayLeft);
   const spentPerDay = Math.round(totalSpent / dayPassed);
+  const spentPerDayLast7Days = getSpentPerDayLast7Days();
   const projectedSpent = totalSpent + dayLeft * spentPerDay;
   const predictedData = Array.from(
     {length: dayjs(endDate).diff(dayjs(), "day")},
@@ -108,7 +109,7 @@ export function BudgetChart({transactions, budget}: Props) {
       const date = dayjs()
         .add(i + 1, "day")
         .format("YYYY-MM-DD");
-      return {date, value: spentPerDay, predicted: true};
+      return {date, value: spentPerDayLast7Days, predicted: true};
     },
   );
   data.push(...predictedData);
@@ -147,6 +148,19 @@ export function BudgetChart({transactions, budget}: Props) {
       </div>
     </div>
   );
+
+  function getSpentPerDayLast7Days() {
+    let spentLast7Days = 0;
+    for (let i = 0; i < 7; i++) {
+      const date = dayjs().subtract(i, "day").format("YYYY-MM-DD");
+      const ts = data.filter((t) => t.date === date);
+      for (let t of ts) {
+        spentLast7Days += t.value;
+      }
+    }
+    const spentPerDayLast7Days = Math.round(spentLast7Days / 7);
+    return spentPerDayLast7Days;
+  }
 }
 
 type DetailItemProps = {
