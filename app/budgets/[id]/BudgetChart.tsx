@@ -38,7 +38,7 @@ export function BudgetChart({transactions, budget}: Props) {
             scale: {
               domain: [
                 dayjs(startDate).format("YYYY-MM-DD"),
-                dayjs(endDate).add(1, "day").format("YYYY-MM-DD"),
+                dayjs(endDate).format("YYYY-MM-DD"),
               ],
             },
             axis: {
@@ -103,19 +103,9 @@ export function BudgetChart({transactions, budget}: Props) {
   const spentPerDay = Math.round(totalSpent / dayPassed);
   const spentPerDayLast7Days = getSpentPerDayLast7Days();
   const projectedSpent = totalSpent + dayLeft * spentPerDay;
-  const predictedData = Array.from(
-    {length: dayjs(endDate).diff(dayjs(), "day")},
-    (_, i) => {
-      const date = dayjs()
-        .add(i + 1, "day")
-        .format("YYYY-MM-DD");
-      return {date, value: spentPerDayLast7Days, predicted: true};
-    },
-  );
-  data.push(...predictedData);
   // filling gaps
   const allDates = Array.from(
-    {length: dayjs(endDate).diff(dayjs(startDate), "day")},
+    {length: dayjs(dayjs()).diff(dayjs(startDate), "day") + 1},
     (_, i) => dayjs(startDate).add(i, "day").format("YYYY-MM-DD"),
   );
   allDates.forEach((date) => {
@@ -123,6 +113,14 @@ export function BudgetChart({transactions, budget}: Props) {
       data.push({date, value: 0, predicted: false});
     }
   });
+  const predictedData = Array.from(
+    {length: dayjs(endDate).diff(dayjs(), "day") + 1},
+    (_, i) => {
+      const date = dayjs().add(i, "day").format("YYYY-MM-DD");
+      return {date, value: spentPerDayLast7Days, predicted: true};
+    },
+  );
+  data.push(...predictedData);
   data.sort((a, b) => dayjs(a.date).diff(dayjs(b.date)));
   return (
     <div className="w-full flex flex-col">
