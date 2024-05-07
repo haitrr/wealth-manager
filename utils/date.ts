@@ -1,11 +1,12 @@
-import { Budget } from "@prisma/client";
 import dayjs from "dayjs";
+import { Budget } from "./types";
+import { BudgetPeriod } from "@prisma/client";
 
 export const formatDate = (date: dayjs.Dayjs) => {
     return date.format("MMM D YYYY");
 };
 
-export const getBudgetEndDate = (budget: Budget) => {
+export const getBudgetEndDate = (budget: Pick<Budget, "startDate" | "period">) => {
     if (budget.period === "MONTHLY") {
         return dayjs(budget.startDate).add(1, "month").toDate();
     }

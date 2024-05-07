@@ -10,7 +10,12 @@ export default async function BudgetPage() {
       </div>
       <div>
         {budgets.map((budget) => {
-          return <BudgetItem key={budget.id} budget={budget} />;
+          return (
+            <BudgetItem
+              key={budget.id}
+              budget={{...budget, value: budget.value.toNumber()}}
+            />
+          );
         })}
       </div>
     </div>

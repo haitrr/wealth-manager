@@ -1,3 +1,4 @@
+"use client"
 import { Transaction } from "@/utils/types";
 import { CategoryIcon } from "./CategoryIcon";
 import { Money } from "./Money";

@@ -1,17 +1,15 @@
-import prisma from "@/lib/prisma";
 import { getBudgetEndDate } from "@/utils/date";
-import { Budget } from "@prisma/client";
-import dayjs from "dayjs";
 import { getBudgetSpentAmount } from "./BudgetItem";
+import { Budget } from "@/utils/types";
 
 type Props = {
-  budget: Budget & {categories: {id: string}[]};
+  budget: Pick<Budget, "startDate" | "value" | "period">;
 };
 
 export async function BudgetProgress({budget}: Props) {
   const startDate = budget.startDate;
   const endDate = getBudgetEndDate(budget);
-  const value = budget.value.toNumber();
+  const value = budget.value;
   const spent = await getBudgetSpentAmount(budget)
   const now = new Date();
   const totalDays =
