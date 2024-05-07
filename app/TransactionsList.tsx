@@ -20,7 +20,7 @@ const TransactionsList = async ({transactions}: Props) => {
   });
 
   return (
-    <div className="w-full">
+    <div className="w-full flex flex-col gap-4">
       {Object.keys(transactionsByDate).map((date) => {
         const dateTransactions = transactionsByDate[date];
         const dayjsDate = dayjs(date);
