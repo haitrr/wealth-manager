@@ -2,6 +2,7 @@ import prisma from "@/lib/prisma";
 import { getBudgetEndDate } from "@/utils/date";
 import { Budget } from "@prisma/client";
 import dayjs from "dayjs";
+import { getBudgetSpentAmount } from "./BudgetItem";
 
 type Props = {
   budget: Budget & {categories: {id: string}[]};
@@ -11,21 +12,7 @@ export async function BudgetProgress({budget}: Props) {
   const startDate = budget.startDate;
   const endDate = getBudgetEndDate(budget);
   const value = budget.value.toNumber();
-  const used = await prisma.transaction.aggregate({
-    where: {
-      AND: [
-        {date: {gte: budget.startDate}},
-        {date: {lt: endDate}},
-        {
-          category: {
-            id: {in: budget.categories.map((category) => category.id)},
-          },
-        },
-      ],
-    },
-    _sum: {value: true},
-  });
-  const spent = used._sum.value?.toNumber() ?? 0;
+  const spent = await getBudgetSpentAmount(budget)
   const now = new Date();
   const totalDays =
     (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24);
