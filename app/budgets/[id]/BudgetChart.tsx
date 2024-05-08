@@ -102,7 +102,6 @@ export function BudgetChart({transactions, budget}: Props) {
   const suggestedSpendPerDay = Math.round(suggestedSpend / dayLeft);
   const spentPerDay = Math.round(totalSpent / dayPassed);
   const spentPerDayLast7Days = getSpentPerDayLast7Days();
-  const projectedSpent = totalSpent + dayLeft * spentPerDay;
   // filling gaps
   const allDates = Array.from(
     {length: dayjs(dayjs()).diff(dayjs(startDate), "day") + 1},
@@ -120,6 +119,11 @@ export function BudgetChart({transactions, budget}: Props) {
       return {date, value: spentPerDayLast7Days, predicted: true};
     },
   );
+  const predictedSpent = predictedData.reduce(
+    (acc, transaction) => acc + transaction.value,
+    0,
+  );
+  const projectedSpent = totalSpent + predictedSpent;
   data.push(...predictedData);
   data.sort((a, b) => dayjs(a.date).diff(dayjs(b.date)));
   return (
