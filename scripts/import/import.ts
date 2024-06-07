@@ -5,6 +5,7 @@ import fs from "fs";
 import csvParse from "csv-parse";
 import dayjs from "dayjs";
 import customParseFormat from 'dayjs/plugin/customParseFormat';
+import { CategoryType } from "@prisma/client";
 dayjs.extend(customParseFormat);
 
 
@@ -26,10 +27,8 @@ export const importTransactions = async () => {
         if (!categoryMap.has(categoryName)) {
           categoryMap.set(categoryName, {
               name: categoryName,
-              type: row[3][0] === "-" ? "EXPENSE" : "INCOME"
+              type: row[3][0] === "-" ? CategoryType.EXPENSE : CategoryType.INCOME
           });
-          // Sleep 0.5s
-          await new Promise((resolve) => setTimeout(resolve, 500));
         }
 
         transactionData.push({
