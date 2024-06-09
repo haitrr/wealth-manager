@@ -23,12 +23,12 @@ const FieldContainer = ({children, className}: ContainerProps) => {
 const AddTransactionPage = async () => {
   const categories = await prisma.category.findMany();
   return (
-    <div>
+    <div className="p-4">
       <h1>Add Transaction</h1>
       <form>
         <FieldContainer>
           <Label className="w-24">Date</Label>
-          <DatePicker />
+          <DatePicker name="date"/>
         </FieldContainer>
         <FieldContainer>
           <Label className="w-24">Amount</Label>
