@@ -6,6 +6,7 @@ import AccountBalance from "./AccountBalance";
 import prisma from "@/lib/prisma";
 import {formatVND, getColor} from "@/utils/currency";
 import { Money } from "./Money";
+import { AddTransactionButton } from "./AddTransactionButton";
 
 const getThisMonthTransactions = async () => {
   const transactions = await prisma.transaction.findMany({
@@ -79,6 +80,9 @@ export default async function Home({}) {
         </div>
       </div>
       <TransactionsList transactions={transactions} />
+      <AddTransactionButton/>
     </div>
   );
 }
+
+

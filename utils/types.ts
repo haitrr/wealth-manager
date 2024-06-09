@@ -21,7 +21,7 @@ export type CategoryType = "INCOME" | "EXPENSE" | "DEBT" | "LOAN"
     | "LOAN_PAYMENT"
 
 export type Category = {
-    id?: string;
+    id: string;
     name: string;
     type: CategoryType;
 }

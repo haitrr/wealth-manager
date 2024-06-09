@@ -1,21 +1,34 @@
 "use client";
 
 import {Category} from "@/utils/types";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 type Props = {
   categories: Category[];
   name: string;
+  className?: string;
 };
 
-const CategorySelect = ({categories, name}: Props) => {
+const CategorySelect = ({categories, name, className}: Props) => {
   return (
-    <select name={name} className="text-slate-950">
-      {categories.map((category) => (
-        <option key={category.id} value={category.id}>
-          {category.name}
-        </option>
-      ))}
-    </select>
+    <Select name={name}>
+      <SelectTrigger className={className}>
+        <SelectValue placeholder="Select category" />
+      </SelectTrigger>
+      <SelectContent>
+        {categories.map((category) => (
+          <SelectItem key={category.id} value={category.id}>
+            {category.name}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
   );
 };
 
