@@ -1,4 +1,4 @@
-import type {Metadata} from "next";
+import type {Metadata, Viewport} from "next";
 import {Inter as FontSans} from "next/font/google";
 import "@/styles/globals.css";
 import {NavigationBar} from "./NavigationBar";
@@ -10,6 +10,13 @@ export const metadata: Metadata = {
   icons: {
     icon: "/icon.jpeg",
   },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  height: "device-height",
+  initialScale: 1,
+  viewportFit: "cover",
 };
 
 const fontSans = FontSans({
@@ -24,16 +31,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={cn("min-h-screen font-sans antialiased", fontSans.variable)}
-      >
+      <body className={cn("font-sans antialiased", fontSans.variable)}>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
           enableSystem
           disableTransitionOnChange
         >
-          <div className="min-h-screen ">{children}</div>
+          <div className="min-h-dvh box-border">{children}</div>
           <NavigationBar />
         </ThemeProvider>
       </body>
