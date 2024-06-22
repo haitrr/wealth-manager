@@ -57,7 +57,7 @@ export default async function Home({}) {
 
   return (
     <div>
-      <div className="flex p-1 flex-col items-center bg-primary text-secondary">
+      <div className="flex p-1 flex-col items-center">
         <div>Balance</div>
         <AccountBalance />
       </div>

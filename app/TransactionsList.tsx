@@ -2,8 +2,8 @@ import dayjs from "dayjs";
 import {formatVND, getColor} from "@/utils/currency";
 import {Transaction} from "@/utils/types";
 import {getDayOfWeek} from "@/utils/date";
-import { TransactionItem } from "./TransactionItem";
-import { Money } from "./Money";
+import {TransactionItem} from "./TransactionItem";
+import {Money} from "./Money";
 
 type Props = {
   transactions: Transaction[];
@@ -36,7 +36,7 @@ const TransactionsList = async ({transactions}: Props) => {
           }
         });
         return (
-          <div key={date} className="bg-gray-800 w-full">
+          <div key={date} className=" w-full">
             <div className="flex items-center justify-between p-2 text-xl">
               <div className="flex gap-2 items-center">
                 <span className="text-xl">{day}</span>

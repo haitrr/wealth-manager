@@ -28,7 +28,7 @@ function MenuItem({item}: Props) {
 
 export function NavigationBar() {
   return (
-    <div className="flex sticky bottom-0 justify-between p-4 bg-gray-900 text-xl">
+    <div className="flex sticky bottom-0 justify-between p-4 text-xl bg-secondary">
       {menuItems.map((item) => {
         return <MenuItem key={item.href} item={item} />;
       })}

@@ -1,9 +1,9 @@
 import type {Metadata} from "next";
-import {Inter} from "next/font/google";
-import "./globals.css";
+import {Inter as FontSans} from "next/font/google";
+import "@/styles/globals.css";
 import {NavigationBar} from "./NavigationBar";
-
-const inter = Inter({subsets: ["latin"]});
+import {cn} from "@/lib/utils";
+import {ThemeProvider} from "@/components/theme-provider";
 
 export const metadata: Metadata = {
   title: "Wealth Manager",
@@ -12,6 +12,11 @@ export const metadata: Metadata = {
   },
 };
 
+const fontSans = FontSans({
+  subsets: ["latin"],
+  variable: "--font-sans",
+});
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -19,13 +24,18 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={inter.className}>
-        <>
-          <div className="min-h-screen bg-primary text-secondary">
-            {children}
-          </div>
+      <body
+        className={cn("min-h-screen font-sans antialiased", fontSans.variable)}
+      >
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <div className="min-h-screen ">{children}</div>
           <NavigationBar />
-        </>
+        </ThemeProvider>
       </body>
     </html>
   );

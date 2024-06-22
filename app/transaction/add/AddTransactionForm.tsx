@@ -71,8 +71,10 @@ export const AddTransactionForm = () => {
         />
       </FieldContainer>
       <FieldContainer>
-        <Button onClick={handleCancel}>Cancel</Button>
-        <Button>Submit</Button>
+        <Button variant="secondary" onClick={handleCancel}>
+          Cancel
+        </Button>
+        <Button type="submit">Submit</Button>
       </FieldContainer>
     </form>
   );
