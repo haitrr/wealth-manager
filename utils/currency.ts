@@ -8,12 +8,12 @@ export const formatVND = (amount: number) => {
 };
 
 
-export const getColor = (amount: number, categoryType: CategoryType | undefined = undefined) => {
-  if(categoryType) {
-    if(categoryType === "INCOME") {
-      return "text-green-500"
+export const getColorVariant = (amount: number, categoryType: CategoryType | undefined = undefined) => {
+  if (categoryType) {
+    if (categoryType === "INCOME") {
+      return "positive"
     }
-    return "text-red-500"
+    return "negative"
   }
-  return amount >= 0 ? "text-green-500" : "text-red-500";
+  return amount >= 0 ? "positive" : "negative";
 }

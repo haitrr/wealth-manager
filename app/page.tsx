@@ -64,15 +64,11 @@ export default async function Home({}) {
       <div className="rounded">
         <div className="flex justify-between p-2">
           <div>Income</div>
-          <div className={`${getColor(totalIncome)}`}>
-            {formatVND(totalIncome)}
-          </div>
+          <Money value={totalIncome} />
         </div>
         <div className="flex justify-between p-2">
           <div>Expense</div>
-          <div className={`${getColor(-totalExpense)}`}>
-            {formatVND(totalExpense)}
-          </div>
+          <Money value={-totalExpense} />
         </div>
         <div className="flex justify-between p-2 border-t border-gray-800">
           <div>Net Income</div>
