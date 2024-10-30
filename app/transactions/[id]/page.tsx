@@ -2,8 +2,7 @@
 import {getTransaction} from "@/actions/transaction";
 import {Money} from "@/app/Money";
 import {formatDate} from "@/utils/date";
-import {Transaction} from "@prisma/client";
-import {useParams} from "next/navigation";
+import {useParams, useRouter} from "next/navigation";
 import {useEffect, useState} from "react";
 
 function TransactionDetailPage() {
@@ -15,16 +14,20 @@ function TransactionDetailPage() {
       setTransaction(data);
     });
   }, [transactionId]);
+  const router = useRouter();
+
+  const onEdit = () => {
+    router.push(`/transactions/${transactionId}/edit`);
+  };
 
   if (!transaction) return <div>Loading...</div>;
-  console.log(typeof transaction.value);
 
   return (
     <div className="flex items-center flex-col">
       <div>{transaction.category!.name}</div>
       <Money value={transaction.value} />
       <div>{formatDate(transaction.date)}</div>
-      <button>Edit</button>
+      <button onClick={onEdit}>Edit</button>
     </div>
   );
 }
