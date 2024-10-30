@@ -27,7 +27,7 @@ type Props = {
 };
 
 export const TransactionForm = ({onSubmit}: Props) => {
-  const [categories, setCategories] = useState([]);
+  const [categories, setCategories] = useState<any>([]);
 
   useEffect(() => {
     getCategories().then((data) => {

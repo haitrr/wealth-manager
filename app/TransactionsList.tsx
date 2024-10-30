@@ -1,5 +1,4 @@
 import dayjs from "dayjs";
-import {formatVND, getColor} from "@/utils/currency";
 import {Transaction} from "@/utils/types";
 import {getDayOfWeek} from "@/utils/date";
 import {TransactionItem} from "./TransactionItem";

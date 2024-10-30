@@ -4,7 +4,6 @@ dayjs.extend(relativeTime);
 import TransactionsList from "./TransactionsList";
 import AccountBalance from "./AccountBalance";
 import prisma from "@/lib/prisma";
-import {formatVND, getColor} from "@/utils/currency";
 import {Money} from "./Money";
 import {AddTransactionButton} from "./AddTransactionButton";
 

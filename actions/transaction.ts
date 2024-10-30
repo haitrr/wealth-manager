@@ -1,8 +1,7 @@
 "use server"
 import prisma from "@/lib/prisma";
-import { Decimal } from "@prisma/client/runtime/library";
 
-export const createTransaction = async (transaction) => {
+export const createTransaction = async (transaction: any) => {
     await prisma.transaction.create({ data: transaction });
 }
 
