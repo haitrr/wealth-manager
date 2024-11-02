@@ -11,13 +11,20 @@ import {
 
 type Props = {
   categories: Category[];
-  name: string;
   className?: string;
+  value?: string;
+  onChange: (value: string) => void;
 };
 
-const CategorySelect = ({categories, name, className}: Props) => {
+const CategorySelect = ({
+  categories,
+  className,
+  value,
+  onChange,
+  ...props
+}: Props) => {
   return (
-    <Select name={name}>
+    <Select {...props} value={value} onValueChange={onChange}>
       <SelectTrigger className={className}>
         <SelectValue placeholder="Select category" />
       </SelectTrigger>

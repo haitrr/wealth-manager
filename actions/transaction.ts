@@ -19,3 +19,12 @@ export const getTransaction = async (id: string) => {
     }
     return { ...transaction, value: transaction?.value.toNumber() };
 }
+
+export const updateTransaction = async (id: string, transaction: any) => {
+    await prisma.transaction.update({
+        where: {
+            id: id,
+        },
+        data: transaction,
+    });
+}

@@ -1,13 +1,10 @@
-import prisma from "@/lib/prisma";
-import dayjs from "dayjs";
-import { AddTransactionForm } from "./AddTransactionForm";
-
+import {AddTransactionForm} from "./AddTransactionForm";
 
 const AddTransactionPage = async () => {
   return (
     <div className="p-4">
       <h1>Add Transaction</h1>
-      <AddTransactionForm  />
+      <AddTransactionForm />
     </div>
   );
 };

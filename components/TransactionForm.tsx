@@ -5,9 +5,8 @@ import {Input} from "@/components/ui/input";
 import {DatePicker} from "@/components/ui/datepicker";
 import {Label} from "@/components/ui/label";
 import {getCategories} from "@/actions/category";
-import dayjs from "dayjs";
-import createTransaction from "@/server-actions/transaction";
 import {useEffect, useState} from "react";
+import {useForm, Controller} from "react-hook-form";
 
 type ContainerProps = {
   children: React.ReactNode;
@@ -23,11 +22,25 @@ const FieldContainer = ({children, className}: ContainerProps) => {
 };
 
 type Props = {
-  onSubmit: (data: any) => void;
+  onSubmit: (data: Inputs) => void;
+  defaultValues?: Inputs;
 };
 
-export const TransactionForm = ({onSubmit}: Props) => {
+type Inputs = {
+  date: Date;
+  value: number;
+  categoryId: string;
+};
+
+export const TransactionForm = ({onSubmit, defaultValues}: Props) => {
   const [categories, setCategories] = useState<any>([]);
+  const {
+    register,
+    handleSubmit,
+    watch,
+    control,
+    formState: {errors},
+  } = useForm<Inputs>({defaultValues: defaultValues});
 
   useEffect(() => {
     getCategories().then((data) => {
@@ -39,40 +52,37 @@ export const TransactionForm = ({onSubmit}: Props) => {
     window.history.back();
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const form = e.target as HTMLFormElement;
-    const formData = new FormData(form);
-    const date = formData.get("date") as string;
-    const value = formData.get("value") as string;
-    const categoryId = formData.get("categoryId") as string;
-    const transaction = {
-      date: dayjs(date).toDate(),
-      value: parseFloat(value),
-      categoryId,
-    };
-    onSubmit(transaction);
-    // createTransaction(transaction).then(() => {
-    //   window.location.href = "/";
-    // });
-  };
-
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit(onSubmit)}>
       <FieldContainer>
         <Label className="w-24">Date</Label>
-        <DatePicker name="date" />
+        <Controller
+          control={control}
+          name="date"
+          render={({field: {value, onChange}}) => {
+            return <DatePicker value={value} onChange={onChange} />;
+          }}
+        ></Controller>
       </FieldContainer>
       <FieldContainer>
         <Label className="w-24">Amount</Label>
-        <Input type="number" name="value" className="w-50" required />
+        <Input className="w-50" required {...register("value")} />
       </FieldContainer>
       <FieldContainer className="flex items-center">
         <Label className="w-24">Category</Label>
-        <CategorySelect
+        <Controller
           name="categoryId"
-          className="w-50"
-          categories={categories}
+          control={control}
+          render={({field: {value, onChange}}) => {
+            return (
+              <CategorySelect
+                className="w-50"
+                categories={categories}
+                value={value}
+                onChange={onChange}
+              />
+            );
+          }}
         />
       </FieldContainer>
       <FieldContainer>
