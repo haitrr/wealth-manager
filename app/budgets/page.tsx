@@ -1,5 +1,6 @@
 import prisma from "@/lib/prisma";
 import {BudgetItem} from "./BudgetItem";
+import {AddBudgetButton} from "./AddBudgetButton";
 
 export default async function BudgetPage() {
   const budgets = await prisma.budget.findMany({include: {categories: true}});
@@ -18,6 +19,7 @@ export default async function BudgetPage() {
           );
         })}
       </div>
+      <AddBudgetButton />
     </div>
   );
 }

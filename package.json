@@ -34,7 +34,8 @@
     "tailwind-merge": "^2.3.0",
     "tailwindcss-animate": "^1.0.7",
     "vega": "^5.28.0",
-    "vega-lite": "^5.18.0"
+    "vega-lite": "^5.18.0",
+    "antd": "^5.0.0"
   },
   "devDependencies": {
     "@types/node": "^20",
