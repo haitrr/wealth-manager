@@ -7,7 +7,8 @@ import {getBudgetEndDate} from "@/utils/date";
 import {BudgetChart} from "./BudgetChart";
 import TransactionsList from "@/app/TransactionsList";
 import {getAllBudgetCategoriesIds} from "@/utils/budget";
-import { Budget } from "@/utils/types";
+import {Budget} from "@/utils/types";
+import EditBudgetButton from "./EditBudgetButton";
 
 type Props = {
   params: {id: string};
@@ -19,7 +20,7 @@ export default async function BudgetDetailPage({params}: Props) {
     where: {id},
     include: {categories: {select: {id: true}}},
   });
-  if(!budgetP) {
+  if (!budgetP) {
     return <div>Not found</div>;
   }
   const budget: Budget = {...budgetP, value: budgetP.value.toNumber()};
@@ -60,9 +61,8 @@ export default async function BudgetDetailPage({params}: Props) {
           <div>{`${dayLeft} days left`}</div>
         </div>
         <BudgetChart budget={budget} transactions={transactions} />
-        <TransactionsList
-          transactions={transactions}
-        />
+        <TransactionsList transactions={transactions} />
+        <EditBudgetButton id={budget.id} />
       </div>
     </div>
   );
@@ -93,6 +93,5 @@ async function getTransactions(budget: Budget, categoryIds: string[]) {
 
   return trans.map((t) => {
     return {...t, value: t.value.toNumber()};
-  })
+  });
 }
-
