@@ -14,7 +14,7 @@ import {TreeSelect} from "antd";
 
 type Props = {
   className?: string;
-  value?: string;
+  value?: string[];
   onChange: (value: string) => void;
 };
 
@@ -46,6 +46,7 @@ const CategoryTreeSelect = ({className, ...props}: Props) => {
     [categories],
   );
   return (
+    // @ts-ignore - TreeSelect value for multiple is string[]
     <TreeSelect style={{width: 300}} multiple treeData={treeDate} {...props} />
   );
 };

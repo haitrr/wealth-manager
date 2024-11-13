@@ -3,7 +3,11 @@
 import {Button} from "antd";
 import {useRouter} from "next/navigation";
 
-const EditBudgetButton = ({id}) => {
+type Props = {
+  id: string;
+};
+
+const EditBudgetButton = ({id}: Props) => {
   const router = useRouter();
   return (
     <Button
