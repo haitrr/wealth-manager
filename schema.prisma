@@ -16,6 +16,8 @@ model Transaction {
     value      Decimal
     category   Category @relation(fields: [categoryId], references: [id])
     categoryId String
+    debtId     String?
+    debt       Debt?    @relation("DebtTransactions", fields: [debtId], references: [id])
 
     @@index([date], type: BTree)
     @@index([categoryId], type: Hash)
@@ -41,6 +43,15 @@ model Budget {
     startDate  DateTime
     period     BudgetPeriod
     repeat     Boolean
+}
+
+model Debt {
+    id           String        @id @default(cuid())
+    name         String
+    amount       String
+    paidAmount   String
+    startDate    DateTime?
+    transactions Transaction[] @relation("DebtTransactions")
 }
 
 enum BudgetPeriod {
