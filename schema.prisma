@@ -50,8 +50,8 @@ model Budget {
 model Debt {
     id           String        @id @default(cuid())
     name         String
-    amount       String
-    paidAmount   String
+    amount       Decimal
+    paidAmount   Decimal
     startDate    DateTime?
     transactions Transaction[] @relation("DebtTransactions")
 }
@@ -59,8 +59,8 @@ model Debt {
 model Loan {
     id           String        @id @default(cuid())
     name         String
-    amount       String
-    paidAmount   String
+    amount       Decimal
+    paidAmount   Decimal
     startDate    DateTime?
     transactions Transaction[] @relation("LoanTransactions")
 }

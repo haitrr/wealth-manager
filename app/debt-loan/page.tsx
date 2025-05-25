@@ -1,6 +1,7 @@
 "use client";
 
 import {useEffect, useState} from "react";
+import {useRouter} from "next/navigation"; // Added import
 
 interface DebtLoan {
   id: string;
@@ -13,6 +14,7 @@ interface DebtLoan {
 }
 
 export default function DebtLoansPage() {
+  const router = useRouter(); // Initialize router
   const [debtLoans, setDebtLoans] = useState<DebtLoan[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -81,8 +83,7 @@ export default function DebtLoansPage() {
       )}
       <button
         onClick={() => {
-          // Placeholder for navigation or modal opening
-          console.log("Add Debt/Loan button clicked");
+          router.push("/debt-loan/add"); // Navigate to /debt-loan/add
         }}
         className="absolute bottom-8 right-8 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full shadow-lg z-50"
         aria-label="Add Debt or Loan"
