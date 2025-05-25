@@ -39,7 +39,7 @@ export default async function BudgetDetailPage({params}: Props) {
   const transactions = await getTransactions(budget, categoryIds);
 
   return (
-    <div>
+    <div className="h-full">
       <div className="flex p-4 flex-col gap-1 justify-center text-sm items-center">
         <div>{budget.name}</div>
         <Money value={budget.value} />

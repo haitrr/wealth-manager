@@ -1,9 +1,10 @@
 "use client";
 
 import {Money} from "@/app/Money";
+import {Echarts} from "@/components/Echarts/Echarts";
 import {getBudgetEndDate} from "@/utils/date";
 import dayjs from "dayjs";
-import {VegaLite, VisualizationSpec} from "react-vega";
+import {useEffect, useRef, useState} from "react";
 
 type Props = {
   transactions: any[];
@@ -11,82 +12,9 @@ type Props = {
 };
 
 export function BudgetChart({transactions, budget}: Props) {
+  const [chartOptions, setChartOptions] = useState({});
   const startDate = dayjs(budget.startDate).format("YYYY-MM-DD");
   const endDate = dayjs(getBudgetEndDate(budget)).format("YYYY-MM-DD");
-  const spec: VisualizationSpec = {
-    $schema: "https://vega.github.io/schema/vega-lite/v5.json",
-    data: {name: "values"},
-    layer: [
-      {
-        mark: {
-          type: "line",
-          stroke: "green",
-          clip: true,
-        },
-        transform: [
-          {
-            sort: [{field: "date"}],
-            window: [{op: "sum", field: "value", as: "cumulative_spent"}],
-            frame: [null, 0],
-          },
-        ],
-        encoding: {
-          x: {
-            field: "date",
-            type: "temporal",
-            title: null,
-            scale: {
-              domain: [
-                dayjs(startDate).format("YYYY-MM-DD"),
-                dayjs(endDate).format("YYYY-MM-DD"),
-              ],
-            },
-            axis: {
-              labels: false,
-              grid: false,
-              ticks: false,
-            },
-          },
-          y: {
-            field: "cumulative_spent",
-            type: "quantitative",
-            title: null,
-            axis: {
-              labelFontSize: 8,
-              ticks: false,
-              grid: false,
-            },
-            scale: {
-              domain: [0, Number(budget.value) * 1.2],
-            },
-          },
-          strokeDash: {
-            field: "predicted",
-            type: "nominal",
-            scale: {
-              range: [[1, 1]],
-              domain: [true, true],
-            },
-          },
-        },
-        data: {name: "values"},
-      },
-      {
-        data: {values: [{}]},
-        mark: {type: "rule", stroke: "blue", size: 2, strokeDash: [2, 2]},
-        encoding: {y: {datum: Number(budget.value)}},
-      },
-    ],
-    width: "container",
-    config: {
-      legend: {disable: true},
-      background: "#222",
-      view: {stroke: "#888"},
-      title: {color: "#fff", subtitleColor: "#fff"},
-      style: {"guide-label": {fill: "#fff"}, "guide-title": {fill: "#fff"}},
-      axis: {domainColor: "#fff", gridColor: "#888", tickColor: "#fff"},
-    },
-  };
   const data = transactions.map((transaction) => ({
     date: dayjs(transaction.date).format("YYYY-MM-DD"),
     value: Number(transaction.value),
@@ -126,14 +54,120 @@ export function BudgetChart({transactions, budget}: Props) {
   const projectedSpent = totalSpent + predictedSpent;
   data.push(...predictedData);
   data.sort((a, b) => dayjs(a.date).diff(dayjs(b.date)));
+
+  // Initialize chart after component mounts
+  useEffect(() => {
+    const cumulativeData = data.reduce((acc, item) => {
+      const lastValue = acc.length > 0 ? acc[acc.length - 1].value : 0;
+      acc.push({
+        date: item.date,
+        value: lastValue + item.value,
+        predicted: item.predicted,
+      });
+      return acc;
+    }, [] as {date: string; value: number; predicted: boolean}[]);
+
+    // Separate actual and predicted data for different line styles
+    const actualData = cumulativeData
+      .filter((item) => !item.predicted)
+      .map((item) => [item.date, item.value]);
+
+    const predictedData = cumulativeData
+      .filter((item) => item.predicted)
+      .map((item) => [item.date, item.value]);
+
+    // Set chart options
+    const option = {
+      backgroundColor: "#222",
+      grid: {
+        left: "3%",
+        right: "4%",
+        bottom: "3%",
+        containLabel: true,
+      },
+      xAxis: {
+        type: "time",
+        min: startDate,
+        max: endDate,
+        axisLabel: {
+          formatter: "{MM}-{dd}",
+          color: "#fff",
+          hideOverlap: true,
+        },
+        splitLine: {
+          show: false,
+        },
+      },
+      yAxis: {
+        type: "value",
+        max: Number(budget.value) * 1.2,
+        axisLabel: {
+          color: "#fff",
+        },
+        splitLine: {
+          lineStyle: {
+            color: "#333",
+          },
+        },
+      },
+      series: [
+        {
+          data: actualData,
+          type: "line",
+          smooth: true,
+          lineStyle: {
+            width: 2,
+            color: "green",
+          },
+          symbol: "none",
+        },
+        {
+          data: predictedData,
+          type: "line",
+          smooth: true,
+          lineStyle: {
+            width: 2,
+            color: "green",
+            type: "dashed",
+          },
+          symbol: "none",
+        },
+        {
+          type: "line",
+          markLine: {
+            silent: true,
+            symbol: "none",
+            lineStyle: {
+              color: "blue",
+              width: 2,
+              type: "dashed",
+            },
+            data: [
+              {
+                yAxis: Number(budget.value),
+                label: {
+                  show: false,
+                },
+              },
+            ],
+          },
+        },
+      ],
+      tooltip: {
+        trigger: "axis",
+        formatter: function (params: any) {
+          const date = params[0].value[0];
+          const value = params[0].value[1] || params[1]?.value[1] || 0;
+          return `${dayjs(date).format("MMM D")}: ${value.toLocaleString()}`;
+        },
+      },
+    };
+    setChartOptions(option);
+  }, [data, budget.value, startDate, endDate]);
+
   return (
     <div className="w-full flex flex-col">
-      <VegaLite
-        className="w-full"
-        actions={false}
-        spec={spec}
-        data={{values: data}}
-      />
+      <Echarts options={chartOptions} isLoading={!chartOptions} />
       <div className="p-1 bg-gray-900">
         <DetailItem>
           <div>Spent per day</div>

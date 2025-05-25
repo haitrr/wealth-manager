@@ -45,7 +45,7 @@ export default function RootLayout({
               disableTransitionOnChange
             >
               <div className="flex flex-col h-screen min-h-0 relative">
-                <div className="min-h-0 flex-1 box-border relative">
+                <div className="min-h-0 flex-1 box-border relative overflow-auto">
                   {children}
                 </div>
                 <NavigationBar />
