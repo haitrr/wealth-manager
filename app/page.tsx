@@ -7,7 +7,7 @@ import AccountBalance from "./AccountBalance";
 import prisma from "@/lib/prisma";
 import {Money} from "./Money";
 import {AddTransactionButton} from "./AddTransactionButton";
-import {ConfigProvider, theme} from "antd";
+import { Separator } from "@/components/ui/separator";
 
 const getThisMonthTransactions = async () => {
   const transactions = await prisma.transaction.findMany({
@@ -74,7 +74,7 @@ export default async function Home({}) {
         <div>Balance</div>
         <AccountBalance />
       </div>
-      <div className="rounded">
+      <div className="rounded p-2">
         <div className="flex justify-between p-2">
           <div>Income</div>
           <Money value={totalIncome} />
@@ -83,11 +83,12 @@ export default async function Home({}) {
           <div>Expense</div>
           <Money value={-totalExpense} />
         </div>
-        <div className="flex justify-between p-2 border-t border-gray-800">
+        <div className="flex justify-between p-2 ">
           <div>Net Income</div>
           <Money value={netIncome} />
         </div>
       </div>
+      <Separator/>
       <TransactionsList transactions={transactions} />
       <AddTransactionButton />
     </div>
