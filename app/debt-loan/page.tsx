@@ -55,7 +55,7 @@ export default function DebtLoansPage() {
   }
 
   return (
-    <div className="container mx-auto p-4">
+    <div className="container mx-auto p-4 relative h-full">
       <h1 className="text-2xl font-bold mb-4">Debt Loans</h1>
       {debtLoans.length === 0 ? (
         <p>No debt loans found.</p>
@@ -79,6 +79,16 @@ export default function DebtLoansPage() {
           ))}
         </ul>
       )}
+      <button
+        onClick={() => {
+          // Placeholder for navigation or modal opening
+          console.log("Add Debt/Loan button clicked");
+        }}
+        className="absolute bottom-8 right-8 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full shadow-lg z-50"
+        aria-label="Add Debt or Loan"
+      >
+        Add Debt/Loan
+      </button>
     </div>
   );
 }
