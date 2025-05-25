@@ -65,7 +65,11 @@ export default function DebtLoansPage() {
       ) : (
         <ul className="space-y-4">
           {debtLoans.map((loan) => (
-            <li key={loan.id} className="p-4 border rounded-lg shadow-sm">
+            <li 
+              key={loan.id} 
+              className="p-4 border rounded-lg shadow-sm cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              onClick={() => router.push(`/debt-loan/${loan.id}`)}
+            >
               <h2 className="text-xl font-semibold">{loan.name}</h2>
               <p>Amount: {formatVND(loan.amount)}</p>
               {/* Conditionally render optional fields */}
