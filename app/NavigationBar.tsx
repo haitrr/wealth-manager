@@ -4,7 +4,7 @@ import {usePathname} from "next/navigation";
 const menuItems = [
   {label: "Home", href: "/", pattern: /^\/$/},
   {label: "Budgets", href: "/budgets", pattern: /^\/budgets.*/},
-  {label: "Debt/Loan", href: "/debt-loan", pattern: /^\/debt-loan.*/},
+  {label: "Loans", href: "/debt-loan", pattern: /^\/debt-loan.*/},
   {label: "Settings", href: "/settings", pattern: /^\/settings.*/},
 ];
 

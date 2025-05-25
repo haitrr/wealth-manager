@@ -18,6 +18,8 @@ model Transaction {
     categoryId String
     debtId     String?
     debt       Debt?    @relation("DebtTransactions", fields: [debtId], references: [id])
+    loanId     String?
+    loan       Loan?    @relation("LoanTransactions", fields: [loanId], references: [id])
 
     @@index([date], type: BTree)
     @@index([categoryId], type: Hash)
@@ -52,6 +54,15 @@ model Debt {
     paidAmount   String
     startDate    DateTime?
     transactions Transaction[] @relation("DebtTransactions")
+}
+
+model Loan {
+    id           String        @id @default(cuid())
+    name         String
+    amount       String
+    paidAmount   String
+    startDate    DateTime?
+    transactions Transaction[] @relation("LoanTransactions")
 }
 
 enum BudgetPeriod {
