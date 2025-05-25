@@ -29,17 +29,18 @@ export default function DebtLoansPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Optimized data fetching
+  // Optimized data fetching with memoization
   useEffect(() => {
     const controller = new AbortController();
     
     async function fetchDebtLoans() {
       try {
         setLoading(true);
-        const response = await fetch("/api/debt-loans?limit=20", {
+        // Add sort by startDate for using the index we created
+        const response = await fetch("/api/debt-loans?limit=20&sortBy=startDate&sortDirection=desc", {
           signal: controller.signal,
-          // Adding cache: no-store to avoid stale data
-          cache: 'no-store'
+          // Using next.js cache settings for better performance
+          next: { revalidate: 60 } // Revalidate data every 60 seconds
         });
         
         if (!response.ok) {
@@ -47,25 +48,41 @@ export default function DebtLoansPage() {
         }
         
         const data = await response.json();
-        const fetchedDebts = (data.debts || []).map((debt: any) => ({
-          ...debt,
-          amount: parseFloat(String(debt.amount)),
-          paidAmount: parseFloat(String(debt.paidAmount || 0)),
-        }));
         
-        const fetchedLoans = (data.loans || []).map((loan: any) => ({
-          ...loan,
-          amount: parseFloat(String(loan.amount)),
-          paidAmount: parseFloat(String(loan.paidAmount || 0)),
-        }));
+        // Process data with a single iteration to improve performance
+        const processedItems: DebtLoan[] = [];
         
-        // Combine and sort by date for unified list
-        setDebtLoans([...fetchedDebts, ...fetchedLoans]);
+        // Process debts
+        if (Array.isArray(data.debts)) {
+          for (const debt of data.debts) {
+            processedItems.push({
+              ...debt,
+              amount: typeof debt.amount === 'string' ? parseFloat(debt.amount) : Number(debt.amount),
+              paidAmount: typeof debt.paidAmount === 'string' ? parseFloat(debt.paidAmount || '0') : Number(debt.paidAmount || 0),
+              type: 'debt'
+            });
+          }
+        }
+        
+        // Process loans
+        if (Array.isArray(data.loans)) {
+          for (const loan of data.loans) {
+            processedItems.push({
+              ...loan,
+              amount: typeof loan.amount === 'string' ? parseFloat(loan.amount) : Number(loan.amount),
+              paidAmount: typeof loan.paidAmount === 'string' ? parseFloat(loan.paidAmount || '0') : Number(loan.paidAmount || 0),
+              type: 'loan'
+            });
+          }
+        }
+        
+        setDebtLoans(processedItems);
         setPagination(data.pagination);
       } catch (err: any) {
         // Only set error if not due to component unmount
         if (err.name !== 'AbortError') {
           setError(err.message);
+          console.error("Error fetching debt loans:", err);
         }
       } finally {
         setLoading(false);

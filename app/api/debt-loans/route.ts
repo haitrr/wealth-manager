@@ -7,13 +7,17 @@ export async function GET(request: NextRequest) {
         const url = new URL(request.url);
         const limit = parseInt(url.searchParams.get('limit') || '50');
         const offset = parseInt(url.searchParams.get('offset') || '0');
+        const sortBy = url.searchParams.get('sortBy') || 'startDate';
+        const sortDirection = url.searchParams.get('sortDirection') || 'desc';
+        
+        // Build dynamic orderBy object
+        const orderBy: any = {};
+        orderBy[sortBy] = sortDirection;
         
         // Execute both queries in parallel for better performance
-        const [debts, loans] = await Promise.all([
+        const [debts, loans, totalDebts, totalLoans] = await Promise.all([
             prisma.debt.findMany({
-                orderBy: {
-                    startDate: 'desc'
-                },
+                orderBy,
                 include: {
                     // Include count of related transactions for optimization
                     _count: {
@@ -26,9 +30,7 @@ export async function GET(request: NextRequest) {
                 skip: offset
             }),
             prisma.loan.findMany({
-                orderBy: {
-                    startDate: 'desc'
-                },
+                orderBy,
                 include: {
                     // Include count of related transactions for optimization
                     _count: {
@@ -39,7 +41,9 @@ export async function GET(request: NextRequest) {
                 },
                 take: limit,
                 skip: offset
-            })
+            }),
+            prisma.debt.count(),
+            prisma.loan.count()
         ]);
 
         return NextResponse.json({
@@ -48,8 +52,8 @@ export async function GET(request: NextRequest) {
             pagination: {
                 limit,
                 offset,
-                totalDebts: await prisma.debt.count(),
-                totalLoans: await prisma.loan.count(),
+                totalDebts,
+                totalLoans,
             }
         });
     } catch (error) {
