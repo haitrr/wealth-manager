@@ -9,11 +9,12 @@ type Props = {
 };
 
 export function TransactionItem({transaction}: Props) {
+  console.log("TransactionItem", transaction);
   return (
     <Link href={`/transactions/${transaction.id}`}>
       <div className="flex justify-between border-gray-700 border-b text-lg p-2 ml-4 items-center">
         <div className="flex gap-1 items-center">
-          <CategoryIcon />
+          <CategoryIcon icon={transaction.category.icon} />
           <div>{transaction.category.name}</div>
         </div>
         <Money

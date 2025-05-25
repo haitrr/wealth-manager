@@ -20,6 +20,7 @@ model Transaction {
     debt       Debt?    @relation("DebtTransactions", fields: [debtId], references: [id])
     loanId     String?
     loan       Loan?    @relation("LoanTransactions", fields: [loanId], references: [id])
+    icon       String   @default("money")
 
     @@index([date], type: BTree)
     @@index([categoryId], type: Hash)
@@ -56,7 +57,7 @@ model Debt {
     paidAmount   Decimal
     startDate    DateTime?
     transactions Transaction[] @relation("DebtTransactions")
-    
+
     @@index([startDate], type: BTree)
 }
 
@@ -67,7 +68,7 @@ model Loan {
     paidAmount   Decimal
     startDate    DateTime?
     transactions Transaction[] @relation("LoanTransactions")
-    
+
     @@index([startDate], type: BTree)
 }
 

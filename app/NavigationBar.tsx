@@ -39,7 +39,7 @@ function MenuItem({item}: Props) {
 
 export function NavigationBar() {
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-10 flex justify-center p-1 border-t border-secondary bg-secondary backdrop-blur-md shadow-sm">
+    <nav className="flex justify-center p-1 border-t border-secondary bg-secondary backdrop-blur-md shadow-sm">
       <div className="container flex items-center justify-between max-w-5xl px-2">
         <div className="flex items-center justify-between w-full">
           {menuItems.map((item) => (

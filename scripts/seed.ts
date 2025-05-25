@@ -4,6 +4,7 @@ import customParseFormat from 'dayjs/plugin/customParseFormat';
 import { CategoryType } from "@prisma/client";
 import { randomUUID } from "crypto";
 import { Decimal } from "@prisma/client/runtime/library";
+import { icons } from "lucide-react";
 dayjs.extend(customParseFormat);
 
 const getRandomNumber = (min: number, max: number) => {
@@ -33,16 +34,16 @@ export const seed = async () => {
         const loanPaymentId = randomUUID()
 
         const categories = [
-            { name: "Food", type: CategoryType.EXPENSE, id: foodId },
-            { name: "Party", type: CategoryType.EXPENSE, id: partyId },
-            { name: "Salary", type: CategoryType.INCOME, id: salaryId },
-            { name: "Bills", type: CategoryType.EXPENSE, id: billsiD },
-            { name: "Rental", type: CategoryType.EXPENSE, id: rentalId, parentId: billsiD },
-            { name: "Transportation", type: CategoryType.EXPENSE, id: transportationId },
-            { name: "Debt", type: CategoryType.DEBT, id: debtCategoryId },
-            { name: "Loan", type: CategoryType.LOAN, id: loanCategoryId },
-            { name: "Debt Collection", type: CategoryType.DEBT_COLLECTION, id: debtCollectionId },
-            { name: "Loan Payment", type: CategoryType.LOAN_PAYMENT, id: loanPaymentId },
+            { name: "Food", type: CategoryType.EXPENSE, id: foodId, icon: "food" },
+            { name: "Party", type: CategoryType.EXPENSE, id: partyId, icon: "party" },
+            { name: "Salary", type: CategoryType.INCOME, id: salaryId, icon: "salary" },
+            { name: "Bills", type: CategoryType.EXPENSE, id: billsiD, icon: "bills" },
+            { name: "Rental", type: CategoryType.EXPENSE, id: rentalId, parentId: billsiD, icon: "rental" },
+            { name: "Transportation", type: CategoryType.EXPENSE, id: transportationId, icon: "transportation" },
+            { name: "Debt", type: CategoryType.DEBT, id: debtCategoryId, icon: "debt" },
+            { name: "Loan", type: CategoryType.LOAN, id: loanCategoryId, icon: "loan" },
+            { name: "Debt Collection", type: CategoryType.DEBT_COLLECTION, id: debtCollectionId, icon: "debt-collection" },
+            { name: "Loan Payment", type: CategoryType.LOAN_PAYMENT, id: loanPaymentId, icon: "loan-payment" },
         ];
         await prisma.category.createMany({
             data: categories

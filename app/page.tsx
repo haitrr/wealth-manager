@@ -69,7 +69,7 @@ export default async function Home({}) {
   const netIncome = totalIncome - totalExpense;
 
   return (
-    <div>
+    <div className="h-full">
       <div className="flex p-1 flex-col items-center">
         <div>Balance</div>
         <AccountBalance />
