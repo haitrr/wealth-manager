@@ -10,7 +10,7 @@ export const formatVND = (amount: number) => {
 
 export const getColorVariant = (amount: number, categoryType: CategoryType | undefined = undefined) => {
   if (categoryType) {
-    if (categoryType === "INCOME") {
+    if (categoryType === "INCOME" || categoryType === "LOAN" || categoryType === "DEBT_COLLECTION") {
       return "positive"
     }
     return "negative"

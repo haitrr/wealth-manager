@@ -28,7 +28,11 @@ const TransactionsList = async ({transactions}: Props) => {
         const monthYear = dayjsDate.format("MMM YYYY");
         let netIncome = 0;
         dateTransactions.forEach((transaction) => {
-          if (transaction.category.type === "INCOME") {
+          if (
+            transaction.category.type === "INCOME" ||
+            transaction.category.type === "LOAN" ||
+            transaction.category.type === "DEBT_COLLECTION"
+          ) {
             netIncome += transaction.value;
           } else {
             netIncome -= transaction.value;

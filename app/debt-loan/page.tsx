@@ -2,6 +2,7 @@
 
 import {useEffect, useState} from "react";
 import {useRouter} from "next/navigation"; // Added import
+import {formatVND} from "@/utils/currency";
 
 interface DebtLoan {
   id: string;
@@ -66,7 +67,7 @@ export default function DebtLoansPage() {
           {debtLoans.map((loan) => (
             <li key={loan.id} className="p-4 border rounded-lg shadow-sm">
               <h2 className="text-xl font-semibold">{loan.name}</h2>
-              <p>Amount: ${loan.amount.toFixed(2)}</p>
+              <p>Amount: {formatVND(loan.amount)}</p>
               {/* Conditionally render optional fields */}
               {loan.interestRate !== undefined && (
                 <p>Interest Rate: {loan.interestRate}%</p>
