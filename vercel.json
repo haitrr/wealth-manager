@@ -1,3 +1,6 @@
 {
-  "regions": ["sng1"]
+    "$schema": "https://openapi.vercel.sh/vercel.json",
+    "regions": [
+        "sng1"
+    ]
 }
