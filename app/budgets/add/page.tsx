@@ -4,6 +4,7 @@ import {Button, Select, TreeSelect} from "antd";
 import CategoryTreeSelect from "@/components/CategoryTreeSelect";
 import {createBudget} from "@/actions/budget";
 import {useRouter} from "next/navigation";
+import {Checkbox} from "@radix-ui/react-checkbox";
 
 const AddBudgetPage = () => {
   return (
@@ -62,7 +63,15 @@ const AddBudgetForm = () => {
           <Controller
             name="startDate"
             control={control}
-            render={({field}) => <input {...field} type="date" />}
+            render={({field}) => (
+              <input
+                {...field}
+                type="date"
+                value={
+                  field.value ? field.value.toISOString().split("T")[0] : ""
+                }
+              />
+            )}
           />
         </div>
         <div>
@@ -83,7 +92,11 @@ const AddBudgetForm = () => {
           <Controller
             name="repeat"
             control={control}
-            render={({field}) => <input {...field} type="checkbox" />}
+            render={({field}) => (
+              <Checkbox checked={field.value} onCheckedChange={field.onChange}>
+                Repeat
+              </Checkbox>
+            )}
           />
         </div>
         <div>
