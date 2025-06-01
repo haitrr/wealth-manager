@@ -27,6 +27,7 @@ export function TransactionItem({transaction}: Props) {
           </div>
           <div>
             <div className="font-medium">{transaction.category.name}</div>
+            <div className="text-sm text-gray-500">{formatDate(new Date(transaction.date))}</div>
           </div>
         </div>
         <div className="flex flex-col items-end justify-center">
