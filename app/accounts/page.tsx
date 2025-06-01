@@ -93,11 +93,11 @@ export default function AccountsPage() {
         <p>No debt loans found.</p>
       ) : (
         <ul className="space-y-4">
-          {accounts.map((loan) => (
+          {accounts.map((account) => (
             <AccountItem 
-              key={loan.id} 
-              account={loan} 
-              onClick={(id) => router.push(`/loan/${id}`)} 
+              key={account.id} 
+              account={account} 
+              onClick={(id) => router.push(`/accounts/${id}`)} 
             />
           ))}
         </ul>

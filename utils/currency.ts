@@ -1,4 +1,5 @@
-import { CategoryType } from "./types";
+import { CategoryType } from "@prisma/client";
+import { INCOME_CATEGORY_TYPES } from "../lib/utils";
 
 export const formatVND = (amount: number) => {
   return new Intl.NumberFormat("vi-VN", {
@@ -10,7 +11,7 @@ export const formatVND = (amount: number) => {
 
 export const getColorVariant = (amount: number, categoryType: CategoryType | undefined = undefined) => {
   if (categoryType) {
-    if (categoryType === "INCOME" || categoryType === "LOAN" || categoryType === "DEBT_COLLECTION") {
+    if (INCOME_CATEGORY_TYPES.includes(categoryType)) {
       return "positive"
     }
     return "negative"

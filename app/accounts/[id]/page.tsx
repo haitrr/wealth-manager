@@ -1,244 +1,210 @@
-"use client";
-
-import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { notFound } from "next/navigation";
+import prisma from "@/lib/prisma";
 import { formatVND } from "@/utils/currency";
+import { AccountType } from "@prisma/client";
+import Link from "next/link";
+import { TransactionItem } from "@/app/TransactionItem";
+import { Transaction } from "@/utils/types";
 
-interface BorrowedLent {
-  id: string;
-  name: string;
-  amount: number;
-  paidAmount?: number;
-  startDate?: string;
-  interestRate?: number;
-  minimumPayment?: number;
-  dueDate?: string;
-  type?: "borrowed" | "lent";
+interface AccountDetailPageProps {
+  params: { id: string };
 }
 
-interface Transaction {
-  id: string;
-  date: string;
-  value: number;
-  category: {
-    id: string;
-    name: string;
-    type: string;
-  };
-}
-
-export default function LoanDetailPage() {
-  const params = useParams();
-  const router = useRouter();
-  const { id } = params;
-  
-  const [borrowedLent, setBorrowedLent] = useState<BorrowedLent | null>(null);
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    async function fetchBorrowedLentDetails() {
-      try {
-        // Fetch the borrowed/lent details
-        const response = await fetch(`/api/borrowed-lent/${id}`);
-        if (!response.ok) {
-          throw new Error("Failed to fetch borrowed/lent details");
+async function getAccountWithTransactions(id: string) {
+  const account = await prisma.account.findUnique({
+    where: { id },
+    include: {
+      debt: true,
+      transactions: {
+        orderBy: { date: 'desc' },
+        take: 20, // Limit to recent transactions
+        include: {
+          category: true,
         }
-        const data = await response.json();
-        setBorrowedLent({
-          ...data,
-          amount: parseFloat(data.amount),
-          paidAmount: data.paidAmount ? parseFloat(data.paidAmount) : 0,
-        });
-        
-        // Fetch related transactions
-        const transactionsResponse = await fetch(`/api/borrowed-lent/${id}/transactions`);
-        if (!transactionsResponse.ok) {
-          throw new Error("Failed to fetch related transactions");
-        }
-        const transactionsData = await transactionsResponse.json();
-        setTransactions(transactionsData.map((tx: any) => ({
-          ...tx,
-          value: parseFloat(tx.value),
-        })));
-      } catch (err: any) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
       }
     }
-    
-    if (id) {
-      fetchBorrowedLentDetails();
-    }
-  }, [id]);
+  });
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString();
+  if (!account) {
+    return null;
+  }
+
+  return {
+    ...account,
+    transactions: account.transactions.map(transaction => ({
+      ...transaction,
+      value: transaction.value.toNumber(),
+      category: {
+        ...transaction.category,
+        type: transaction.category.type as any // Type assertion to handle enum compatibility
+      }
+    }))
+  };
+}
+
+export default async function AccountDetailPage({ params }: AccountDetailPageProps) {
+  const account = await getAccountWithTransactions(params.id);
+
+  if (!account) {
+    notFound();
+  }
+
+  const renderAccountHeader = () => {
+    switch (account.type) {
+      case AccountType.CASH:
+        return (
+          <div className="bg-card border-border border rounded-lg p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
+                💰 {account.name}
+              </h1>
+              <span className="bg-secondary text-secondary-foreground px-3 py-1 rounded-full text-sm font-medium">
+                Cash Account
+              </span>
+            </div>
+            <p className="text-muted-foreground">Manage your cash transactions and view balance history.</p>
+          </div>
+        );
+
+      case AccountType.BORROWING:
+        const debt = account.debt;
+        if (!debt) return <div>No debt information available</div>;
+        
+        const debtRemaining = debt.principalAmount;
+        const debtProgress = ((debt.principalAmount - debtRemaining) / debt.principalAmount) * 100;
+        
+        return (
+          <div className="bg-card border-border border rounded-lg p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h1 className="text-2xl font-bold text-destructive flex items-center gap-2">
+                📉 {debt.name}
+              </h1>
+              <span className="bg-secondary text-secondary-foreground px-3 py-1 rounded-full text-sm font-medium">
+                Debt
+              </span>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <div>
+                <p className="text-sm text-muted-foreground">Principal Amount</p>
+                <p className="text-lg font-semibold text-foreground">{formatVND(debt.principalAmount)}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Interest Rate</p>
+                <p className="text-lg font-semibold text-foreground">{(debt.interestRate * 100).toFixed(1)}%</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Start Date</p>
+                <p className="text-lg font-semibold text-foreground">{new Date(debt.startDate).toLocaleDateString()}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Due Date</p>
+                <p className="text-lg font-semibold text-foreground">{new Date(debt.dueDate).toLocaleDateString()}</p>
+              </div>
+            </div>
+            
+            <div className="mb-2">
+              <div className="flex justify-between text-sm text-muted-foreground mb-1">
+                <span>Remaining: {formatVND(debtRemaining)}</span>
+                <span>{Math.max(0, 100 - debtProgress).toFixed(1)}%</span>
+              </div>
+              <div className="w-full bg-muted rounded-full h-3">
+                <div 
+                  className="bg-destructive h-3 rounded-full transition-all duration-300" 
+                  style={{ width: `${Math.max(0, 100 - debtProgress)}%` }}
+                ></div>
+              </div>
+            </div>
+          </div>
+        );
+
+      case AccountType.LOAN:
+        const loan = account.debt;
+        if (!loan) return <div>No loan information available</div>;
+        
+        const loanRemaining = loan.principalAmount;
+        const loanProgress = ((loan.principalAmount - loanRemaining) / loan.principalAmount) * 100;
+        
+        return (
+          <div className="bg-card border-border border rounded-lg p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h1 className="text-2xl font-bold text-primary flex items-center gap-2">
+                📈 {loan.name}
+              </h1>
+              <span className="bg-secondary text-secondary-foreground px-3 py-1 rounded-full text-sm font-medium">
+                Loan
+              </span>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <div>
+                <p className="text-sm text-muted-foreground">Principal Amount</p>
+                <p className="text-lg font-semibold text-foreground">{formatVND(loan.principalAmount)}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Interest Rate</p>
+                <p className="text-lg font-semibold text-foreground">{(loan.interestRate * 100).toFixed(1)}%</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Start Date</p>
+                <p className="text-lg font-semibold text-foreground">{new Date(loan.startDate).toLocaleDateString()}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Due Date</p>
+                <p className="text-lg font-semibold text-foreground">{new Date(loan.dueDate).toLocaleDateString()}</p>
+              </div>
+            </div>
+            
+            <div className="mb-2">
+              <div className="flex justify-between text-sm text-muted-foreground mb-1">
+                <span>Collected: {formatVND(loan.principalAmount - loanRemaining)}</span>
+                <span>{loanProgress.toFixed(1)}%</span>
+              </div>
+              <div className="w-full bg-muted rounded-full h-3">
+                <div 
+                  className="bg-primary h-3 rounded-full transition-all duration-300" 
+                  style={{ width: `${loanProgress}%` }}
+                ></div>
+              </div>
+            </div>
+          </div>
+        );
+
+      default:
+        return <div>Unknown account type</div>;
+    }
   };
 
-  if (loading) {
-    return <div className="container mx-auto p-4">Loading...</div>;
-  }
-
-  if (error || !borrowedLent) {
-    return <div className="container mx-auto p-4">Error: {error || "Borrowed/lent item not found"}</div>;
-  }
-
-  // Calculate remaining balance
-  const remainingBalance = borrowedLent.amount - (borrowedLent.paidAmount || 0);
-  // Calculate progress percentage
-  const progressPercentage = Math.min(100, Math.round((borrowedLent.paidAmount || 0) / borrowedLent.amount * 100));
-
   return (
-    <div className="container mx-auto p-4">
-      <button 
-        onClick={() => router.back()} 
-        className="mb-4 flex items-center text-blue-500 hover:text-blue-700"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="mr-1" viewBox="0 0 16 16">
-          <path fillRule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"/>
-        </svg>
-        Back
-      </button>
-
-      <h1 className="text-2xl font-bold mb-2">{borrowedLent.name}</h1>
-      <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-4 mb-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <p className="text-gray-500 dark:text-gray-400">Total Amount</p>
-            <p className="text-xl font-semibold">{formatVND(borrowedLent.amount)}</p>
-          </div>
-          <div>
-            <p className="text-gray-500 dark:text-gray-400">Paid Amount</p>
-            <p className="text-xl font-semibold text-green-500">{formatVND(borrowedLent.paidAmount || 0)}</p>
-          </div>
-          <div>
-            <p className="text-gray-500 dark:text-gray-400">Remaining</p>
-            <p className="text-xl font-semibold text-red-500">{formatVND(remainingBalance)}</p>
-          </div>
-          {borrowedLent.startDate && (
-            <div>
-              <p className="text-gray-500 dark:text-gray-400">Start Date</p>
-              <p>{formatDate(borrowedLent.startDate)}</p>
-            </div>
-          )}
-          {borrowedLent.interestRate !== undefined && (
-            <div>
-              <p className="text-gray-500 dark:text-gray-400">Interest Rate</p>
-              <p>{borrowedLent.interestRate}%</p>
-            </div>
-          )}
-          {borrowedLent.minimumPayment !== undefined && (
-            <div>
-              <p className="text-gray-500 dark:text-gray-400">Minimum Payment</p>
-              <p>{formatVND(borrowedLent.minimumPayment)}</p>
-            </div>
-          )}
-          {borrowedLent.dueDate && (
-            <div>
-              <p className="text-gray-500 dark:text-gray-400">Due Date</p>
-              <p>{formatDate(borrowedLent.dueDate)}</p>
-            </div>
-          )}
-        </div>
-
-        {/* Progress bar */}
-        <div className="mt-6">
-          <div className="flex justify-between text-xs mb-1">
-            <span>Progress</span>
-            <span>{progressPercentage}%</span>
-          </div>
-          <div className="w-full bg-gray-300 dark:bg-gray-700 rounded-full h-2.5">
-            <div 
-              className="bg-blue-600 h-2.5 rounded-full" 
-              style={{ width: `${progressPercentage}%` }}
-            ></div>
-          </div>
-        </div>
+    <div className="container mx-auto p-4 max-w-4xl">
+      <div className="mb-6">
+        <Link 
+          href="/accounts" 
+          className="text-primary hover:text-primary/80 flex items-center gap-1 mb-4"
+        >
+          ← Back to Accounts
+        </Link>
+        {renderAccountHeader()}
       </div>
 
-      <h2 className="text-xl font-bold mb-4">Transactions</h2>
-      {transactions.length === 0 ? (
-        <p className="text-gray-500 dark:text-gray-400">No transactions found for this {borrowedLent.type || "item"}.</p>
-      ) : (
-        <div className="bg-white dark:bg-gray-900 rounded-lg shadow overflow-hidden">
-          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-            <thead className="bg-gray-50 dark:bg-gray-800">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Date</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Category</th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Amount</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-800">
-              {transactions.map((transaction) => (
-                <tr 
-                  key={transaction.id}
-                  className="hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer"
-                  onClick={() => router.push(`/transactions/${transaction.id}`)}
-                >
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {formatDate(transaction.date)}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {transaction.category.name}
-                  </td>
-                  <td className={`px-6 py-4 whitespace-nowrap text-right ${
-                    transaction.category.type === "BORROWED" || transaction.category.type === "BORROWED_PAYMENT" ? 
-                    "text-red-500" : "text-green-500"
-                  }`}>
-                    {formatVND(transaction.value)}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      <div className="bg-card rounded-lg shadow-sm border p-6">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-semibold">Recent Transactions</h2>
+          <Link 
+            href={`/accounts/${account.id}/transactions`}
+            className="text-primary hover:text-primary/80 text-sm"
+          >
+            View All →
+          </Link>
         </div>
-      )}
 
-      <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
-        <button
-          onClick={() => router.push(`/transactions/add?borrowedLentId=${id}`)}
-          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow-lg"
-        >
-          Add New Transaction
-        </button>
-        
-        {/* Borrowed Payment Buttons (only for borrowed money) */}
-        {borrowedLent.type === "borrowed" && (
-          <div className="flex flex-col sm:flex-row gap-2">
-            <button
-              onClick={() => router.push(`/transactions/add?borrowedLentId=${id}&type=interest-payment`)}
-              className="bg-orange-500 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded-lg shadow-lg"
-            >
-              Pay Interest
-            </button>
-            <button
-              onClick={() => router.push(`/transactions/add?borrowedLentId=${id}&type=principal-payment`)}
-              className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg shadow-lg"
-            >
-              Pay Principal
-            </button>
-          </div>
-        )}
-        
-        {/* Lent Collection Buttons (only for lent money) */}
-        {borrowedLent.type === "lent" && (
-          <div className="flex flex-col sm:flex-row gap-2">
-            <button
-              onClick={() => router.push(`/transactions/add?borrowedLentId=${id}&type=interest-collection`)}
-              className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg shadow-lg"
-            >
-              Collect Interest
-            </button>
-            <button
-              onClick={() => router.push(`/transactions/add?borrowedLentId=${id}&type=principal-collection`)}
-              className="bg-emerald-500 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded-lg shadow-lg"
-            >
-              Collect Principal
-            </button>
+        {account.transactions.length === 0 ? (
+          <p className="text-muted-foreground text-center py-8">No transactions found for this account.</p>
+        ) : (
+          <div className="space-y-0 border rounded-lg overflow-hidden">
+            {account.transactions.map((transaction) => (
+              <TransactionItem key={transaction.id} transaction={transaction as Transaction} />
+            ))}
           </div>
         )}
       </div>
