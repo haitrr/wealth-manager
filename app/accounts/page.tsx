@@ -3,17 +3,8 @@
 import {useEffect, useState} from "react";
 import {useRouter} from "next/navigation";
 import {formatVND} from "@/utils/currency";
-
-interface Loan {
-  id: string;
-  name: string;
-  amount: number;
-  paidAmount?: number;
-  interestRate?: number;
-  minimumPayment?: number;
-  dueDate?: string;
-  type?: "debt" | "loan";
-}
+import {Account, AccountType} from "@prisma/client";
+import AccountItem from "./AccountItem";
 
 interface PaginationInfo {
   limit: number;
@@ -22,9 +13,9 @@ interface PaginationInfo {
   totalLoans: number;
 }
 
-export default function LoansPage() {
+export default function AccountsPage() {
   const router = useRouter();
-  const [debtLoans, setDebtLoans] = useState<Loan[]>([]);
+  const [accounts, setAccounts] = useState<Account[]>([]);
   const [pagination, setPagination] = useState<PaginationInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -37,7 +28,7 @@ export default function LoansPage() {
       try {
         setLoading(true);
         // Add sort by startDate for using the index we created
-        const response = await fetch("/api/accounts?limit=20&sortBy=startDate&sortDirection=desc", {
+        const response = await fetch("/api/accounts?limit=20", {
           signal: controller.signal,
           // Using next.js cache settings for better performance
           next: { revalidate: 60 } // Revalidate data every 60 seconds
@@ -48,35 +39,7 @@ export default function LoansPage() {
         }
         
         const data = await response.json();
-        
-        // Process data with a single iteration to improve performance
-        const processedItems: Loan[] = [];
-        
-        // Process debts
-        if (Array.isArray(data.debts)) {
-          for (const debt of data.debts) {
-            processedItems.push({
-              ...debt,
-              amount: typeof debt.amount === 'string' ? parseFloat(debt.amount) : Number(debt.amount),
-              paidAmount: typeof debt.paidAmount === 'string' ? parseFloat(debt.paidAmount || '0') : Number(debt.paidAmount || 0),
-              type: 'debt'
-            });
-          }
-        }
-        
-        // Process loans
-        if (Array.isArray(data.loans)) {
-          for (const loan of data.loans) {
-            processedItems.push({
-              ...loan,
-              amount: typeof loan.amount === 'string' ? parseFloat(loan.amount) : Number(loan.amount),
-              paidAmount: typeof loan.paidAmount === 'string' ? parseFloat(loan.paidAmount || '0') : Number(loan.paidAmount || 0),
-              type: 'loan'
-            });
-          }
-        }
-        
-        setDebtLoans(processedItems);
+        setAccounts(data.accounts || []);
         setPagination(data.pagination);
       } catch (err: any) {
         // Only set error if not due to component unmount
@@ -126,92 +89,17 @@ export default function LoansPage() {
         </div>
       ) : error ? (
         <div className="text-red-500">Error: {error}</div>
-      ) : debtLoans.length === 0 ? (
+      ) : accounts.length === 0 ? (
         <p>No debt loans found.</p>
       ) : (
         <ul className="space-y-4">
-          {debtLoans.map((loan) => {
-            // Calculate progress percentage
-            const paidAmount = loan.paidAmount || 0;
-            const progressPercentage = Math.min(
-              100,
-              Math.round((paidAmount / loan.amount) * 100),
-            );
-            const remainingAmount = loan.amount - paidAmount;
-
-            return (
-              <li
-                key={loan.id}
-                className="p-4 border rounded-lg shadow-sm cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                onClick={() => router.push(`/loan/${loan.id}`)}
-              >
-                <div className="flex justify-between items-center mb-2">
-                  <h2 className="text-xl font-semibold">{loan.name}</h2>
-                  <span className="text-sm bg-gray-200 dark:bg-gray-700 rounded-full px-2 py-0.5">
-                    {loan.type === "debt" ? "Debt" : "Loan"}
-                  </span>
-                </div>
-
-                <div className="flex justify-between mb-1 text-sm">
-                  <span>Total: {formatVND(loan.amount)}</span>
-                  <span>{progressPercentage}% paid</span>
-                </div>
-
-                {/* Progress bar */}
-                <div className="w-full bg-gray-300 dark:bg-gray-700 rounded-full h-2.5 mb-3">
-                  <div
-                    className="bg-blue-600 h-2.5 rounded-full"
-                    style={{width: `${progressPercentage}%`}}
-                  ></div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-2 text-sm mt-2">
-                  <div>
-                    <span className="text-gray-500 dark:text-gray-400">
-                      Paid:{" "}
-                    </span>
-                    <span className="text-green-500">
-                      {formatVND(paidAmount)}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-gray-500 dark:text-gray-400">
-                      Remaining:{" "}
-                    </span>
-                    <span className="text-red-500">
-                      {formatVND(remainingAmount)}
-                    </span>
-                  </div>
-
-                  {/* Conditionally render optional fields */}
-                  {loan.interestRate !== undefined && (
-                    <div>
-                      <span className="text-gray-500 dark:text-gray-400">
-                        Interest:{" "}
-                      </span>
-                      <span>{loan.interestRate}%</span>
-                    </div>
-                  )}
-                  {loan.minimumPayment !== undefined && (
-                    <div>
-                      <span className="text-gray-500 dark:text-gray-400">
-                        Min Payment:{" "}
-                      </span>
-                      <span>{formatVND(loan.minimumPayment)}</span>
-                    </div>
-                  )}
-                  {loan.dueDate && (
-                    <div className="col-span-2">
-                      <span className="text-gray-500 dark:text-gray-400">
-                        Due Date:{" "}
-                      </span>
-                      <span>{new Date(loan.dueDate).toLocaleDateString()}</span>
-                    </div>
-                  )}
-                </div>
-              </li>
-            );
-          })}
+          {accounts.map((loan) => (
+            <AccountItem 
+              key={loan.id} 
+              account={loan} 
+              onClick={(id) => router.push(`/loan/${id}`)} 
+            />
+          ))}
         </ul>
       )}
       

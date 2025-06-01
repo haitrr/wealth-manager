@@ -7,55 +7,28 @@ export async function GET(request: NextRequest) {
         const url = new URL(request.url);
         const limit = parseInt(url.searchParams.get('limit') || '50');
         const offset = parseInt(url.searchParams.get('offset') || '0');
-        const sortBy = url.searchParams.get('sortBy') || 'startDate';
+        const sortBy = url.searchParams.get('sortBy') || undefined;
         const sortDirection = url.searchParams.get('sortDirection') || 'desc';
-        
+
         // Build dynamic orderBy object
         const orderBy: any = {};
-        orderBy[sortBy] = sortDirection;
-        
-        // Execute both queries in parallel for better performance
-        const [debts, loans, totalDebts, totalLoans] = await Promise.all([
-            prisma.borrowing.findMany({
-                orderBy,
-                include: {
-                    // Include count of related transactions for optimization
-                    _count: {
-                        select: {
-                            transactions: true
-                        }
-                    }
+        if (sortBy) {
+            orderBy[sortBy] = sortDirection;
+        }
+        const accounts = await prisma.account.findMany({
+            take: limit,
+            skip: offset,
+            orderBy: orderBy,
+            include: {
+                debt: {
                 },
-                take: limit,
-                skip: offset
-            }),
-            prisma.loan.findMany({
-                orderBy,
-                include: {
-                    // Include count of related transactions for optimization
-                    _count: {
-                        select: {
-                            transactions: true
-                        }
-                    }
-                },
-                take: limit,
-                skip: offset
-            }),
-            prisma.borrowing.count(),
-            prisma.loan.count()
-        ]);
-
-        return NextResponse.json({
-            borrowings: debts.map(debt => ({ ...debt, type: 'debt' })),
-            loans: loans.map(loan => ({ ...loan, type: 'loan' })),
-            pagination: {
-                limit,
-                offset,
-                totalDebts,
-                totalLoans,
             }
         });
+        return NextResponse.json({
+            accounts
+        })
+
+        // Execute both queries in parallel for better performance
     } catch (error) {
         console.error("Error fetching debt/loans:", error);
         return NextResponse.json(

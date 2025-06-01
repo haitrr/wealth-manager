@@ -16,14 +16,11 @@ model Transaction {
     value      Decimal
     category   Category @relation(fields: [categoryId], references: [id])
     categoryId String
-    borrowingId     String?
-    borrowing       Borrowing?    @relation("BorrowingTransactions", fields: [borrowingId], references: [id])
-    loanId     String?
-    loan       Loan?    @relation("LoanTransactions", fields: [loanId], references: [id])
+    account    Account  @relation(fields: [accountId], references: [id])
+    accountId  String
+
     @@index([date], type: BTree)
     @@index([categoryId], type: Hash)
-    @@index([borrowingId], type: Hash)
-    @@index([loanId], type: Hash)
 }
 
 model Category {
@@ -34,9 +31,9 @@ model Category {
     parentId     String?
     children     Category[]    @relation("ParentCategory")
     parent       Category?     @relation("ParentCategory", fields: [parentId], references: [id])
-    icon       String   @default("money")
+    icon         String        @default("money")
 
-    budgets      Budget[]
+    budgets Budget[]
 }
 
 model Budget {
@@ -49,26 +46,36 @@ model Budget {
     repeat     Boolean
 }
 
-model Borrowing {
-    id           String        @id @default(cuid())
-    name         String
-    amount       Decimal
-    paidAmount   Decimal
-    startDate    DateTime?
-    transactions Transaction[] @relation("BorrowingTransactions")
-
-    @@index([startDate], type: BTree)
+model Debt {
+    id              String        @id @default(cuid())
+    name            String
+    direction       DebtDirection
+    principalAmount Float
+    interestRate    Float // as decimal (e.g., 0.05 for 5%)
+    startDate       DateTime
+    dueDate         DateTime
+    accountId       String        @unique
+    account         Account       @relation(fields: [accountId], references: [id])
 }
 
-model Loan {
+enum DebtDirection {
+    TAKEN
+    GIVEN
+}
+
+model Account {
     id           String        @id @default(cuid())
     name         String
-    amount       Decimal
-    paidAmount   Decimal
-    startDate    DateTime?
-    transactions Transaction[] @relation("LoanTransactions")
+    transactions Transaction[]
+    type         AccountType
+    debt         Debt?
+    debtId       String?
+}
 
-    @@index([startDate], type: BTree)
+enum AccountType {
+    CASH
+    BORROWING
+    LOAN
 }
 
 enum BudgetPeriod {

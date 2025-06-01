@@ -4,7 +4,6 @@ import customParseFormat from 'dayjs/plugin/customParseFormat';
 import { CategoryType } from "@prisma/client";
 import { randomUUID } from "crypto";
 import { Decimal } from "@prisma/client/runtime/library";
-import { icons } from "lucide-react";
 dayjs.extend(customParseFormat);
 
 const getRandomNumber = (min: number, max: number) => {
@@ -16,10 +15,10 @@ export const seed = async () => {
     try {
         // Reset db
         await prisma.transaction.deleteMany();
-        await prisma.category.deleteMany();
+        await prisma.debt.deleteMany();
+        await prisma.account.deleteMany();
         await prisma.budget.deleteMany();
-        await prisma.borrowing.deleteMany();
-        await prisma.loan.deleteMany();
+        await prisma.category.deleteMany();
 
         // categories
         const foodId = randomUUID()
@@ -51,102 +50,181 @@ export const seed = async () => {
             data: categories
         });
 
-        // Create borrowing and loan records
-        const creditCardDebt = await prisma.borrowing.create({
+        // Create accounts for debt and loan tracking
+        const cashAccount = await prisma.account.create({
+            data: {
+                name: "Cash Account",
+                type: "CASH"
+            }
+        });
+
+        const creditCardAccount = await prisma.account.create({
             data: {
                 name: "Credit Card Debt",
-                amount: new Decimal(20_000_000),
-                paidAmount: new Decimal(5_000_000),
-                startDate: dayjs().subtract(3, 'month').toDate(),
+                type: "BORROWING"
             }
         });
 
-        const carLoan = await prisma.borrowing.create({
+        const carLoanAccount = await prisma.account.create({
             data: {
                 name: "Car Loan",
-                amount: new Decimal(150_000_000),
-                paidAmount: new Decimal(30_000_000),
-                startDate: dayjs().subtract(1, 'year').toDate(),
+                type: "BORROWING"
             }
         });
 
-        const personalLoan = await prisma.borrowing.create({
+        const personalLoanAccount = await prisma.account.create({
             data: {
                 name: "Personal Loan",
-                amount: new Decimal(25_000_000),
-                paidAmount: new Decimal(5_000_000),
-                startDate: dayjs().subtract(6, 'month').toDate(),
+                type: "BORROWING"
             }
         });
 
-        const mortgageDebt = await prisma.borrowing.create({
+        const mortgageAccount = await prisma.account.create({
             data: {
                 name: "Mortgage",
-                amount: new Decimal(500_000_000),
-                paidAmount: new Decimal(50_000_000),
-                startDate: dayjs().subtract(2, 'year').toDate(),
+                type: "BORROWING"
             }
         });
 
-        const friendLoan = await prisma.loan.create({
+        const friendLoanAccount = await prisma.account.create({
             data: {
                 name: "Friend Loan",
-                amount: new Decimal(10_000_000),
-                paidAmount: new Decimal(2_000_000),
-                startDate: dayjs().subtract(2, 'month').toDate(),
+                type: "LOAN"
             }
         });
 
-        const businessLoan = await prisma.loan.create({
+        const businessLoanAccount = await prisma.account.create({
             data: {
                 name: "Business Loan",
-                amount: new Decimal(50_000_000),
-                paidAmount: new Decimal(0),
-                startDate: dayjs().startOf('month').toDate(),
+                type: "LOAN"
             }
         });
 
-        const familyLoan = await prisma.loan.create({
+        const familyLoanAccount = await prisma.account.create({
             data: {
                 name: "Family Loan",
-                amount: new Decimal(15_000_000),
-                paidAmount: new Decimal(3_000_000),
+                type: "LOAN"
+            }
+        });
+
+        // Create debt records (money we owe)
+        const creditCardDebt = await prisma.debt.create({
+            data: {
+                name: "Credit Card Debt",
+                direction: "TAKEN",
+                principalAmount: 20_000_000,
+                interestRate: 0.18, // 18% annual
+                startDate: dayjs().subtract(3, 'month').toDate(),
+                dueDate: dayjs().add(2, 'year').toDate(),
+                accountId: creditCardAccount.id
+            }
+        });
+
+        const carLoan = await prisma.debt.create({
+            data: {
+                name: "Car Loan",
+                direction: "TAKEN",
+                principalAmount: 150_000_000,
+                interestRate: 0.06, // 6% annual
+                startDate: dayjs().subtract(1, 'year').toDate(),
+                dueDate: dayjs().add(4, 'year').toDate(),
+                accountId: carLoanAccount.id
+            }
+        });
+
+        const personalLoan = await prisma.debt.create({
+            data: {
+                name: "Personal Loan",
+                direction: "TAKEN",
+                principalAmount: 25_000_000,
+                interestRate: 0.12, // 12% annual
+                startDate: dayjs().subtract(6, 'month').toDate(),
+                dueDate: dayjs().add(3, 'year').toDate(),
+                accountId: personalLoanAccount.id
+            }
+        });
+
+        const mortgageDebt = await prisma.debt.create({
+            data: {
+                name: "Mortgage",
+                direction: "TAKEN",
+                principalAmount: 500_000_000,
+                interestRate: 0.04, // 4% annual
+                startDate: dayjs().subtract(2, 'year').toDate(),
+                dueDate: dayjs().add(28, 'year').toDate(),
+                accountId: mortgageAccount.id
+            }
+        });
+
+        // Create loan records (money we gave out)
+        const friendLoan = await prisma.debt.create({
+            data: {
+                name: "Friend Loan",
+                direction: "GIVEN",
+                principalAmount: 10_000_000,
+                interestRate: 0.05, // 5% annual
+                startDate: dayjs().subtract(2, 'month').toDate(),
+                dueDate: dayjs().add(1, 'year').toDate(),
+                accountId: friendLoanAccount.id
+            }
+        });
+
+        const businessLoan = await prisma.debt.create({
+            data: {
+                name: "Business Loan",
+                direction: "GIVEN",
+                principalAmount: 50_000_000,
+                interestRate: 0.08, // 8% annual
+                startDate: dayjs().startOf('month').toDate(),
+                dueDate: dayjs().add(2, 'year').toDate(),
+                accountId: businessLoanAccount.id
+            }
+        });
+
+        const familyLoan = await prisma.debt.create({
+            data: {
+                name: "Family Loan",
+                direction: "GIVEN",
+                principalAmount: 15_000_000,
+                interestRate: 0.03, // 3% annual
                 startDate: dayjs().subtract(4, 'month').toDate(),
+                dueDate: dayjs().add(5, 'year').toDate(),
+                accountId: familyLoanAccount.id
             }
         });
 
         // transactions
         const transactions = [
-            { date: dayjs().startOf("month").toISOString(), value: 30_000_000, categoryId: salaryId },
+            { date: dayjs().startOf("month").toISOString(), value: 30_000_000, categoryId: salaryId, accountId: cashAccount.id },
             // rental 6_000_000 to 7_000_000 at start of the month
-            { date: dayjs().startOf("month").toISOString(), value: getRandomNumber(6_000, 7_000) * 1000, categoryId: rentalId },
+            { date: dayjs().startOf("month").toISOString(), value: getRandomNumber(6_000, 7_000) * 1000, categoryId: rentalId, accountId: cashAccount.id },
             // Credit card debt payment
             {
                 date: dayjs().startOf("month").toISOString(),
                 value: 1_500_000,
                 categoryId: borrowingPaymentId,
-                borrowingId: creditCardDebt.id
+                accountId: creditCardAccount.id
             },
             // Car loan payment
             {
                 date: dayjs().startOf("month").toISOString(),
                 value: 3_000_000,
                 categoryId: borrowingPaymentId,
-                borrowingId: carLoan.id
+                accountId: carLoanAccount.id
             },
             // Friend loan collection
             {
                 date: dayjs().startOf("month").subtract(5, 'day').toISOString(),
                 value: 500_000,
                 categoryId: loanCollectionId,
-                loanId: friendLoan.id
+                accountId: friendLoanAccount.id
             },
             // Business loan given out
             {
                 date: dayjs().startOf("month").toISOString(),
                 value: 50_000_000,
                 categoryId: loanCategoryId,
-                loanId: businessLoan.id
+                accountId: businessLoanAccount.id
             },
         ];
 
@@ -156,7 +234,8 @@ export const seed = async () => {
                 transactions.push({
                     date: dayjs().subtract(i, 'day').toISOString(),
                     value: getRandomNumber(10, 50) * 1000,
-                    categoryId: foodId
+                    categoryId: foodId,
+                    accountId: cashAccount.id
                 });
             }
 
@@ -165,7 +244,8 @@ export const seed = async () => {
                 transactions.push({
                     date: dayjs().subtract(i, 'day').toISOString(),
                     value: getRandomNumber(200, 500) * 1000,
-                    categoryId: partyId
+                    categoryId: partyId,
+                    accountId: cashAccount.id
                 });
             }
 
@@ -174,7 +254,8 @@ export const seed = async () => {
                 transactions.push({
                     date: dayjs().subtract(i, 'day').toISOString(),
                     value: getRandomNumber(50, 100) * 1000,
-                    categoryId: transportationId
+                    categoryId: transportationId,
+                    accountId: cashAccount.id
                 });
             }
 
@@ -185,7 +266,7 @@ export const seed = async () => {
                     date: dayjs().subtract(i, 'day').toISOString(),
                     value: 1_500_000,
                     categoryId: borrowingPaymentId,
-                    borrowingId: creditCardDebt.id
+                    accountId: creditCardAccount.id
                 });
 
                 // Car loan payment
@@ -193,7 +274,7 @@ export const seed = async () => {
                     date: dayjs().subtract(i, 'day').toISOString(),
                     value: 3_000_000,
                     categoryId: borrowingPaymentId,
-                    borrowingId: carLoan.id
+                    accountId: carLoanAccount.id
                 });
 
                 // Mortgage payment
@@ -201,7 +282,7 @@ export const seed = async () => {
                     date: dayjs().subtract(i, 'day').toISOString(),
                     value: 5_000_000,
                     categoryId: borrowingPaymentId,
-                    borrowingId: mortgageDebt.id
+                    accountId: mortgageAccount.id
                 });
 
                 // Personal loan payment
@@ -209,7 +290,7 @@ export const seed = async () => {
                     date: dayjs().subtract(i, 'day').toISOString(),
                     value: 2_000_000,
                     categoryId: borrowingPaymentId,
-                    borrowingId: personalLoan.id
+                    accountId: personalLoanAccount.id
                 });
             }
 
@@ -219,7 +300,7 @@ export const seed = async () => {
                     date: dayjs().subtract(i, 'day').toISOString(),
                     value: 500_000,
                     categoryId: loanCollectionId,
-                    loanId: friendLoan.id
+                    accountId: friendLoanAccount.id
                 });
 
                 // Family loan collection
@@ -228,7 +309,7 @@ export const seed = async () => {
                         date: dayjs().subtract(i, 'day').toISOString(),
                         value: 750_000,
                         categoryId: loanCollectionId,
-                        loanId: familyLoan.id
+                        accountId: familyLoanAccount.id
                     });
                 }
             }
