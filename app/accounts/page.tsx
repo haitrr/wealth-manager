@@ -9,8 +9,6 @@ import AccountItem from "./AccountItem";
 interface PaginationInfo {
   limit: number;
   offset: number;
-  totalDebts: number;
-  totalLoans: number;
 }
 
 export default function AccountsPage() {
@@ -35,7 +33,7 @@ export default function AccountsPage() {
         });
         
         if (!response.ok) {
-          throw new Error("Failed to fetch debt loans");
+          throw new Error("Failed to fetch accounts");
         }
         
         const data = await response.json();
@@ -45,7 +43,7 @@ export default function AccountsPage() {
         // Only set error if not due to component unmount
         if (err.name !== 'AbortError') {
           setError(err.message);
-          console.error("Error fetching debt loans:", err);
+          console.error("Error fetching accounts:", err);
         }
       } finally {
         setLoading(false);
@@ -90,7 +88,7 @@ export default function AccountsPage() {
       ) : error ? (
         <div className="text-red-500">Error: {error}</div>
       ) : accounts.length === 0 ? (
-        <p>No debt loans found.</p>
+        <p>No accounts found.</p>
       ) : (
         <ul className="space-y-4">
           {accounts.map((account) => (
@@ -106,10 +104,10 @@ export default function AccountsPage() {
       {/* Fixed action button */}
       <button
         onClick={() => {
-          router.push("/loans/add");
+          router.push("/accounts/add");
         }}
         className="fixed bottom-24 right-8 bg-blue-500 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-full shadow-lg z-50"
-        aria-label="Add Debt or Loan"
+        aria-label="Add Account"
       >
         + Add
       </button>
