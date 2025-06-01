@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { formatVND } from "@/utils/currency";
 
-interface DebtLoan {
+interface BorrowedLent {
   id: string;
   name: string;
   amount: number;
@@ -13,7 +13,7 @@ interface DebtLoan {
   interestRate?: number;
   minimumPayment?: number;
   dueDate?: string;
-  type?: "debt" | "loan";
+  type?: "borrowed" | "lent";
 }
 
 interface Transaction {
@@ -27,33 +27,33 @@ interface Transaction {
   };
 }
 
-export default function DebtLoanDetailPage() {
+export default function LoanDetailPage() {
   const params = useParams();
   const router = useRouter();
   const { id } = params;
   
-  const [debtLoan, setDebtLoan] = useState<DebtLoan | null>(null);
+  const [borrowedLent, setBorrowedLent] = useState<BorrowedLent | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    async function fetchDebtLoanDetails() {
+    async function fetchBorrowedLentDetails() {
       try {
-        // Fetch the debt/loan details
-        const response = await fetch(`/api/debt-loans/${id}`);
+        // Fetch the borrowed/lent details
+        const response = await fetch(`/api/borrowed-lent/${id}`);
         if (!response.ok) {
-          throw new Error("Failed to fetch debt/loan details");
+          throw new Error("Failed to fetch borrowed/lent details");
         }
         const data = await response.json();
-        setDebtLoan({
+        setBorrowedLent({
           ...data,
           amount: parseFloat(data.amount),
           paidAmount: data.paidAmount ? parseFloat(data.paidAmount) : 0,
         });
         
         // Fetch related transactions
-        const transactionsResponse = await fetch(`/api/debt-loans/${id}/transactions`);
+        const transactionsResponse = await fetch(`/api/borrowed-lent/${id}/transactions`);
         if (!transactionsResponse.ok) {
           throw new Error("Failed to fetch related transactions");
         }
@@ -70,7 +70,7 @@ export default function DebtLoanDetailPage() {
     }
     
     if (id) {
-      fetchDebtLoanDetails();
+      fetchBorrowedLentDetails();
     }
   }, [id]);
 
@@ -82,14 +82,14 @@ export default function DebtLoanDetailPage() {
     return <div className="container mx-auto p-4">Loading...</div>;
   }
 
-  if (error || !debtLoan) {
-    return <div className="container mx-auto p-4">Error: {error || "Debt/loan not found"}</div>;
+  if (error || !borrowedLent) {
+    return <div className="container mx-auto p-4">Error: {error || "Borrowed/lent item not found"}</div>;
   }
 
   // Calculate remaining balance
-  const remainingBalance = debtLoan.amount - (debtLoan.paidAmount || 0);
+  const remainingBalance = borrowedLent.amount - (borrowedLent.paidAmount || 0);
   // Calculate progress percentage
-  const progressPercentage = Math.min(100, Math.round((debtLoan.paidAmount || 0) / debtLoan.amount * 100));
+  const progressPercentage = Math.min(100, Math.round((borrowedLent.paidAmount || 0) / borrowedLent.amount * 100));
 
   return (
     <div className="container mx-auto p-4">
@@ -103,43 +103,43 @@ export default function DebtLoanDetailPage() {
         Back
       </button>
 
-      <h1 className="text-2xl font-bold mb-2">{debtLoan.name}</h1>
+      <h1 className="text-2xl font-bold mb-2">{borrowedLent.name}</h1>
       <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-4 mb-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <p className="text-gray-500 dark:text-gray-400">Total Amount</p>
-            <p className="text-xl font-semibold">{formatVND(debtLoan.amount)}</p>
+            <p className="text-xl font-semibold">{formatVND(borrowedLent.amount)}</p>
           </div>
           <div>
             <p className="text-gray-500 dark:text-gray-400">Paid Amount</p>
-            <p className="text-xl font-semibold text-green-500">{formatVND(debtLoan.paidAmount || 0)}</p>
+            <p className="text-xl font-semibold text-green-500">{formatVND(borrowedLent.paidAmount || 0)}</p>
           </div>
           <div>
             <p className="text-gray-500 dark:text-gray-400">Remaining</p>
             <p className="text-xl font-semibold text-red-500">{formatVND(remainingBalance)}</p>
           </div>
-          {debtLoan.startDate && (
+          {borrowedLent.startDate && (
             <div>
               <p className="text-gray-500 dark:text-gray-400">Start Date</p>
-              <p>{formatDate(debtLoan.startDate)}</p>
+              <p>{formatDate(borrowedLent.startDate)}</p>
             </div>
           )}
-          {debtLoan.interestRate !== undefined && (
+          {borrowedLent.interestRate !== undefined && (
             <div>
               <p className="text-gray-500 dark:text-gray-400">Interest Rate</p>
-              <p>{debtLoan.interestRate}%</p>
+              <p>{borrowedLent.interestRate}%</p>
             </div>
           )}
-          {debtLoan.minimumPayment !== undefined && (
+          {borrowedLent.minimumPayment !== undefined && (
             <div>
               <p className="text-gray-500 dark:text-gray-400">Minimum Payment</p>
-              <p>{formatVND(debtLoan.minimumPayment)}</p>
+              <p>{formatVND(borrowedLent.minimumPayment)}</p>
             </div>
           )}
-          {debtLoan.dueDate && (
+          {borrowedLent.dueDate && (
             <div>
               <p className="text-gray-500 dark:text-gray-400">Due Date</p>
-              <p>{formatDate(debtLoan.dueDate)}</p>
+              <p>{formatDate(borrowedLent.dueDate)}</p>
             </div>
           )}
         </div>
@@ -161,7 +161,7 @@ export default function DebtLoanDetailPage() {
 
       <h2 className="text-xl font-bold mb-4">Transactions</h2>
       {transactions.length === 0 ? (
-        <p className="text-gray-500 dark:text-gray-400">No transactions found for this {debtLoan.type || "item"}.</p>
+        <p className="text-gray-500 dark:text-gray-400">No transactions found for this {borrowedLent.type || "item"}.</p>
       ) : (
         <div className="bg-white dark:bg-gray-900 rounded-lg shadow overflow-hidden">
           <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
@@ -186,7 +186,7 @@ export default function DebtLoanDetailPage() {
                     {transaction.category.name}
                   </td>
                   <td className={`px-6 py-4 whitespace-nowrap text-right ${
-                    transaction.category.type === "DEBT" || transaction.category.type === "LOAN_PAYMENT" ? 
+                    transaction.category.type === "BORROWED" || transaction.category.type === "BORROWED_PAYMENT" ? 
                     "text-red-500" : "text-green-500"
                   }`}>
                     {formatVND(transaction.value)}
@@ -198,13 +198,49 @@ export default function DebtLoanDetailPage() {
         </div>
       )}
 
-      <div className="mt-8 flex justify-center">
+      <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
         <button
-          onClick={() => router.push(`/transactions/add?debtLoanId=${id}`)}
+          onClick={() => router.push(`/transactions/add?borrowedLentId=${id}`)}
           className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow-lg"
         >
           Add New Transaction
         </button>
+        
+        {/* Borrowed Payment Buttons (only for borrowed money) */}
+        {borrowedLent.type === "borrowed" && (
+          <div className="flex flex-col sm:flex-row gap-2">
+            <button
+              onClick={() => router.push(`/transactions/add?borrowedLentId=${id}&type=interest-payment`)}
+              className="bg-orange-500 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded-lg shadow-lg"
+            >
+              Pay Interest
+            </button>
+            <button
+              onClick={() => router.push(`/transactions/add?borrowedLentId=${id}&type=principal-payment`)}
+              className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg shadow-lg"
+            >
+              Pay Principal
+            </button>
+          </div>
+        )}
+        
+        {/* Lent Collection Buttons (only for lent money) */}
+        {borrowedLent.type === "lent" && (
+          <div className="flex flex-col sm:flex-row gap-2">
+            <button
+              onClick={() => router.push(`/transactions/add?borrowedLentId=${id}&type=interest-collection`)}
+              className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg shadow-lg"
+            >
+              Collect Interest
+            </button>
+            <button
+              onClick={() => router.push(`/transactions/add?borrowedLentId=${id}&type=principal-collection`)}
+              className="bg-emerald-500 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded-lg shadow-lg"
+            >
+              Collect Principal
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

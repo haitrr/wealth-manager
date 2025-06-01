@@ -14,7 +14,7 @@ type FormState = {
   // dueDate?: string;
 };
 
-export default function AddDebtLoanPage() {
+export default function AddLoanPage() {
   const router = useRouter();
   const [formState, setFormState] = useState<FormState>({
     type: "debt", // Default to debt
@@ -57,7 +57,7 @@ export default function AddDebtLoanPage() {
         throw new Error(errorData.error || "Failed to add item");
       }
 
-      router.push("/debt-loan"); // Navigate back to the list page
+      router.push("/loans"); // Navigate back to the list page
     } catch (err: any) {
       setError(err.message);
     } finally {

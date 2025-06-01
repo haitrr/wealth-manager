@@ -8,6 +8,7 @@ import prisma from "@/lib/prisma";
 import {Money} from "./Money";
 import {AddTransactionButton} from "./AddTransactionButton";
 import { Separator } from "@/components/ui/separator";
+import { EXPENSE_CATEGORY_TYPES, INCOME_CATEGORY_TYPES } from "@/lib/utils";
 
 const getThisMonthTransactions = async () => {
   const transactions = await prisma.transaction.findMany({
@@ -51,18 +52,14 @@ export default async function Home({}) {
   const totalIncome = transactions
     .filter((transaction) => {
       return (
-        transaction.category.type === "INCOME" ||
-        transaction.category.type === "LOAN" ||
-        transaction.category.type === "DEBT_COLLECTION"
+        INCOME_CATEGORY_TYPES.includes(transaction.category.type)
       );
     })
     .reduce((acc, transaction) => acc + transaction.value, 0);
   const totalExpense = transactions
     .filter((transaction) => {
       return (
-        transaction.category.type === "EXPENSE" ||
-        transaction.category.type === "DEBT" ||
-        transaction.category.type === "LOAN_PAYMENT"
+        EXPENSE_CATEGORY_TYPES.includes(transaction.category.type)
       );
     })
     .reduce((acc, transaction) => acc + transaction.value, 0);

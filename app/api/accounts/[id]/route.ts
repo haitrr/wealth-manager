@@ -9,11 +9,11 @@ export async function GET(
         const id = params.id;
 
         // First check if it's a debt
-        let item = await prisma.debt.findUnique({
+        let item = await prisma.borrowing.findUnique({
             where: { id }
         });
 
-        let type = "debt";
+        let type = "borrowing";
 
         // If not found, check if it's a loan
         if (!item) {

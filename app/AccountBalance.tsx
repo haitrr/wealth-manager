@@ -1,24 +1,40 @@
 import prisma from "../lib/prisma";
 import {Decimal} from "@prisma/client/runtime/library";
 import {Money} from "./Money";
+import { EXPENSE_CATEGORY_TYPES, INCOME_CATEGORY_TYPES } from "@/lib/utils";
 
 const AccountBalance = async () => {
-  const [{balance}] = (await prisma.$queryRaw`SELECT 
-  (
-    SELECT COALESCE(SUM(value), 0) FROM "Transaction" 
-    WHERE "categoryId" IN (
-      SELECT id FROM "Category" 
-      WHERE "type" IN ('INCOME', 'LOAN', 'DEBT_COLLECTION')
-    )
-  ) - 
-  (
-    SELECT COALESCE(SUM(value), 0) FROM "Transaction" 
-    WHERE "categoryId" IN (
-      SELECT id FROM "Category" 
-      WHERE "type" IN ('EXPENSE', 'DEBT', 'LOAN_PAYMENT')
-    )
-  ) AS balance;
-`) as {balance: Decimal}[];
+  // Get income transactions
+  const incomeTransactions = await prisma.transaction.aggregate({
+    _sum: {
+      value: true,
+    },
+    where: {
+      category: {
+        type: {
+          in: INCOME_CATEGORY_TYPES
+        }
+      }
+    }
+  });
+
+  // Get expense transactions
+  const expenseTransactions = await prisma.transaction.aggregate({
+    _sum: {
+      value: true,
+    },
+    where: {
+      category: {
+        type: {
+          in: EXPENSE_CATEGORY_TYPES
+        }
+      }
+    }
+  });
+
+  const income = incomeTransactions._sum.value || new Decimal(0);
+  const expenses = expenseTransactions._sum.value || new Decimal(0);
+  const balance = income.sub(expenses);
 
   return <Money value={balance.toNumber()} className="text-xl" />;
 };

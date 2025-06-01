@@ -16,13 +16,13 @@ model Transaction {
     value      Decimal
     category   Category @relation(fields: [categoryId], references: [id])
     categoryId String
-    debtId     String?
-    debt       Debt?    @relation("DebtTransactions", fields: [debtId], references: [id])
+    borrowingId     String?
+    borrowing       Borrowing?    @relation("BorrowingTransactions", fields: [borrowingId], references: [id])
     loanId     String?
     loan       Loan?    @relation("LoanTransactions", fields: [loanId], references: [id])
     @@index([date], type: BTree)
     @@index([categoryId], type: Hash)
-    @@index([debtId], type: Hash)
+    @@index([borrowingId], type: Hash)
     @@index([loanId], type: Hash)
 }
 
@@ -49,13 +49,13 @@ model Budget {
     repeat     Boolean
 }
 
-model Debt {
+model Borrowing {
     id           String        @id @default(cuid())
     name         String
     amount       Decimal
     paidAmount   Decimal
     startDate    DateTime?
-    transactions Transaction[] @relation("DebtTransactions")
+    transactions Transaction[] @relation("BorrowingTransactions")
 
     @@index([startDate], type: BTree)
 }
@@ -82,8 +82,12 @@ enum BudgetPeriod {
 enum CategoryType {
     INCOME
     EXPENSE
-    DEBT
+    BORROWING
+    BORROWING_PAYMENT
+    BORROWING_INTEREST_PAYMENT
+    BORROWING_FEE_PAYMENT
     LOAN
-    DEBT_COLLECTION
-    LOAN_PAYMENT
+    LOAN_COLLECTION
+    LOAN_INTEREST_COLLECTION
+    LOAN_FEE_COLLECTION
 }

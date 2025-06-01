@@ -16,9 +16,9 @@ export type Budget = {
 
 export type BudgetPeriod = "DAILY" | "WEEKLY" | "MONTHLY" | "QUARTERLY" | "YEARLY"
 
-export type CategoryType = "INCOME" | "EXPENSE" | "DEBT" | "LOAN"
-    | "DEBT_COLLECTION"
-    | "LOAN_PAYMENT"
+export type CategoryType = "INCOME" | "EXPENSE" | "BORROWED" | "BORROWED_PAYMENT" 
+    | "BORROWED_INTEREST_PAYMENT" | "BORROWED_FEE_PAYMENT" | "LENT" | "LENT_COLLECTION" 
+    | "LENT_INTEREST_COLLECTION" | "BORROWED_COLLECTION_PAYMENT"
 
 export type Category = {
     id: string;

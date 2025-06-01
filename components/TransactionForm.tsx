@@ -30,6 +30,8 @@ type Inputs = {
   date: Date;
   value: number;
   categoryId: string;
+  borrowedId?: string;
+  lentId?: string;
 };
 
 export const TransactionForm = ({onSubmit, defaultValues}: Props) => {

@@ -18,7 +18,7 @@ export const seed = async () => {
         await prisma.transaction.deleteMany();
         await prisma.category.deleteMany();
         await prisma.budget.deleteMany();
-        await prisma.debt.deleteMany();
+        await prisma.borrowing.deleteMany();
         await prisma.loan.deleteMany();
 
         // categories
@@ -28,10 +28,10 @@ export const seed = async () => {
         const transportationId = randomUUID()
         const partyId = randomUUID()
         const salaryId = randomUUID()
-        const debtCategoryId = randomUUID()
+        const borrowingCategoryId = randomUUID()
         const loanCategoryId = randomUUID()
-        const debtCollectionId = randomUUID()
-        const loanPaymentId = randomUUID()
+        const borrowingPaymentId = randomUUID()
+        const loanCollectionId = randomUUID()
 
         const categories = [
             { name: "Food", type: CategoryType.EXPENSE, id: foodId, icon: "food" },
@@ -40,17 +40,19 @@ export const seed = async () => {
             { name: "Bills", type: CategoryType.EXPENSE, id: billsiD, icon: "bills" },
             { name: "Rental", type: CategoryType.EXPENSE, id: rentalId, parentId: billsiD, icon: "rental" },
             { name: "Transportation", type: CategoryType.EXPENSE, id: transportationId, icon: "transportation" },
-            { name: "Debt", type: CategoryType.DEBT, id: debtCategoryId, icon: "debt" },
+            { name: "Borrowing", type: CategoryType.BORROWING, id: borrowingCategoryId, icon: "borrowing" },
             { name: "Loan", type: CategoryType.LOAN, id: loanCategoryId, icon: "loan" },
-            { name: "Debt Collection", type: CategoryType.DEBT_COLLECTION, id: debtCollectionId, icon: "debt-collection" },
-            { name: "Loan Payment", type: CategoryType.LOAN_PAYMENT, id: loanPaymentId, icon: "loan-payment" },
+            { name: "Borrowing Payment", type: CategoryType.BORROWING_PAYMENT, id: borrowingPaymentId, icon: "borrowing-payment" },
+            { name: "Loan Collection", type: CategoryType.LOAN_COLLECTION, id: loanCollectionId, icon: "loan-collection" },
+            { name: "Borrowing Interest Payment", type: CategoryType.BORROWING_INTEREST_PAYMENT, id: randomUUID(), icon: "borrowing-interest-payment" },
+            { name: "Loan Interest Collection", type: CategoryType.LOAN_INTEREST_COLLECTION, id: randomUUID(), icon: "loan-interest-collection" },
         ];
         await prisma.category.createMany({
             data: categories
         });
 
-        // Create debts and loans
-        const creditCardDebt = await prisma.debt.create({
+        // Create borrowing and loan records
+        const creditCardDebt = await prisma.borrowing.create({
             data: {
                 name: "Credit Card Debt",
                 amount: new Decimal(20_000_000),
@@ -59,7 +61,7 @@ export const seed = async () => {
             }
         });
 
-        const carLoan = await prisma.debt.create({
+        const carLoan = await prisma.borrowing.create({
             data: {
                 name: "Car Loan",
                 amount: new Decimal(150_000_000),
@@ -68,7 +70,7 @@ export const seed = async () => {
             }
         });
 
-        const personalLoan = await prisma.debt.create({
+        const personalLoan = await prisma.borrowing.create({
             data: {
                 name: "Personal Loan",
                 amount: new Decimal(25_000_000),
@@ -77,7 +79,7 @@ export const seed = async () => {
             }
         });
 
-        const mortgageDebt = await prisma.debt.create({
+        const mortgageDebt = await prisma.borrowing.create({
             data: {
                 name: "Mortgage",
                 amount: new Decimal(500_000_000),
@@ -122,21 +124,21 @@ export const seed = async () => {
             {
                 date: dayjs().startOf("month").toISOString(),
                 value: 1_500_000,
-                categoryId: debtCategoryId,
-                debtId: creditCardDebt.id
+                categoryId: borrowingPaymentId,
+                borrowingId: creditCardDebt.id
             },
             // Car loan payment
             {
                 date: dayjs().startOf("month").toISOString(),
                 value: 3_000_000,
-                categoryId: debtCategoryId,
-                debtId: carLoan.id
+                categoryId: borrowingPaymentId,
+                borrowingId: carLoan.id
             },
             // Friend loan collection
             {
                 date: dayjs().startOf("month").subtract(5, 'day').toISOString(),
                 value: 500_000,
-                categoryId: debtCollectionId,
+                categoryId: loanCollectionId,
                 loanId: friendLoan.id
             },
             // Business loan given out
@@ -176,38 +178,38 @@ export const seed = async () => {
                 });
             }
 
-            // Debt payments every 30 days
+            // Borrowing payments every 30 days
             if (i % 30 === 0 && i > 0) {
                 // Credit card payment
                 transactions.push({
                     date: dayjs().subtract(i, 'day').toISOString(),
                     value: 1_500_000,
-                    categoryId: debtCategoryId,
-                    debtId: creditCardDebt.id
+                    categoryId: borrowingPaymentId,
+                    borrowingId: creditCardDebt.id
                 });
 
                 // Car loan payment
                 transactions.push({
                     date: dayjs().subtract(i, 'day').toISOString(),
                     value: 3_000_000,
-                    categoryId: debtCategoryId,
-                    debtId: carLoan.id
+                    categoryId: borrowingPaymentId,
+                    borrowingId: carLoan.id
                 });
 
                 // Mortgage payment
                 transactions.push({
                     date: dayjs().subtract(i, 'day').toISOString(),
                     value: 5_000_000,
-                    categoryId: debtCategoryId,
-                    debtId: mortgageDebt.id
+                    categoryId: borrowingPaymentId,
+                    borrowingId: mortgageDebt.id
                 });
 
                 // Personal loan payment
                 transactions.push({
                     date: dayjs().subtract(i, 'day').toISOString(),
                     value: 2_000_000,
-                    categoryId: debtCategoryId,
-                    debtId: personalLoan.id
+                    categoryId: borrowingPaymentId,
+                    borrowingId: personalLoan.id
                 });
             }
 
@@ -216,7 +218,7 @@ export const seed = async () => {
                 transactions.push({
                     date: dayjs().subtract(i, 'day').toISOString(),
                     value: 500_000,
-                    categoryId: debtCollectionId,
+                    categoryId: loanCollectionId,
                     loanId: friendLoan.id
                 });
 
@@ -225,7 +227,7 @@ export const seed = async () => {
                     transactions.push({
                         date: dayjs().subtract(i, 'day').toISOString(),
                         value: 750_000,
-                        categoryId: debtCollectionId,
+                        categoryId: loanCollectionId,
                         loanId: familyLoan.id
                     });
                 }
@@ -272,7 +274,7 @@ export const seed = async () => {
                 repeat: true,
                 categories: {
                     connect: [
-                        { id: debtCategoryId },
+                        { id: borrowingPaymentId },
                     ]
                 },
             }
@@ -287,7 +289,7 @@ export const seed = async () => {
                 repeat: true,
                 categories: {
                     connect: [
-                        { id: debtCollectionId },
+                        { id: loanCollectionId },
                     ]
                 },
             }

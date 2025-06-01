@@ -4,7 +4,7 @@ import {useEffect, useState} from "react";
 import {useRouter} from "next/navigation";
 import {formatVND} from "@/utils/currency";
 
-interface DebtLoan {
+interface Loan {
   id: string;
   name: string;
   amount: number;
@@ -22,9 +22,9 @@ interface PaginationInfo {
   totalLoans: number;
 }
 
-export default function DebtLoansPage() {
+export default function LoansPage() {
   const router = useRouter();
-  const [debtLoans, setDebtLoans] = useState<DebtLoan[]>([]);
+  const [debtLoans, setDebtLoans] = useState<Loan[]>([]);
   const [pagination, setPagination] = useState<PaginationInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -33,11 +33,11 @@ export default function DebtLoansPage() {
   useEffect(() => {
     const controller = new AbortController();
     
-    async function fetchDebtLoans() {
+    async function fetchAccounts() {
       try {
         setLoading(true);
         // Add sort by startDate for using the index we created
-        const response = await fetch("/api/debt-loans?limit=20&sortBy=startDate&sortDirection=desc", {
+        const response = await fetch("/api/accounts?limit=20&sortBy=startDate&sortDirection=desc", {
           signal: controller.signal,
           // Using next.js cache settings for better performance
           next: { revalidate: 60 } // Revalidate data every 60 seconds
@@ -50,7 +50,7 @@ export default function DebtLoansPage() {
         const data = await response.json();
         
         // Process data with a single iteration to improve performance
-        const processedItems: DebtLoan[] = [];
+        const processedItems: Loan[] = [];
         
         // Process debts
         if (Array.isArray(data.debts)) {
@@ -89,7 +89,7 @@ export default function DebtLoansPage() {
       }
     }
     
-    fetchDebtLoans();
+    fetchAccounts();
     
     // Cleanup function to abort fetch on unmount
     return () => {
@@ -99,7 +99,7 @@ export default function DebtLoansPage() {
 
   return (
     <div className="container mx-auto p-4 relative h-full">
-      <h1 className="text-2xl font-bold mb-4">Debt Loans</h1>
+      <h1 className="text-2xl font-bold mb-4">Accounts</h1>
       
       {loading ? (
         // Skeleton loading UI
@@ -143,7 +143,7 @@ export default function DebtLoansPage() {
               <li
                 key={loan.id}
                 className="p-4 border rounded-lg shadow-sm cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                onClick={() => router.push(`/debt-loan/${loan.id}`)}
+                onClick={() => router.push(`/loan/${loan.id}`)}
               >
                 <div className="flex justify-between items-center mb-2">
                   <h2 className="text-xl font-semibold">{loan.name}</h2>
@@ -218,7 +218,7 @@ export default function DebtLoansPage() {
       {/* Fixed action button */}
       <button
         onClick={() => {
-          router.push("/debt-loan/add");
+          router.push("/loans/add");
         }}
         className="fixed bottom-24 right-8 bg-blue-500 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-full shadow-lg z-50"
         aria-label="Add Debt or Loan"

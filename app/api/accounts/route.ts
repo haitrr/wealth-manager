@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
         
         // Execute both queries in parallel for better performance
         const [debts, loans, totalDebts, totalLoans] = await Promise.all([
-            prisma.debt.findMany({
+            prisma.borrowing.findMany({
                 orderBy,
                 include: {
                     // Include count of related transactions for optimization
@@ -42,12 +42,12 @@ export async function GET(request: NextRequest) {
                 take: limit,
                 skip: offset
             }),
-            prisma.debt.count(),
+            prisma.borrowing.count(),
             prisma.loan.count()
         ]);
 
         return NextResponse.json({
-            debts: debts.map(debt => ({ ...debt, type: 'debt' })),
+            borrowings: debts.map(debt => ({ ...debt, type: 'debt' })),
             loans: loans.map(loan => ({ ...loan, type: 'loan' })),
             pagination: {
                 limit,
