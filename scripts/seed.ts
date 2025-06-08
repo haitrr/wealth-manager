@@ -195,7 +195,11 @@ export const seed = async () => {
 
         // transactions
         const transactions = [
-            { date: dayjs().startOf("month").toISOString(), value: 30_000_000, categoryId: salaryId, accountId: cashAccount.id },
+            { date: dayjs().startOf("month").toISOString(), value: 50_000_000, categoryId: salaryId, accountId: cashAccount.id },
+            // Add additional income for the past months
+            { date: dayjs().startOf("month").subtract(1, 'month').toISOString(), value: 50_000_000, categoryId: salaryId, accountId: cashAccount.id },
+            { date: dayjs().startOf("month").subtract(2, 'month').toISOString(), value: 50_000_000, categoryId: salaryId, accountId: cashAccount.id },
+            { date: dayjs().startOf("month").subtract(3, 'month').toISOString(), value: 50_000_000, categoryId: salaryId, accountId: cashAccount.id },
             // rental 6_000_000 to 7_000_000 at start of the month
             { date: dayjs().startOf("month").toISOString(), value: getRandomNumber(6_000, 7_000) * 1000, categoryId: rentalId, accountId: cashAccount.id },
             // Credit card debt payment
@@ -229,8 +233,18 @@ export const seed = async () => {
         ];
 
         for (let i = 0; i < 100; i++) {
-            // 4 food transactions from 10k to 50k
-            for (let j = 0; j < 4; j++) {
+            // Add salary income for past months (every 30 days)
+            if (i % 30 === 0 && i > 0) {
+                transactions.push({
+                    date: dayjs().subtract(i, 'day').toISOString(),
+                    value: 50_000_000,
+                    categoryId: salaryId,
+                    accountId: cashAccount.id
+                });
+            }
+
+            // 2-3 food transactions from 10k to 50k (reduced from 4)
+            for (let j = 0; j < getRandomNumber(2, 3); j++) {
                 transactions.push({
                     date: dayjs().subtract(i, 'day').toISOString(),
                     value: getRandomNumber(10, 50) * 1000,
