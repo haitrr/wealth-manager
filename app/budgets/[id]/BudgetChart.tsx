@@ -69,9 +69,9 @@ export function BudgetChart({transactions, budget}: Props) {
     });
     
     const predictedData = Array.from(
-      {length: dayjs(endDate).diff(dayjs(), "day") + 1},
+      {length: dayjs(endDate).diff(dayjs(), "day")},
       (_, i) => {
-        const date = dayjs().add(i, "day").format("YYYY-MM-DD");
+        const date = dayjs().add(i + 1, "day").format("YYYY-MM-DD");
         return {date, value: spentPerDayLast7Days, predicted: true};
       },
     );
@@ -118,6 +118,12 @@ export function BudgetChart({transactions, budget}: Props) {
     const predictedData = cumulativeData
       .filter((item) => item.predicted)
       .map((item) => [item.date, item.value]);
+
+    // Add connection point from actual to predicted data
+    if (actualData.length > 0 && predictedData.length > 0) {
+      const lastActual = actualData[actualData.length - 1];
+      predictedData.unshift(lastActual);
+    }
 
     // Set chart options
     const option = {
