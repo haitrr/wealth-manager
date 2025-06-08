@@ -1,6 +1,5 @@
 import dayjs from "dayjs";
-import { Budget } from "./types";
-import { BudgetPeriod } from "@prisma/client";
+import { Budget, BudgetPeriod } from "@prisma/client";
 
 export const formatDate = (date: dayjs.Dayjs | Date) => {
     return dayjs(date).format("MMM D YYYY");

@@ -32,6 +32,8 @@ const getThisMonthTransactions = async () => {
       date: true,
       id: true,
       value: true,
+      categoryId: true,
+      accountId: true,
     },
     orderBy: {
       date: "desc",

@@ -2,15 +2,15 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { TransactionItem } from "@/app/TransactionItem";
-import { Transaction } from "@/utils/types";
+import { TransactionWithCategory } from "@/utils/types";
 
 interface RecentTransactionsProps {
   accountId: string;
-  transactions: Transaction[];
+  transactions: TransactionWithCategory[];
 }
 
 export function RecentTransactions({ accountId, transactions: initialTransactions }: RecentTransactionsProps) {
-  const [transactions, setTransactions] = useState<Transaction[]>(initialTransactions);
+  const [transactions, setTransactions] = useState<TransactionWithCategory[]>(initialTransactions);
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [offset, setOffset] = useState(initialTransactions.length);

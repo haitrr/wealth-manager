@@ -4,9 +4,10 @@ import {getBudgetEndDate} from "@/utils/date";
 import {BudgetProgress} from "./BudgetProgress";
 import Link from "next/link";
 import {getAllBudgetCategoriesIds} from "@/utils/budget";
-import {Budget} from "@/utils/types";
+import { Budget } from "@prisma/client";
+import { BudgetWithNumberValue } from "@/utils/types";
 type Props = {
-  budget: Pick<Budget, "id" | "name" | "value" | "startDate" | "period">;
+  budget: BudgetWithNumberValue;
 };
 
 export async function BudgetItem({budget}: Props) {

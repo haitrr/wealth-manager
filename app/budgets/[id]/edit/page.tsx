@@ -1,5 +1,4 @@
 import prisma from "@/lib/prisma";
-import { Budget } from "@/utils/types";
 import BudgetEditForm from "./components/BudgetEditForm";
 import { Category } from "@prisma/client";
 

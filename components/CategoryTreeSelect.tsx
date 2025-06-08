@@ -1,13 +1,4 @@
 "use client";
-
-import {Category} from "@/utils/types";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {useEffect, useMemo, useState} from "react";
 import {getCategories} from "@/actions/category";
 import {TreeSelect} from "antd";

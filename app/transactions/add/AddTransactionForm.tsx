@@ -62,8 +62,6 @@ export const AddTransactionForm = () => {
       
       <TransactionForm 
         onSubmit={handleSubmit} 
-        isLoading={isLoading}
-        disabled={isLoading}
       />
     </div>
   );

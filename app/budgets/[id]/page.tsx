@@ -4,9 +4,9 @@ import {getBudgetEndDate} from "@/utils/date";
 import {BudgetChart} from "./BudgetChart";
 import TransactionsList from "@/app/TransactionsList";
 import {getAllBudgetCategoriesIds} from "@/utils/budget";
-import {Budget} from "@/utils/types";
 import EditBudgetButton from "./EditBudgetButton";
 import BudgetHeader from "./components/BudgetHeader";
+import { BudgetWithNumberValue } from "@/utils/types";
 
 type Props = {
   params: {id: string};
@@ -21,7 +21,7 @@ export default async function BudgetDetailPage({params}: Props) {
   if (!budgetP) {
     return <div>Not found</div>;
   }
-  const budget: Budget = {...budgetP, value: budgetP.value.toNumber()};
+  const budget = {...budgetP, value: budgetP.value.toNumber()};
 
   const categoryIds = await getAllBudgetCategoriesIds(budget);
 
@@ -55,7 +55,7 @@ export default async function BudgetDetailPage({params}: Props) {
     </div>
   );
 }
-async function getTransactions(budget: Budget, categoryIds: string[]) {
+async function getTransactions(budget: BudgetWithNumberValue, categoryIds: string[]) {
   const trans = await prisma.transaction.findMany({
     where: {
       date: {
@@ -73,6 +73,8 @@ async function getTransactions(budget: Budget, categoryIds: string[]) {
       category: true,
       value: true,
       date: true,
+      categoryId: true,
+      accountId: true,
     },
     orderBy: {
       date: "desc",

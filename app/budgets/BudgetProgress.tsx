@@ -1,9 +1,9 @@
 import { getBudgetEndDate } from "@/utils/date";
 import { getBudgetSpentAmount } from "./BudgetItem";
-import { Budget } from "@/utils/types";
+import { BudgetWithNumberValue } from "@/utils/types";
 
 type Props = {
-  budget: Pick<Budget, "startDate" | "value" | "period">;
+  budget: BudgetWithNumberValue;
 };
 
 export async function BudgetProgress({budget}: Props) {

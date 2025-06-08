@@ -1,11 +1,13 @@
 import { Money } from "@/app/Money";
 import dayjs from "dayjs";
 import { getBudgetEndDate } from "@/utils/date";
-import { Budget } from "@/utils/types";
 import { BudgetProgress } from "../../BudgetProgress";
+import { Budget } from "@prisma/client";
 
 type Props = {
-  budget: Budget;
+  budget: Omit<Budget, "value"> & {
+    value: number;
+  };
   spent: number;
   left: number;
 };

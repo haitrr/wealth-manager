@@ -1,6 +1,5 @@
 "use client";
 
-import {Category} from "@/utils/types";
 import {
   Select,
   SelectContent,
@@ -8,6 +7,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Category } from "@prisma/client";
 
 type Props = {
   categories: Category[];

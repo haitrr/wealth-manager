@@ -1,15 +1,17 @@
 import dayjs from "dayjs";
-import {Transaction} from "@/utils/types";
 import {getDayOfWeek} from "@/utils/date";
 import {TransactionItem} from "./TransactionItem";
 import {Money} from "./Money";
+import { Category, Transaction } from "@prisma/client";
+import { INCOME_CATEGORY_TYPES } from "@/lib/utils";
+import { TransactionWithCategory } from "@/utils/types";
 
 type Props = {
-  transactions: Transaction[];
+  transactions: TransactionWithCategory[];
 };
 
 const TransactionsList = async ({transactions}: Props) => {
-  const transactionsByDate: {[key: string]: Transaction[]} = {};
+  const transactionsByDate: {[key: string]: TransactionWithCategory[]} = {};
   transactions.forEach((tr) => {
     const date = dayjs(tr.date).format("MMM D YYYY");
     if (!transactionsByDate[date]) {
@@ -29,9 +31,7 @@ const TransactionsList = async ({transactions}: Props) => {
         let netIncome = 0;
         dateTransactions.forEach((transaction) => {
           if (
-            transaction.category.type === "INCOME" ||
-            transaction.category.type === "LOAN" ||
-            transaction.category.type === "DEBT_COLLECTION"
+            transaction.category.type in INCOME_CATEGORY_TYPES
           ) {
             netIncome += transaction.value;
           } else {

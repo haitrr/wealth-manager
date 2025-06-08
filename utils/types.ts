@@ -1,19 +1,15 @@
-export type Transaction = {
-    date: Date;
-    id: string;
+import { Budget, Category, Transaction } from "@prisma/client";
+
+export type TransactionWithNumberValue = Omit<Transaction, "value"> & {
     value: number;
+}
+
+export type TransactionWithCategory = Omit<Transaction, "value"> & {
     category: Category;
-}
+    value: number;
+};
 
-export type BudgetPeriod = "DAILY" | "WEEKLY" | "MONTHLY" | "QUARTERLY" | "YEARLY"
-
-export type CategoryType = "INCOME" | "EXPENSE" | "BORROWED" | "BORROWED_PAYMENT" 
-    | "BORROWED_INTEREST_PAYMENT" | "BORROWED_FEE_PAYMENT" | "LENT" | "LENT_COLLECTION" 
-    | "LENT_INTEREST_COLLECTION" | "BORROWED_COLLECTION_PAYMENT"
-
-export type Category = {
-    id: string;
-    name: string;
-    type: CategoryType;
-    icon: string;
-}
+export type BudgetWithNumberValue = Omit<Budget, "value"> & {
+    value: number;
+    repeat: boolean;
+};

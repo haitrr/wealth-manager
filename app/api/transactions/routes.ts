@@ -60,13 +60,14 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: Request) {
     try {
-        const { date, value, categoryId } = await request.json();
+        const { date, value, categoryId, accountId } = await request.json();
         
         const transaction = await prisma.transaction.create({
             data: {
-                date,
-                value,
-                categoryId
+                date: new Date(date),
+                value: parseFloat(value),
+                categoryId,
+                accountId
             }
         });
         return Response.json({ transaction }, { status: 201 });

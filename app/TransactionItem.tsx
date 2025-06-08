@@ -1,5 +1,5 @@
 "use client";
-import {Transaction} from "@/utils/types";
+import { TransactionWithCategory } from "@/utils/types";
 import {CategoryIcon} from "./CategoryIcon";
 import {Money} from "./Money";
 import Link from "next/link";
@@ -14,7 +14,7 @@ function formatDate(date: Date): string {
 }
 
 type Props = {
-  transaction: Transaction;
+  transaction: TransactionWithCategory;
 };
 
 export function TransactionItem({transaction}: Props) {

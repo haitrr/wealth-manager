@@ -36,7 +36,7 @@ export function BudgetChart({transactions, budget}: Props) {
     }));
     
     const totalSpent = data.reduce(
-      (acc, transaction) => acc + transaction.value,
+      (acc, transaction) => acc + Number(transaction.value),
       0,
     );
     
@@ -104,7 +104,7 @@ export function BudgetChart({transactions, budget}: Props) {
       const lastValue = acc.length > 0 ? acc[acc.length - 1].value : 0;
       acc.push({
         date: item.date,
-        value: lastValue + item.value,
+        value: lastValue + Number(item.value),
         predicted: item.predicted,
       });
       return acc;

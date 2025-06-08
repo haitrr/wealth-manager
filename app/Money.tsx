@@ -1,5 +1,5 @@
 import {formatVND, getColorVariant} from "@/utils/currency";
-import {CategoryType} from "@/utils/types";
+import { CategoryType } from "@prisma/client";
 
 type Props = {
   value: number;

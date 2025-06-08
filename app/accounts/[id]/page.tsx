@@ -1,9 +1,9 @@
 import { notFound } from "next/navigation";
 import prisma from "@/lib/prisma";
-import { Transaction } from "@/utils/types";
 import { AccountHeader } from "./components/AccountHeader";
 import { RecentTransactions } from "./components/RecentTransactions";
 import { AccountNavigation } from "./components/AccountNavigation";
+import { TransactionWithCategory } from "@/utils/types";
 
 interface AccountDetailPageProps {
   params: { id: string };
@@ -57,7 +57,7 @@ export default async function AccountDetailPage({ params }: AccountDetailPagePro
 
       <RecentTransactions 
         accountId={account.id} 
-        transactions={account.transactions as Transaction[]} 
+        transactions={account.transactions as TransactionWithCategory[]} 
       />
     </div>
   );
