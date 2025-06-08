@@ -70,7 +70,7 @@ export const TransactionForm = ({onSubmit, defaultValues}: Props) => {
         }
       }
     });
-  }, [setValue]);
+  }, [setValue, formDefaultValues.accountId]);
 
   const handleCancel = () => {
     window.history.back();
