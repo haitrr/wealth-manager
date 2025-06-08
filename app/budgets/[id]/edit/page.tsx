@@ -1,6 +1,7 @@
 import prisma from "@/lib/prisma";
 import { Budget } from "@/utils/types";
 import BudgetEditForm from "./components/BudgetEditForm";
+import { Category } from "@prisma/client";
 
 type Props = {
   params: { id: string };
@@ -20,20 +21,20 @@ export default async function BudgetEditPage({ params }: Props) {
       <div className="min-h-full bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-100 mb-4">Budget Not Found</h1>
-          <p className="text-gray-400">The budget you're looking for doesn't exist.</p>
+          <p className="text-gray-400">{"The budget you're looking for doesn't exist."}</p>
         </div>
       </div>
     );
   }
 
-  const budget: Budget & { repeat: boolean } = {
+  const budget = {
     ...budgetP,
     value: budgetP.value.toNumber(),
     repeat: budgetP.repeat || false,
   };
 
   // Fetch all categories for selection
-  const categories = await prisma.category.findMany({
+  const categories: Pick<Category, "id" | "parentId" | "name" | "type">[] = await prisma.category.findMany({
     select: {
       id: true,
       name: true,

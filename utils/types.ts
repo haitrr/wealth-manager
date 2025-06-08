@@ -5,15 +5,6 @@ export type Transaction = {
     category: Category;
 }
 
-export type Budget = {
-    id: string;
-    name: string;
-    value: number;
-    startDate: Date;
-    categories: Partial<Category>[];
-    period: BudgetPeriod;
-}
-
 export type BudgetPeriod = "DAILY" | "WEEKLY" | "MONTHLY" | "QUARTERLY" | "YEARLY"
 
 export type CategoryType = "INCOME" | "EXPENSE" | "BORROWED" | "BORROWED_PAYMENT" 

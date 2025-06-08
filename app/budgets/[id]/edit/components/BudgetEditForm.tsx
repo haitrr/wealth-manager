@@ -2,20 +2,15 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Budget } from "@/utils/types";
 import { Money } from "@/app/Money";
-import { BudgetPeriod } from "@prisma/client";
-
-type Category = {
-  id: string;
-  name: string;
-  type: string;
-  parentId?: string;
-};
+import { Budget, BudgetPeriod, Category } from "@prisma/client";
 
 type Props = {
-  budget: Budget & { repeat?: boolean };
-  categories: Category[];
+  budget: Pick<Budget, "id" | "name" | "period" | "repeat"> & {
+    categories?: { id: string }[];
+    value: number;
+  };
+  categories: Pick<Category, "id" | "parentId" | "name" | "type">[];
 };
 
 export default function BudgetEditForm({ budget, categories }: Props) {
