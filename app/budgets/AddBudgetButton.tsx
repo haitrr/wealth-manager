@@ -10,7 +10,7 @@ export const AddBudgetButton = () => {
   return (
     <div className="fixed bottom-20 right-4">
       <button
-        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full"
+        className="bg-blue-500 hover:bg-blue-700 text-white font-bold w-12 h-12 rounded-full flex items-center justify-center text-xl"
         onClick={onClick}
       >
         +

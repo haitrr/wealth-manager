@@ -14,7 +14,7 @@ export async function BudgetItem({budget}: Props) {
   const left = budget.value - spent;
   return (
     <Link href={`/budgets/${budget.id}`}>
-      <div className="bg-secondary p-2 rounded">
+      <div className="bg-secondary p-4 rounded">
         <div className="flex justify-between items-center">
           <div>{budget.name}</div>
           <div className="flex flex-col justify-end items-end">
