@@ -3,12 +3,11 @@ import relativeTime from "dayjs/plugin/relativeTime";
 
 dayjs.extend(relativeTime);
 import TransactionsList from "./TransactionsList";
-import AccountBalance from "./AccountBalance";
 import prisma from "@/lib/prisma";
-import {Money} from "./Money";
 import {AddTransactionButton} from "./AddTransactionButton";
-import { Separator } from "@/components/ui/separator";
 import { EXPENSE_CATEGORY_TYPES, INCOME_CATEGORY_TYPES } from "@/lib/utils";
+import FinancialSummaryCard from "./components/FinancialSummaryCard";
+import BalanceCard from "./components/BalanceCard";
 
 const getThisMonthTransactions = async () => {
   const transactions = await prisma.transaction.findMany({
@@ -66,28 +65,29 @@ export default async function Home({}) {
   const netIncome = totalIncome - totalExpense;
 
   return (
-    <div className="h-full">
-      <div className="flex p-1 flex-col items-center">
-        <div>Balance</div>
-        <AccountBalance />
+    <div className="min-h-full bg-gray-900">
+      <div className="max-w-4xl mx-auto p-4 space-y-6">
+        {/* Balance Section */}
+        <BalanceCard />
+        
+        {/* Financial Summary */}
+        <FinancialSummaryCard 
+          totalIncome={totalIncome}
+          totalExpense={totalExpense}
+          netIncome={netIncome}
+        />
+        
+        {/* Recent Transactions */}
+        <div className="bg-gray-800 rounded-xl shadow-lg border border-gray-700 p-6">
+          <h2 className="text-lg font-semibold text-gray-100 mb-4">Recent Transactions</h2>
+          <TransactionsList transactions={transactions} />
+        </div>
+        
+        {/* Add Transaction Button */}
+        <div className="flex justify-center pt-4">
+          <AddTransactionButton />
+        </div>
       </div>
-      <div className="rounded p-2">
-        <div className="flex justify-between p-2">
-          <div>Income</div>
-          <Money value={totalIncome} />
-        </div>
-        <div className="flex justify-between p-2">
-          <div>Expense</div>
-          <Money value={-totalExpense} />
-        </div>
-        <div className="flex justify-between p-2 ">
-          <div>Net Income</div>
-          <Money value={netIncome} />
-        </div>
-      </div>
-      <Separator/>
-      <TransactionsList transactions={transactions} />
-      <AddTransactionButton />
     </div>
   );
 }
