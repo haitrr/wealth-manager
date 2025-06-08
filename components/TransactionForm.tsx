@@ -62,15 +62,15 @@ export const TransactionForm = ({onSubmit, defaultValues}: Props) => {
     });
     getAccounts().then((data) => {
       setAccounts(data);
-      // Set default account if not already set
-      if (!defaultValues?.accountId) {
-        const defaultAccount = data?.find((account: any) => account.default );
+      // Set default account if not already set and no default value provided
+      if (!formDefaultValues.accountId) {
+        const defaultAccount = data?.find((account: any) => account.default);
         if (defaultAccount) {
           setValue('accountId', defaultAccount.id);
         }
       }
     });
-  }, [setValue, defaultValues?.accountId]);
+  }, [setValue]);
 
   const handleCancel = () => {
     window.history.back();
