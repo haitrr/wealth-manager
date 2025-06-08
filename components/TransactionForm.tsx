@@ -60,14 +60,19 @@ export const TransactionForm = ({onSubmit, defaultValues}: Props) => {
     getCategories().then((data) => {
       setCategories(data);
     });
+  }, []);
+
+  useEffect(() => {
     getAccounts().then((data) => {
       setAccounts(data);
-      console.log("Accounts data:", data, defaultValues?.accountId);
       // Set default account if not already set and no default value provided
       if (!defaultValues?.accountId) {
         const defaultAccount = data?.find((account: any) => account.default);
         if (defaultAccount) {
-          setValue('accountId', defaultAccount.id);
+          // Use setTimeout to ensure form is fully initialized
+          setTimeout(() => {
+            setValue('accountId', defaultAccount.id);
+          }, 0);
         }
       }
     });
