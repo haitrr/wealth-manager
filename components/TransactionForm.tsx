@@ -32,7 +32,7 @@ type Inputs = {
   date: Date;
   value: number;
   categoryId: string;
-  accountId: string | undefined | null;
+  accountId: string;
   borrowedId?: string;
   lentId?: string;
 };
@@ -44,8 +44,7 @@ export const TransactionForm = ({onSubmit, defaultValues}: Props) => {
   // Set default date to today if not provided
   const formDefaultValues = {
     ...defaultValues,
-    date: defaultValues?.date || new Date(),
-    accountId: defaultValues?.accountId || null,
+    date: defaultValues?.date || new Date()
   };
   
   const {
@@ -69,14 +68,17 @@ export const TransactionForm = ({onSubmit, defaultValues}: Props) => {
     getAccounts().then((data) => {
       setAccounts(data);
       // Set default account if not already set and no default value provided
-      if (accountId === null) {
+      if (!defaultValues?.accountId) {
         const defaultAccount = data?.find((account: any) => account.default);
+        if (defaultAccount) {
+          // Use setTimeout to ensure form is fully initialized
           setTimeout(() => {
-            setValue('accountId', defaultAccount?.id);
+            setValue('accountId', defaultAccount.id);
           }, 0);
+        }
       }
     });
-  }, [setValue, accountId]);
+  }, [setValue, defaultValues?.accountId]);
 
   const handleCancel = () => {
     window.history.back();
@@ -150,7 +152,6 @@ export const TransactionForm = ({onSubmit, defaultValues}: Props) => {
                 className="w-50"
                 accounts={accounts}
                 {...field}
-                value={field.value || undefined}
               />
             );
           }}
