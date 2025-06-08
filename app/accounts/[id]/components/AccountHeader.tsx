@@ -2,12 +2,14 @@ import { AccountType } from "@prisma/client";
 import { AccountCard } from "./AccountCard";
 import { DebtInfoGrid } from "./DebtInfoGrid";
 import { DebtProgress } from "./DebtProgress";
+import { SetDefaultButton } from "./SetDefaultButton";
 
 interface AccountHeaderProps {
   account: {
     id: string;
     name: string;
     type: AccountType;
+    default: boolean;
     debt?: {
       name: string;
       principalAmount: number;
@@ -19,7 +21,10 @@ interface AccountHeaderProps {
 }
 
 interface DebtAccountProps {
-  accountId: string;
+  account: {
+    id: string;
+    default: boolean;
+  };
   debt: {
     name: string;
     principalAmount: number;
@@ -30,16 +35,17 @@ interface DebtAccountProps {
   type: 'borrowing' | 'loan';
 }
 
-function DebtAccount({ accountId, debt, type }: DebtAccountProps) {
+function DebtAccount({ account, debt, type }: DebtAccountProps) {
   return (
     <AccountCard
       title={debt.name}
       emoji={type === 'borrowing' ? "📉" : "📈"}
       badge={type === 'borrowing' ? "Debt" : "Loan"}
       titleColor={type === 'borrowing' ? "text-destructive" : "text-primary"}
+      actions={<SetDefaultButton accountId={account.id} isDefault={account.default} />}
     >
-      <DebtInfoGrid debt={debt} accountId={accountId} />
-      <DebtProgress debt={debt} accountId={accountId} type={type} />
+      <DebtInfoGrid debt={debt} accountId={account.id} />
+      <DebtProgress debt={debt} accountId={account.id} type={type} />
     </AccountCard>
   );
 }
@@ -53,6 +59,7 @@ export function AccountHeader({ account }: AccountHeaderProps) {
           emoji="💰"
           badge="Cash Account"
           titleColor="text-foreground"
+          actions={<SetDefaultButton accountId={account.id} isDefault={account.default} />}
         >
           <p className="text-muted-foreground">Manage your cash transactions and view balance history.</p>
         </AccountCard>
@@ -61,12 +68,12 @@ export function AccountHeader({ account }: AccountHeaderProps) {
     case AccountType.BORROWING:
       const debt = account.debt;
       if (!debt) return <div>No debt information available</div>;
-      return <DebtAccount accountId={account.id} debt={debt} type="borrowing" />;
+      return <DebtAccount account={{ id: account.id, default: account.default }} debt={debt} type="borrowing" />;
 
     case AccountType.LOAN:
       const loan = account.debt;
       if (!loan) return <div>No loan information available</div>;
-      return <DebtAccount accountId={account.id} debt={loan} type="loan" />;
+      return <DebtAccount account={{ id: account.id, default: account.default }} debt={loan} type="loan" />;
 
     default:
       return <div>Unknown account type</div>;

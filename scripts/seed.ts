@@ -54,7 +54,8 @@ export const seed = async () => {
         const cashAccount = await prisma.account.create({
             data: {
                 name: "Cash Account",
-                type: "CASH"
+                type: "CASH",
+                default: true
             }
         });
 

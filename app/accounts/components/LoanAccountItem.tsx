@@ -60,7 +60,14 @@ export function LoanAccountItem({ account, onClick }: LoanAccountItemProps) {
       onClick={() => onClick(account.id)}
     >
       <div className="flex justify-between items-center mb-2">
-        <h3 className="text-lg font-semibold text-primary">📈 {loan.name}</h3>
+        <div className="flex items-center gap-2">
+          <h3 className="text-lg font-semibold text-primary">📈 {loan.name}</h3>
+          {account.default && (
+            <span className="text-xs bg-primary text-primary-foreground px-2 py-1 rounded-full font-medium">
+              Default
+            </span>
+          )}
+        </div>
         <span className="text-sm bg-secondary text-secondary-foreground px-2 py-1 rounded">Loan</span>
       </div>
       

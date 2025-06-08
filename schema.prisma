@@ -70,6 +70,7 @@ model Account {
     type         AccountType
     debt         Debt?
     debtId       String?
+    default       Boolean @default(false)
 }
 
 enum AccountType {

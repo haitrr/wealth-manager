@@ -20,6 +20,7 @@ const EditTransactionForm = ({transaction}: Props) => {
         defaultValues={{
           date: transaction.date,
           categoryId: transaction.categoryId,
+          accountId: transaction.accountId,
           value: transaction.value,
         }}
       ></TransactionForm>
