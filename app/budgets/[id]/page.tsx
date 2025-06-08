@@ -1,14 +1,12 @@
-import {Money} from "@/app/Money";
 import prisma from "@/lib/prisma";
-import {BudgetProgress} from "../BudgetProgress";
 import {getBudgetSpentAmount} from "../BudgetItem";
-import dayjs from "dayjs";
 import {getBudgetEndDate} from "@/utils/date";
 import {BudgetChart} from "./BudgetChart";
 import TransactionsList from "@/app/TransactionsList";
 import {getAllBudgetCategoriesIds} from "@/utils/budget";
 import {Budget} from "@/utils/types";
 import EditBudgetButton from "./EditBudgetButton";
+import BudgetHeader from "./components/BudgetHeader";
 
 type Props = {
   params: {id: string};
@@ -32,37 +30,27 @@ export default async function BudgetDetailPage({params}: Props) {
   }
   const spent = await getBudgetSpentAmount(budget);
   const left = budget.value - spent;
-  const startDate = budget.startDate;
-  const endDate = getBudgetEndDate(budget);
-  const dayLeft = dayjs(endDate).diff(dayjs(), "day");
 
   const transactions = await getTransactions(budget, categoryIds);
 
   return (
-    <div className="h-full">
-      <div className="flex p-4 flex-col gap-1 justify-center text-sm items-center">
-        <div>{budget.name}</div>
-        <Money value={budget.value} />
-        <div className="flex justify-between w-full">
-          <div>
-            <span>Spent</span>
-            <Money value={spent} />
-          </div>
-          <div className="flex flex-col items-end justify-end">
-            <div>Left</div>
-            <Money value={left} />
-          </div>
+    <div className="min-h-full bg-gray-900">
+      <div className="max-w-4xl mx-auto p-4 space-y-6">
+        <BudgetHeader budget={budget} spent={spent} left={left} />
+        
+        <div className="bg-gray-800 rounded-xl shadow-lg border border-gray-700 p-6">
+          <h2 className="text-lg font-semibold text-gray-100 mb-4">Spending Chart</h2>
+          <BudgetChart budget={budget} transactions={transactions} />
         </div>
-        <BudgetProgress budget={budget} />
-        <div className="flex justify-start w-full flex-col text-sm pt-1">
-          <div>{`${dayjs(startDate).format("DD/MM")} - ${dayjs(endDate).format(
-            "DD/MM",
-          )}`}</div>
-          <div>{`${dayLeft} days left`}</div>
+        
+        <div className="bg-gray-800 rounded-xl shadow-lg border border-gray-700 p-6">
+          <h2 className="text-lg font-semibold text-gray-100 mb-4">Recent Transactions</h2>
+          <TransactionsList transactions={transactions} />
         </div>
-        <BudgetChart budget={budget} transactions={transactions} />
-        <TransactionsList transactions={transactions} />
-        <EditBudgetButton id={budget.id} />
+        
+        <div className="flex justify-center pt-4">
+          <EditBudgetButton id={budget.id} />
+        </div>
       </div>
     </div>
   );

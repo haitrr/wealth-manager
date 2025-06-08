@@ -1,4 +1,6 @@
-* Colors: Prefer using color defined in styles/globals.css
+* Colors: 
+    * Prefer using color defined in styles/globals.css
+    * The default theme is dark
 * Components: 
     * Never use function like renderAbc => create new component for that.
     * 1 component per file
