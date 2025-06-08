@@ -5,7 +5,7 @@ import {Button} from "@/components/ui/button";
 import {Input} from "@/components/ui/input";
 import {DatePicker} from "@/components/ui/datepicker";
 import {Label} from "@/components/ui/label";
-import {useEffect, useState} from "react";
+import {useEffect, useMemo, useState} from "react";
 import {useForm, Controller} from "react-hook-form";
 import {api} from "@/utils/api";
 import {Account, Category} from "@prisma/client";
@@ -74,8 +74,19 @@ export const TransactionForm = ({onSubmit, defaultValues}: Props) => {
       try {
         const accounts = await api.accounts.getAll();
         setAccounts(accounts);
+      } catch (error) {
+        console.error('Error fetching accounts:', error);
+      }
+    };
+
+    fetchAccounts();
+  }, [setAccounts])
+
+  const currentValues = watch();
+  const isAccountFieldRegistered = useMemo(() => Object.keys(currentValues).includes("accountId"), [currentValues]);
+  useEffect(() => {
         // Set default account if not already set and no default value provided
-        if (!defaultValues?.accountId) {
+        if (!defaultValues?.accountId && isAccountFieldRegistered) {
           const defaultAccount = accounts.find((account) => account.default);
           if (defaultAccount) {
             // Use setTimeout to ensure form is fully initialized
@@ -84,13 +95,8 @@ export const TransactionForm = ({onSubmit, defaultValues}: Props) => {
             }, 0);
           }
         }
-      } catch (error) {
-        console.error('Error fetching accounts:', error);
-      }
-    };
 
-    fetchAccounts();
-  }, [setValue, defaultValues?.accountId]);
+  }, [setValue, defaultValues?.accountId, isAccountFieldRegistered, accounts]);
 
   const handleCancel = () => {
     window.history.back();
