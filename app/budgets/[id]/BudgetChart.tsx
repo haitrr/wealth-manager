@@ -127,11 +127,12 @@ export function BudgetChart({transactions, budget}: Props) {
 
     // Set chart options
     const option = {
-      backgroundColor: "#222",
+      backgroundColor: "transparent",
       grid: {
-        left: "3%",
-        right: "4%",
-        bottom: "3%",
+        left: "8%",
+        right: "5%",
+        bottom: "15%",
+        top: "8%",
         containLabel: true,
       },
       xAxis: {
@@ -140,8 +141,14 @@ export function BudgetChart({transactions, budget}: Props) {
         max: endDate,
         axisLabel: {
           formatter: "{MM}-{dd}",
-          color: "#fff",
+          color: "#9CA3AF",
+          fontSize: 12,
           hideOverlap: true,
+        },
+        axisLine: {
+          lineStyle: {
+            color: "#374151",
+          },
         },
         splitLine: {
           show: false,
@@ -151,11 +158,25 @@ export function BudgetChart({transactions, budget}: Props) {
         type: "value",
         max: Number(budget.value) * 1.2,
         axisLabel: {
-          color: "#fff",
+          color: "#9CA3AF",
+          fontSize: 12,
+          formatter: (value: number) => {
+            if (value >= 1000) {
+              return `$${(value / 1000).toFixed(1)}k`;
+            }
+            return `$${value}`;
+          },
+        },
+        axisLine: {
+          lineStyle: {
+            color: "#374151",
+          },
         },
         splitLine: {
           lineStyle: {
-            color: "#333",
+            color: "#374151",
+            type: "dashed",
+            opacity: 0.5,
           },
         },
       },
@@ -165,21 +186,66 @@ export function BudgetChart({transactions, budget}: Props) {
           type: "line",
           smooth: true,
           lineStyle: {
-            width: 2,
-            color: "green",
+            width: 3,
+            color: "#10B981",
+            shadowColor: "#10B981",
+            shadowBlur: 8,
+            shadowOffsetY: 2,
           },
-          symbol: "none",
+          areaStyle: {
+            color: {
+              type: "linear",
+              x: 0,
+              y: 0,
+              x2: 0,
+              y2: 1,
+              colorStops: [
+                {
+                  offset: 0,
+                  color: "rgba(16, 185, 129, 0.3)",
+                },
+                {
+                  offset: 1,
+                  color: "rgba(16, 185, 129, 0.05)",
+                },
+              ],
+            },
+          },
+          symbol: "circle",
+          symbolSize: 6,
+          itemStyle: {
+            color: "#10B981",
+            borderColor: "#ffffff",
+            borderWidth: 2,
+          },
+          emphasis: {
+            itemStyle: {
+              color: "#10B981",
+              borderColor: "#ffffff",
+              borderWidth: 3,
+              shadowColor: "#10B981",
+              shadowBlur: 10,
+            },
+          },
         },
         {
           data: predictedData,
           type: "line",
           smooth: true,
           lineStyle: {
-            width: 2,
-            color: "green",
+            width: 3,
+            color: "#10B981",
             type: "dashed",
+            opacity: 0.8,
           },
-          symbol: "none",
+          symbol: "circle",
+          symbolSize: 4,
+          itemStyle: {
+            color: "#10B981",
+            borderColor: "#ffffff",
+            borderWidth: 1,
+            opacity: 0.8,
+          },
         },
         {
           type: "line",
@@ -187,15 +253,25 @@ export function BudgetChart({transactions, budget}: Props) {
             silent: true,
             symbol: "none",
             lineStyle: {
-              color: "blue",
+              color: "#EF4444",
               width: 2,
-              type: "dashed",
+              type: "solid",
+              opacity: 0.8,
             },
             data: [
               {
                 yAxis: Number(budget.value),
                 label: {
-                  show: false,
+                  show: true,
+                  position: "insideEndTop",
+                  color: "#EF4444",
+                  fontSize: 12,
+                  fontWeight: "bold",
+                  formatter: `Budget: $${Number(budget.value).toLocaleString()}`,
+                  backgroundColor: "rgba(0, 0, 0, 0.8)",
+                  padding: [6, 10],
+                  borderRadius: 4,
+                  distance: 10,
                 },
               },
             ],
@@ -204,10 +280,33 @@ export function BudgetChart({transactions, budget}: Props) {
       ],
       tooltip: {
         trigger: "axis",
+        backgroundColor: "rgba(0, 0, 0, 0.9)",
+        borderColor: "#374151",
+        borderWidth: 1,
+        textStyle: {
+          color: "#F9FAFB",
+          fontSize: 14,
+        },
         formatter: function (params: any) {
           const date = params[0].value[0];
           const value = params[0].value[1] || params[1]?.value[1] || 0;
-          return `${dayjs(date).format("MMM D")}: ${value.toLocaleString()}`;
+          const isPredicted = params.some((p: any) => p.seriesIndex === 1);
+          const label = isPredicted ? "Projected" : "Actual";
+          return `
+            <div style="font-weight: bold; margin-bottom: 4px;">
+              ${dayjs(date).format("MMM D, YYYY")}
+            </div>
+            <div style="color: #10B981;">
+              ${label}: $${value.toLocaleString()}
+            </div>
+          `;
+        },
+        axisPointer: {
+          type: "cross",
+          crossStyle: {
+            color: "#6B7280",
+            opacity: 0.6,
+          },
         },
       },
     };
@@ -216,21 +315,25 @@ export function BudgetChart({transactions, budget}: Props) {
   }, [data, budget.value, startDate, endDate]);
 
   return (
-    <div className="w-full flex flex-col">
-      <Echarts options={chartOptions} isLoading={!chartOptions} />
-      <div className="p-1 bg-gray-900">
-        <DetailItem>
-          <div>Spent per day</div>
-          <Money value={spentPerDay} />
-        </DetailItem>
-        <DetailItem>
-          <div>Projected spending</div>
-          <Money value={projectedSpent} />
-        </DetailItem>
-        <DetailItem>
-          <div>Suggested spend per day</div>
-          <Money value={suggestedSpendPerDay} />
-        </DetailItem>
+    <div className="w-full flex flex-col bg-gray-900 rounded-lg border border-gray-700 overflow-hidden">
+      <div className="h-96 p-6">
+        <Echarts options={chartOptions} isLoading={!chartOptions} />
+      </div>
+      <div className="border-t border-gray-700 bg-gray-800/50">
+        <div className="p-4 space-y-3">
+          <DetailItem>
+            <div className="text-gray-300">Spent per day</div>
+            <Money value={spentPerDay} />
+          </DetailItem>
+          <DetailItem>
+            <div className="text-gray-300">Projected spending</div>
+            <Money value={projectedSpent} />
+          </DetailItem>
+          <DetailItem>
+            <div className="text-gray-300">Suggested spend per day</div>
+            <Money value={suggestedSpendPerDay} />
+          </DetailItem>
+        </div>
       </div>
     </div>
   );
