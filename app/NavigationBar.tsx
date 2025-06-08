@@ -5,6 +5,7 @@ import Link from "next/link";
 const menuItems = [
   {label: "Home", href: "/", pattern: /^\/$/,  icon: "🏠"},
   {label: "Budgets", href: "/budgets", pattern: /^\/budgets.*/, icon: "📊"},
+  {label: "Reports", href: "/reports", pattern: /^\/reports.*/, icon: "📈"},
   {label: "Accounts", href: "/accounts", pattern: /^\/accounts.*/, icon: "💳"},
   {label: "Settings", href: "/settings", pattern: /^\/settings.*/, icon: "⚙️"},
 ];
