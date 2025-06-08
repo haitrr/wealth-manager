@@ -32,7 +32,7 @@ type Inputs = {
   date: Date;
   value: number;
   categoryId: string;
-  accountId: string;
+  accountId: string | undefined | null;
   borrowedId?: string;
   lentId?: string;
 };
@@ -45,6 +45,7 @@ export const TransactionForm = ({onSubmit, defaultValues}: Props) => {
   const formDefaultValues = {
     ...defaultValues,
     date: defaultValues?.date || new Date(),
+    accountId: defaultValues?.accountId || null,
   };
   
   const {
@@ -62,21 +63,20 @@ export const TransactionForm = ({onSubmit, defaultValues}: Props) => {
     });
   }, []);
 
+  let accountId = watch('accountId');
+
   useEffect(() => {
     getAccounts().then((data) => {
       setAccounts(data);
       // Set default account if not already set and no default value provided
-      if (!defaultValues?.accountId) {
+      if (accountId === null) {
         const defaultAccount = data?.find((account: any) => account.default);
-        if (defaultAccount) {
-          // Use setTimeout to ensure form is fully initialized
           setTimeout(() => {
-            setValue('accountId', defaultAccount.id);
+            setValue('accountId', defaultAccount?.id);
           }, 0);
-        }
       }
     });
-  }, [setValue, defaultValues?.accountId]);
+  }, [setValue, accountId]);
 
   const handleCancel = () => {
     window.history.back();
@@ -144,13 +144,13 @@ export const TransactionForm = ({onSubmit, defaultValues}: Props) => {
         <Controller
           name="accountId"
           control={control}
-          render={({field: {value, onChange}}) => {
+          render={({field}) => {
             return (
               <AccountSelect
                 className="w-50"
                 accounts={accounts}
-                value={value}
-                onChange={onChange}
+                {...field}
+                value={field.value || undefined}
               />
             );
           }}
