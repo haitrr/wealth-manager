@@ -4,7 +4,7 @@ import {Money} from "@/app/Money";
 import {Echarts} from "@/components/Echarts/Echarts";
 import {getBudgetEndDate} from "@/utils/date";
 import dayjs from "dayjs";
-import {useEffect, useRef, useState} from "react";
+import {useEffect, useRef, useState, useMemo} from "react";
 
 type Props = {
   transactions: any[];
@@ -13,47 +13,80 @@ type Props = {
 
 export function BudgetChart({transactions, budget}: Props) {
   const [chartOptions, setChartOptions] = useState({});
-  const startDate = dayjs(budget.startDate).format("YYYY-MM-DD");
-  const endDate = dayjs(getBudgetEndDate(budget)).format("YYYY-MM-DD");
-  const data = transactions.map((transaction) => ({
-    date: dayjs(transaction.date).format("YYYY-MM-DD"),
-    value: Number(transaction.value),
-    predicted: false,
-  }));
-  const totalSpent = data.reduce(
-    (acc, transaction) => acc + transaction.value,
-    0,
-  );
-  const dayPassed = dayjs().diff(dayjs(startDate), "day");
-  const dayLeft = dayjs(endDate).diff(dayjs(), "day");
-  const suggestedSpend = Number(budget.value) - totalSpent;
-  const suggestedSpendPerDay = Math.round(suggestedSpend / dayLeft);
-  const spentPerDay = Math.round(totalSpent / dayPassed);
-  const spentPerDayLast7Days = getSpentPerDayLast7Days();
-  // filling gaps
-  const allDates = Array.from(
-    {length: dayjs(dayjs()).diff(dayjs(startDate), "day") + 1},
-    (_, i) => dayjs(startDate).add(i, "day").format("YYYY-MM-DD"),
-  );
-  allDates.forEach((date) => {
-    if (!data.find((d) => d.date === date)) {
-      data.push({date, value: 0, predicted: false});
+  
+  // Memoize expensive calculations to prevent unnecessary re-renders
+  const processedData = useMemo(() => {
+    const startDate = dayjs(budget.startDate).format("YYYY-MM-DD");
+    const endDate = dayjs(getBudgetEndDate(budget)).format("YYYY-MM-DD");
+    
+    const data = transactions.map((transaction) => ({
+      date: dayjs(transaction.date).format("YYYY-MM-DD"),
+      value: Number(transaction.value),
+      predicted: false,
+    }));
+    
+    const totalSpent = data.reduce(
+      (acc, transaction) => acc + transaction.value,
+      0,
+    );
+    
+    const dayPassed = dayjs().diff(dayjs(startDate), "day");
+    const dayLeft = dayjs(endDate).diff(dayjs(), "day");
+    const suggestedSpend = Number(budget.value) - totalSpent;
+    const suggestedSpendPerDay = Math.round(suggestedSpend / dayLeft);
+    const spentPerDay = Math.round(totalSpent / dayPassed);
+    
+    // Calculate spent per day for last 7 days
+    let spentLast7Days = 0;
+    for (let i = 0; i < 7; i++) {
+      const date = dayjs().subtract(i, "day").format("YYYY-MM-DD");
+      const ts = data.filter((t) => t.date === date);
+      for (let t of ts) {
+        spentLast7Days += t.value;
+      }
     }
-  });
-  const predictedData = Array.from(
-    {length: dayjs(endDate).diff(dayjs(), "day") + 1},
-    (_, i) => {
-      const date = dayjs().add(i, "day").format("YYYY-MM-DD");
-      return {date, value: spentPerDayLast7Days, predicted: true};
-    },
-  );
-  const predictedSpent = predictedData.reduce(
-    (acc, transaction) => acc + transaction.value,
-    0,
-  );
-  const projectedSpent = totalSpent + predictedSpent;
-  data.push(...predictedData);
-  data.sort((a, b) => dayjs(a.date).diff(dayjs(b.date)));
+    const spentPerDayLast7Days = Math.round(spentLast7Days / 7);
+    
+    // Fill gaps
+    const allDates = Array.from(
+      {length: dayjs(dayjs()).diff(dayjs(startDate), "day") + 1},
+      (_, i) => dayjs(startDate).add(i, "day").format("YYYY-MM-DD"),
+    );
+    allDates.forEach((date) => {
+      if (!data.find((d) => d.date === date)) {
+        data.push({date, value: 0, predicted: false});
+      }
+    });
+    
+    const predictedData = Array.from(
+      {length: dayjs(endDate).diff(dayjs(), "day") + 1},
+      (_, i) => {
+        const date = dayjs().add(i, "day").format("YYYY-MM-DD");
+        return {date, value: spentPerDayLast7Days, predicted: true};
+      },
+    );
+    
+    const predictedSpent = predictedData.reduce(
+      (acc, transaction) => acc + transaction.value,
+      0,
+    );
+    const projectedSpent = totalSpent + predictedSpent;
+    
+    data.push(...predictedData);
+    data.sort((a, b) => dayjs(a.date).diff(dayjs(b.date)));
+    
+    return {
+      data,
+      startDate,
+      endDate,
+      totalSpent,
+      spentPerDay,
+      projectedSpent,
+      suggestedSpendPerDay,
+    };
+  }, [transactions, budget]);
+
+  const { data, startDate, endDate, totalSpent, spentPerDay, projectedSpent, suggestedSpendPerDay } = processedData;
 
   // Initialize chart after component mounts
   useEffect(() => {
@@ -184,19 +217,6 @@ export function BudgetChart({transactions, budget}: Props) {
       </div>
     </div>
   );
-
-  function getSpentPerDayLast7Days() {
-    let spentLast7Days = 0;
-    for (let i = 0; i < 7; i++) {
-      const date = dayjs().subtract(i, "day").format("YYYY-MM-DD");
-      const ts = data.filter((t) => t.date === date);
-      for (let t of ts) {
-        spentLast7Days += t.value;
-      }
-    }
-    const spentPerDayLast7Days = Math.round(spentLast7Days / 7);
-    return spentPerDayLast7Days;
-  }
 }
 
 type DetailItemProps = {

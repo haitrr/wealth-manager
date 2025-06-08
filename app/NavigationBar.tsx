@@ -24,6 +24,7 @@ function MenuItem({item}: Props) {
   return (
     <Link 
       href={item.href} 
+      onClick={() => console.log(`Navigating to ${item.label}`)}
       className={`transition-all duration-300 px-4 py-2 rounded-lg flex flex-col items-center relative ${
         isActive 
           ? "text-blue-600 font-medium" 
