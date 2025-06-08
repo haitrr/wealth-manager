@@ -19,9 +19,19 @@ export function BudgetChart({transactions, budget}: Props) {
     const startDate = dayjs(budget.startDate).format("YYYY-MM-DD");
     const endDate = dayjs(getBudgetEndDate(budget)).format("YYYY-MM-DD");
     
-    const data = transactions.map((transaction) => ({
-      date: dayjs(transaction.date).format("YYYY-MM-DD"),
-      value: Number(transaction.value),
+    // Aggregate transactions by date to handle multiple transactions on same day
+    const transactionsByDate = transactions.reduce((acc, transaction) => {
+      const date = dayjs(transaction.date).format("YYYY-MM-DD");
+      if (!acc[date]) {
+        acc[date] = 0;
+      }
+      acc[date] += Number(transaction.value);
+      return acc;
+    }, {} as Record<string, number>);
+    
+    const data = Object.entries(transactionsByDate).map(([date, value]) => ({
+      date,
+      value,
       predicted: false,
     }));
     
@@ -42,7 +52,7 @@ export function BudgetChart({transactions, budget}: Props) {
       const date = dayjs().subtract(i, "day").format("YYYY-MM-DD");
       const ts = data.filter((t) => t.date === date);
       for (let t of ts) {
-        spentLast7Days += t.value;
+        spentLast7Days += Number(t.value);
       }
     }
     const spentPerDayLast7Days = Math.round(spentLast7Days / 7);
@@ -195,6 +205,7 @@ export function BudgetChart({transactions, budget}: Props) {
         },
       },
     };
+    console.log(JSON.stringify(option, null, 2));
     setChartOptions(option);
   }, [data, budget.value, startDate, endDate]);
 
