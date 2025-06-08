@@ -64,7 +64,7 @@ export const TransactionForm = ({onSubmit, defaultValues}: Props) => {
       setAccounts(data);
       // Set default account if not already set
       if (!defaultValues?.accountId) {
-        const defaultAccount = data.accounts?.find((account: any) => account.default) || data.find?.((account: any) => account.default);
+        const defaultAccount = data?.find((account: any) => account.default) || data.find?.((account: any) => account.default);
         if (defaultAccount) {
           setValue('accountId', defaultAccount.id);
         }
