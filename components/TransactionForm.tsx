@@ -5,10 +5,10 @@ import {Button} from "@/components/ui/button";
 import {Input} from "@/components/ui/input";
 import {DatePicker} from "@/components/ui/datepicker";
 import {Label} from "@/components/ui/label";
-import {getCategories} from "@/actions/category";
-import {getAccounts} from "@/actions/account";
 import {useEffect, useState} from "react";
 import {useForm, Controller} from "react-hook-form";
+import {api} from "@/utils/api";
+import {Account, Category} from "@prisma/client";
 
 type ContainerProps = {
   children: React.ReactNode;
@@ -38,8 +38,8 @@ type Inputs = {
 };
 
 export const TransactionForm = ({onSubmit, defaultValues}: Props) => {
-  const [categories, setCategories] = useState<any>([]);
-  const [accounts, setAccounts] = useState<any>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [accounts, setAccounts] = useState<Account[]>([]);
   
   // Set default date to today if not provided
   const formDefaultValues = {
@@ -57,27 +57,39 @@ export const TransactionForm = ({onSubmit, defaultValues}: Props) => {
   } = useForm<Inputs>({defaultValues: formDefaultValues});
 
   useEffect(() => {
-    getCategories().then((data) => {
-      setCategories(data);
-    });
+    const fetchCategories = async () => {
+      try {
+        const categories = await api.categories.getAll();
+        setCategories(categories);
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+      }
+    };
+
+    fetchCategories();
   }, []);
 
-  let accountId = watch('accountId');
-
   useEffect(() => {
-    getAccounts().then((data) => {
-      setAccounts(data);
-      // Set default account if not already set and no default value provided
-      if (!defaultValues?.accountId) {
-        const defaultAccount = data?.find((account: any) => account.default);
-        if (defaultAccount) {
-          // Use setTimeout to ensure form is fully initialized
-          setTimeout(() => {
-            setValue('accountId', defaultAccount.id);
-          }, 0);
+    const fetchAccounts = async () => {
+      try {
+        const accounts = await api.accounts.getAll();
+        setAccounts(accounts);
+        // Set default account if not already set and no default value provided
+        if (!defaultValues?.accountId) {
+          const defaultAccount = accounts.find((account) => account.default);
+          if (defaultAccount) {
+            // Use setTimeout to ensure form is fully initialized
+            setTimeout(() => {
+              setValue('accountId', defaultAccount.id);
+            }, 0);
+          }
         }
+      } catch (error) {
+        console.error('Error fetching accounts:', error);
       }
-    });
+    };
+
+    fetchAccounts();
   }, [setValue, defaultValues?.accountId]);
 
   const handleCancel = () => {
