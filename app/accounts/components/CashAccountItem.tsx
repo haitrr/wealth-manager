@@ -17,17 +17,12 @@ export function CashAccountItem({ account, onClick }: CashAccountItemProps) {
           <h3 className="text-lg font-semibold text-foreground">💰 {account.name}</h3>
           {account.default && (
             <span className="text-xs bg-primary text-primary-foreground px-2 py-1 rounded-full font-medium flex items-center gap-1">
-              ⭐ Default
+              Default
             </span>
           )}
         </div>
         <div className="flex items-center gap-2">
           <span className="text-sm bg-secondary text-secondary-foreground px-2 py-1 rounded">Cash</span>
-          {account.default && (
-            <span className="text-xs bg-amber-500 text-white px-2 py-1 rounded-full font-medium">
-              ✓ Default
-            </span>
-          )}
         </div>
       </div>
       <div className="text-muted-foreground">
