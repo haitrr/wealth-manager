@@ -162,9 +162,9 @@ export function BudgetChart({transactions, budget}: Props) {
           fontSize: 12,
           formatter: (value: number) => {
             if (value >= 1000) {
-              return `$${(value / 1000).toFixed(1)}k`;
+              return `${(value / 1000).toFixed(1)}k`;
             }
-            return `$${value}`;
+            return `${value}`;
           },
         },
         axisLine: {
@@ -267,7 +267,7 @@ export function BudgetChart({transactions, budget}: Props) {
                   color: "#EF4444",
                   fontSize: 12,
                   fontWeight: "bold",
-                  formatter: `Budget: $${Number(budget.value).toLocaleString()}`,
+                  formatter: `Budget: ${Number(budget.value).toLocaleString()}`,
                   backgroundColor: "rgba(0, 0, 0, 0.8)",
                   padding: [6, 10],
                   borderRadius: 4,
@@ -297,7 +297,7 @@ export function BudgetChart({transactions, budget}: Props) {
               ${dayjs(date).format("MMM D, YYYY")}
             </div>
             <div style="color: #10B981;">
-              ${label}: $${value.toLocaleString()}
+              ${label}: ${value.toLocaleString()}
             </div>
           `;
         },
