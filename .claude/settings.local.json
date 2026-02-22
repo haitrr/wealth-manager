@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find:*)",
+      "Bash(npx prisma migrate dev:*)",
+      "Bash(npx prisma db push:*)"
+    ]
+  }
+}

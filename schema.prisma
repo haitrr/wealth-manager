@@ -11,13 +11,15 @@ datasource db {
 }
 
 model Transaction {
-    id         String   @id @default(cuid())
-    date       DateTime
-    value      Decimal
-    category   Category @relation(fields: [categoryId], references: [id])
-    categoryId String
-    account    Account  @relation(fields: [accountId], references: [id])
-    accountId  String
+    id           String   @id @default(cuid())
+    date         DateTime
+    value        Decimal
+    category     Category @relation(fields: [categoryId], references: [id])
+    categoryId   String
+    account      Account  @relation(fields: [accountId], references: [id])
+    accountId    String
+    counterparty String?
+    description  String?
 
     @@index([date], type: BTree)
     @@index([categoryId], type: Hash)
@@ -49,6 +51,7 @@ model Budget {
 model Debt {
     id              String        @id @default(cuid())
     name            String
+    counterparty    String?
     direction       DebtDirection
     principalAmount Float
     interestRate    Float // as decimal (e.g., 0.05 for 5%)

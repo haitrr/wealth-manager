@@ -45,6 +45,15 @@ export const api = {
         console.error('Error fetching accounts:', error);
         throw error;
       }
+    },
+    getRemaining: async (id: string): Promise<{ remainingAmount: number }> => {
+      try {
+        const response = await fetch(`/api/accounts/${id}/remaining`);
+        return handleApiResponse(response);
+      } catch (error) {
+        console.error('Error fetching remaining amount:', error);
+        throw error;
+      }
     }
   }
 };

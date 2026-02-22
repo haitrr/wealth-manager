@@ -27,6 +27,7 @@ export async function GET(request: NextRequest) {
                 debt: {
                     select: {
                         name: true,
+                        counterparty: true,
                         principalAmount: true,
                         interestRate: true,
                         startDate: true,
@@ -56,7 +57,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
     try {
         const body = await request.json();
-        const { name, type, principalAmount, interestRate, startDate, dueDate } = body;
+        const { name, type, principalAmount, interestRate, startDate, dueDate, counterparty } = body;
 
         // Validate required fields
         if (!name || !type) {
@@ -93,6 +94,7 @@ export async function POST(request: NextRequest) {
                     debt: {
                         create: {
                             name,
+                            counterparty: counterparty || null,
                             direction: type === "BORROWING" ? "TAKEN" : "GIVEN",
                             principalAmount: parseFloat(principalAmount),
                             interestRate: parseFloat(interestRate) / 100, // Convert percentage to decimal

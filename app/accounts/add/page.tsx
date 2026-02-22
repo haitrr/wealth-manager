@@ -9,6 +9,7 @@ interface AccountFormData {
   name: string;
   type: AccountType;
   // Debt/Loan specific fields
+  counterparty?: string;
   principalAmount?: number;
   interestRate?: number;
   startDate?: string;
@@ -118,6 +119,21 @@ export default function AddAccountPage() {
 
           {isDebtOrLoan && (
             <>
+              <div>
+                <label htmlFor="counterparty" className="block text-sm font-medium text-foreground mb-2">
+                  Counterparty
+                </label>
+                <input
+                  type="text"
+                  id="counterparty"
+                  name="counterparty"
+                  value={formData.counterparty || ""}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border border-input bg-background rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
+                  placeholder="Enter counterparty name (e.g. Bank ABC, Friend John)"
+                />
+              </div>
+
               <div>
                 <label htmlFor="principalAmount" className="block text-sm font-medium text-foreground mb-2">
                   Principal Amount (VND)
