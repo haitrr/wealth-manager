@@ -1,0 +1,3 @@
+- user can register with email and password.
+- user can login with email and password.
+- user can logout.

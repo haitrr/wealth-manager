@@ -1,0 +1,3 @@
+- user can create multiple transaction categories.
+- each transaction category has a name and a type (income or expense or payable (borrowed) or receivable (lent)).
+- when user registered, there are some default categories created for them, such as Salary (income), Food (expense), etc.

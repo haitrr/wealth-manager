@@ -4,7 +4,8 @@
       "Bash(find:*)",
       "Bash(npx prisma migrate dev:*)",
       "Bash(npx prisma db push:*)",
-      "Bash(pnpm exec:*)"
+      "Bash(pnpm exec:*)",
+      "Bash(pnpm add:*)"
     ]
   }
 }

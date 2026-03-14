@@ -1,0 +1,3 @@
+- each user can have multiple accounts.
+- each account has a name and a balance.
+- user can set a default account so when they perform transactions, the default account is used automatically.
