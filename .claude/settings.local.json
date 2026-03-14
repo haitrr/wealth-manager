@@ -6,7 +6,9 @@
       "Bash(npx prisma db push:*)",
       "Bash(pnpm exec:*)",
       "Bash(pnpm add:*)",
-      "Bash(pnpm dlx:*)"
+      "Bash(pnpm dlx:*)",
+      "Bash(POSTGRES_URL=\"postgres://postgres:postgres@localhost:54523/wm\" pnpm exec prisma migrate dev --name add_transaction_categories_and_transactions)",
+      "Bash(pnpm db:seed)"
     ]
   }
 }

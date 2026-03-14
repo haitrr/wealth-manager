@@ -1,0 +1,58 @@
+"use client";
+
+import { Pencil, Trash2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { TransactionCategory, CategoryType } from "@/lib/api/transaction-categories";
+
+const TYPE_COLORS: Record<CategoryType, string> = {
+  income: "bg-green-500/10 text-green-600 dark:text-green-400",
+  expense: "bg-red-500/10 text-red-600 dark:text-red-400",
+  payable: "bg-amber-500/10 text-amber-600 dark:text-amber-400",
+  receivable: "bg-blue-500/10 text-blue-600 dark:text-blue-400",
+};
+
+const TYPE_LABELS: Record<CategoryType, string> = {
+  income: "Income",
+  expense: "Expense",
+  payable: "Payable",
+  receivable: "Receivable",
+};
+
+interface CategoryCardProps {
+  category: TransactionCategory;
+  onEdit: (category: TransactionCategory) => void;
+  onDelete: (category: TransactionCategory) => void;
+}
+
+export function CategoryCard({ category, onEdit, onDelete }: CategoryCardProps) {
+  return (
+    <Card>
+      <CardContent className="flex items-center justify-between gap-4 p-4">
+        <div className="flex items-center gap-3 min-w-0">
+          <p className="font-medium truncate">{category.name}</p>
+          <span
+            className={`text-xs px-2 py-0.5 rounded-full shrink-0 ${TYPE_COLORS[category.type]}`}
+          >
+            {TYPE_LABELS[category.type]}
+          </span>
+        </div>
+
+        <div className="flex items-center gap-1 shrink-0">
+          <Button variant="ghost" size="icon" title="Edit" onClick={() => onEdit(category)}>
+            <Pencil className="size-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            title="Delete"
+            className="text-destructive hover:text-destructive"
+            onClick={() => onDelete(category)}
+          >
+            <Trash2 className="size-4" />
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}

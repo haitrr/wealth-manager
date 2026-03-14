@@ -1,65 +1,135 @@
-import Image from "next/image";
+"use client";
+
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { ArrowDownRight, ArrowUpRight, Plus, Wallet } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { TransactionForm } from "@/components/transactions/transaction-form";
+import { createTransaction } from "@/lib/api/transactions";
+import { getAccounts } from "@/lib/api/accounts";
+import { getTransactionCategories } from "@/lib/api/transaction-categories";
+import api from "@/lib/axios";
+
+interface MonthlySummary {
+  totalIncome: number;
+  totalExpenses: number;
+  netBalance: number;
+  month: string;
+}
+
+async function getMonthlySummary(): Promise<MonthlySummary> {
+  const { data } = await api.get<MonthlySummary>("/transactions/summary");
+  return data;
+}
+
+function formatCurrency(value: number) {
+  return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(value);
+}
 
 export default function Home() {
+  const queryClient = useQueryClient();
+  const [formOpen, setFormOpen] = useState(false);
+
+  const { data: summary, isLoading } = useQuery({
+    queryKey: ["transactions-summary"],
+    queryFn: getMonthlySummary,
+  });
+  const { data: accounts = [] } = useQuery({ queryKey: ["accounts"], queryFn: getAccounts });
+  const { data: categories = [] } = useQuery({
+    queryKey: ["transaction-categories"],
+    queryFn: getTransactionCategories,
+  });
+
+  const createMutation = useMutation({
+    mutationFn: createTransaction,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["transactions-summary"] });
+      queryClient.invalidateQueries({ queryKey: ["transactions"] });
+    },
+  });
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <main className="max-w-lg mx-auto px-4 py-8">
+      <div className="mb-6">
+        <h1 className="text-2xl font-semibold">Dashboard</h1>
+        {summary && (
+          <p className="text-sm text-muted-foreground mt-0.5">{summary.month}</p>
+        )}
+      </div>
+
+      {isLoading && <p className="text-muted-foreground text-sm">Loading…</p>}
+
+      {summary && (
+        <div className="space-y-3">
+          <Card>
+            <CardContent className="flex items-center gap-4 p-4">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 shrink-0">
+                <Wallet className="size-5 text-primary" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Net Balance</p>
+                <p
+                  className={`text-xl font-semibold ${
+                    summary.netBalance >= 0
+                      ? "text-green-600 dark:text-green-400"
+                      : "text-red-600 dark:text-red-400"
+                  }`}
+                >
+                  {formatCurrency(summary.netBalance)}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <div className="grid grid-cols-2 gap-3">
+            <Card>
+              <CardContent className="flex items-center gap-3 p-4">
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-green-500/10 shrink-0">
+                  <ArrowUpRight className="size-4 text-green-600 dark:text-green-400" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Income</p>
+                  <p className="font-semibold text-green-600 dark:text-green-400">
+                    {formatCurrency(summary.totalIncome)}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="flex items-center gap-3 p-4">
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-red-500/10 shrink-0">
+                  <ArrowDownRight className="size-4 text-red-600 dark:text-red-400" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Expenses</p>
+                  <p className="font-semibold text-red-600 dark:text-red-400">
+                    {formatCurrency(summary.totalExpenses)}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+      )}
+
+      <Button
+        size="icon"
+        className="fixed bottom-20 right-6 size-14 rounded-full shadow-lg"
+        onClick={() => setFormOpen(true)}
+        aria-label="Add transaction"
+      >
+        <Plus className="size-6" />
+      </Button>
+
+      <TransactionForm
+        open={formOpen}
+        onClose={() => setFormOpen(false)}
+        accounts={accounts}
+        categories={categories}
+        onSubmit={(data) => createMutation.mutateAsync(data)}
+      />
+    </main>
   );
 }

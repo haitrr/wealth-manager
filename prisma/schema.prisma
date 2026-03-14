@@ -7,21 +7,57 @@ datasource db {
 }
 
 model User {
-  id        String    @id @default(cuid())
-  email     String    @unique
-  password  String
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  accounts  Account[]
+  id                   String                @id @default(cuid())
+  email                String                @unique
+  password             String
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+  accounts             Account[]
+  transactionCategories TransactionCategory[]
+  transactions         Transaction[]
 }
 
 model Account {
-  id        String   @id @default(cuid())
-  name      String
-  balance   Float    @default(0)
-  isDefault Boolean  @default(false)
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id           String        @id @default(cuid())
+  name         String
+  balance      Float         @default(0)
+  isDefault    Boolean       @default(false)
+  userId       String
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+enum CategoryType {
+  income
+  expense
+  payable
+  receivable
+}
+
+model TransactionCategory {
+  id           String        @id @default(cuid())
+  name         String
+  type         CategoryType
+  userId       String
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+model Transaction {
+  id          String              @id @default(cuid())
+  amount      Float
+  date        DateTime
+  description String?
+  accountId   String
+  account     Account             @relation(fields: [accountId], references: [id])
+  categoryId  String
+  category    TransactionCategory @relation(fields: [categoryId], references: [id])
+  userId      String
+  user        User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
 }
