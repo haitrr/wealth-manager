@@ -8,6 +8,7 @@ import { AccountCard } from "@/components/accounts/account-card";
 import { AccountForm } from "@/components/accounts/account-form";
 import {
   Account,
+  Currency,
   getAccounts,
   createAccount,
   updateAccount,
@@ -29,7 +30,7 @@ export default function AccountsSettingsPage() {
 
   const createMutation = useMutation({ mutationFn: createAccount, onSuccess: invalidate });
   const updateMutation = useMutation({
-    mutationFn: ({ id, ...data }: { id: string; name: string; balance?: number }) =>
+    mutationFn: ({ id, ...data }: { id: string; name: string; balance?: number; currency?: Currency }) =>
       updateAccount(id, data),
     onSuccess: invalidate,
   });
@@ -46,7 +47,7 @@ export default function AccountsSettingsPage() {
     setFormOpen(true);
   }
 
-  async function handleSubmit(data: { name: string; balance: number }) {
+  async function handleSubmit(data: { name: string; balance: number; currency: Currency }) {
     if (editingAccount) {
       await updateMutation.mutateAsync({ id: editingAccount.id, ...data });
     } else {

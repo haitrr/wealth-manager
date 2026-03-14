@@ -5,24 +5,46 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Account } from "@/lib/api/accounts";
+import { Account, Currency } from "@/lib/api/accounts";
 
 interface AccountFormProps {
   open: boolean;
   account?: Account | null;
   onClose: () => void;
-  onSubmit: (data: { name: string; balance: number }) => Promise<void>;
+  onSubmit: (data: { name: string; balance: number; currency: Currency }) => Promise<void>;
+}
+
+function CurrencySelect({ value, onChange }: { value: Currency; onChange: (value: Currency) => void }) {
+  return (
+    <Select value={value} onValueChange={(v) => onChange(v as Currency)}>
+      <SelectTrigger id="currency">
+        <SelectValue placeholder="Select currency" />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="USD">USD ($)</SelectItem>
+        <SelectItem value="VND">VND (₫)</SelectItem>
+      </SelectContent>
+    </Select>
+  );
 }
 
 export function AccountForm({ open, account, onClose, onSubmit }: AccountFormProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [currency, setCurrency] = useState<Currency>(account?.currency ?? "USD");
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -34,7 +56,7 @@ export function AccountForm({ open, account, onClose, onSubmit }: AccountFormPro
     const balance = parseFloat((form.elements.namedItem("balance") as HTMLInputElement).value) || 0;
 
     try {
-      await onSubmit({ name, balance });
+      await onSubmit({ name, balance, currency });
       onClose();
     } catch {
       setError("Something went wrong. Please try again.");
@@ -73,6 +95,11 @@ export function AccountForm({ open, account, onClose, onSubmit }: AccountFormPro
                 placeholder="0.00"
                 defaultValue={account?.balance ?? 0}
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="currency">Currency</Label>
+              <CurrencySelect value={currency} onChange={setCurrency} />
             </div>
 
             {error && <p className="text-sm text-destructive">{error}</p>}

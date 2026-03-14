@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
   const session = await getSession();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { name, balance } = await req.json();
+  const { name, balance, currency } = await req.json();
   if (!name?.trim()) {
     return NextResponse.json({ error: "Name is required" }, { status: 400 });
   }
@@ -30,6 +30,7 @@ export async function POST(req: NextRequest) {
     data: {
       name: name.trim(),
       balance: balance ?? 0,
+      currency: currency ?? "USD",
       isDefault: isFirst,
       userId: session.userId,
     },

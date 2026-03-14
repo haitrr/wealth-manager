@@ -14,14 +14,18 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   const account = await getOwnedAccount(id, session.userId);
   if (!account) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  const { name, balance } = await req.json();
+  const { name, balance, currency } = await req.json();
   if (!name?.trim()) {
     return NextResponse.json({ error: "Name is required" }, { status: 400 });
   }
 
   const updated = await prisma.account.update({
     where: { id },
-    data: { name: name.trim(), balance: balance ?? account.balance },
+    data: { 
+      name: name.trim(), 
+      balance: balance ?? account.balance,
+      currency: currency ?? account.currency,
+    },
   });
 
   return NextResponse.json(updated);

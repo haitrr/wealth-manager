@@ -3,5 +3,8 @@
     "WillLuke.nextjs.hasPrompted": true,
     "editor.quickSuggestions": {
         "strings": "on"
+    },
+    "chat.tools.terminal.autoApprove": {
+        "pnpm": true
     }
 }

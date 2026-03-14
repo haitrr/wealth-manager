@@ -1,4 +1,5 @@
 - each user can have multiple accounts.
-- each account has a name and a balance.
+- each account has a name, a balance, and a currency (USD or VND).
 - there is a setting page where users can manage their accounts, including adding new accounts, editing existing accounts, and deleting accounts.
 - user can set a default account so when they perform transactions, the default account is used automatically.
+- account balances are displayed in their respective currencies with proper formatting (VND with no decimal places, USD with 2 decimal places).

@@ -1,5 +1,6 @@
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
+import { prisma } from "./db";
 
 const SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET ?? "dev-secret-change-in-production"
@@ -31,7 +32,14 @@ export async function getSession() {
   const token = cookieStore.get(COOKIE_NAME)?.value;
   if (!token) return null;
   try {
-    return await verifyToken(token);
+    const payload = await verifyToken(token);
+    // Verify user still exists in database
+    const user = await prisma.user.findUnique({
+      where: { id: payload.userId },
+      select: { id: true, email: true },
+    });
+    if (!user) return null;
+    return payload;
   } catch {
     return null;
   }

@@ -18,10 +18,16 @@ model User {
   budgets              Budget[]
 }
 
+enum Currency {
+  USD
+  VND
+}
+
 model Account {
   id           String        @id @default(cuid())
   name         String
   balance      Float         @default(0)
+  currency     Currency      @default(USD)
   isDefault    Boolean       @default(false)
   userId       String
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)

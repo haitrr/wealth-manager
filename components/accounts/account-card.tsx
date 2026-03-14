@@ -4,6 +4,7 @@ import { Pencil, Trash2, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Account } from "@/lib/api/accounts";
+import { formatCurrency } from "@/lib/utils";
 
 interface AccountCardProps {
   account: Account;
@@ -13,10 +14,7 @@ interface AccountCardProps {
 }
 
 export function AccountCard({ account, onEdit, onDelete, onSetDefault }: AccountCardProps) {
-  const formattedBalance = new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-  }).format(account.balance);
+  const formattedBalance = formatCurrency(account.balance, account.currency);
 
   return (
     <Card>
