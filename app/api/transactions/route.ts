@@ -9,7 +9,7 @@ export async function GET() {
   const transactions = await prisma.transaction.findMany({
     where: { userId: session.userId },
     include: {
-      account: { select: { id: true, name: true } },
+      account: { select: { id: true, name: true, currency: true } },
       category: { select: { id: true, name: true, type: true } },
     },
     orderBy: { date: "desc" },
@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
       userId: session.userId,
     },
     include: {
-      account: { select: { id: true, name: true } },
+      account: { select: { id: true, name: true, currency: true } },
       category: { select: { id: true, name: true, type: true } },
     },
   });

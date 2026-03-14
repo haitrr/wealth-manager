@@ -1,5 +1,6 @@
 import api from "@/lib/axios";
 import { CategoryType } from "./transaction-categories";
+import { Currency } from "./accounts";
 
 export interface Transaction {
   id: string;
@@ -7,7 +8,7 @@ export interface Transaction {
   date: string;
   description: string | null;
   accountId: string;
-  account: { id: string; name: string };
+  account: { id: string; name: string; currency: Currency };
   categoryId: string;
   category: { id: string; name: string; type: CategoryType };
   userId: string;

@@ -4,6 +4,7 @@ import { Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Transaction } from "@/lib/api/transactions";
 import { CategoryType } from "@/lib/api/transaction-categories";
+import { formatCurrency } from "@/lib/utils";
 
 const TYPE_COLORS: Record<CategoryType, string> = {
   income: "text-green-600 dark:text-green-400",
@@ -27,10 +28,7 @@ interface TransactionRowProps {
 
 export function TransactionRow({ transaction, onEdit, onDelete }: TransactionRowProps) {
   const type = transaction.category.type;
-  const formattedAmount = new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-  }).format(Math.abs(transaction.amount));
+  const formattedAmount = formatCurrency(Math.abs(transaction.amount), transaction.account.currency);
 
   const formattedDate = new Intl.DateTimeFormat("en-US", {
     month: "short",

@@ -47,7 +47,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       categoryId,
     },
     include: {
-      account: { select: { id: true, name: true } },
+      account: { select: { id: true, name: true, currency: true } },
       category: { select: { id: true, name: true, type: true } },
     },
   });

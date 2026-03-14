@@ -1,5 +1,6 @@
 import api from "@/lib/axios";
 import { CategoryType } from "./transaction-categories";
+import { Currency } from "./accounts";
 
 export type BudgetPeriod = "monthly" | "yearly" | "custom";
 
@@ -7,11 +8,12 @@ export interface Budget {
   id: string;
   name: string;
   amount: number;
+  currency: Currency;
   period: BudgetPeriod;
   startDate: string;
   endDate: string | null;
   accountId: string | null;
-  account: { id: string; name: string } | null;
+  account: { id: string; name: string; currency: Currency } | null;
   categoryId: string | null;
   category: { id: string; name: string; type: CategoryType } | null;
   userId: string;
@@ -33,6 +35,7 @@ export interface Budget {
 export interface BudgetPayload {
   name: string;
   amount: number;
+  currency?: Currency;
   period: BudgetPeriod;
   startDate?: string;
   endDate?: string;

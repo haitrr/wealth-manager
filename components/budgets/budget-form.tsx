@@ -11,7 +11,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Account } from "@/lib/api/accounts";
+import { Account, Currency } from "@/lib/api/accounts";
 import { TransactionCategory } from "@/lib/api/transaction-categories";
 import { Budget, BudgetPayload, BudgetPeriod } from "@/lib/api/budgets";
 
@@ -45,6 +45,7 @@ export function BudgetForm({ open, budget, accounts, categories, onClose, onSubm
     const form = e.currentTarget;
     const name = (form.elements.namedItem("name") as HTMLInputElement).value;
     const amount = parseFloat((form.elements.namedItem("amount") as HTMLInputElement).value);
+    const currency = (form.elements.namedItem("currency") as HTMLSelectElement).value as Currency;
     const accountId = (form.elements.namedItem("accountId") as HTMLSelectElement).value;
     const categoryId = (form.elements.namedItem("categoryId") as HTMLSelectElement).value;
     const startDate = period === "custom"
@@ -58,6 +59,7 @@ export function BudgetForm({ open, budget, accounts, categories, onClose, onSubm
       await onSubmit({
         name,
         amount,
+        currency,
         period,
         startDate,
         endDate,
@@ -99,6 +101,20 @@ export function BudgetForm({ open, budget, accounts, categories, onClose, onSubm
                 onKeyDown={(e) => e.key === "-" && e.preventDefault()}
                 required
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="currency">Currency</Label>
+              <select
+                id="currency"
+                name="currency"
+                defaultValue={budget?.currency ?? "USD"}
+                className="h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                required
+              >
+                <option value="USD">USD - US Dollar</option>
+                <option value="VND">VND - Vietnamese Dong</option>
+              </select>
             </div>
 
             <div className="space-y-2">

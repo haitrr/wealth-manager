@@ -13,8 +13,7 @@ async function main() {
   await prisma.budget.deleteMany({ where: { user: { email: "test@example.com" } } });
   await prisma.transaction.deleteMany({ where: { user: { email: "test@example.com" } } });
   await prisma.transactionCategory.deleteMany({ where: { user: { email: "test@example.com" } } });
-  await prisma.account.deleteMany({ where: { user: { email: "test@example.com" } } });
-  await prisma.user.deleteMany({ where: { email: "test@example.com" } });
+  await prisma.account.deleteMany({ where: { user: { email: "test@example.com" } } });  await prisma.exchangeRate.deleteMany({ where: { user: { email: "test@example.com" } } });  await prisma.user.deleteMany({ where: { email: "test@example.com" } });
 
   const password = await bcrypt.hash("password123", 10);
   const user = await prisma.user.create({
@@ -44,7 +43,15 @@ async function main() {
     ],
   });
 
-  const byName = Object.fromEntries(categories.map((c: { name: string }) => [c.name, c]));
+  const byName = Object.fromEntries(categories.map((c: { id: string; name: string }) => [c.name, c]));
+
+  // Create exchange rates
+  await prisma.exchangeRate.createMany({
+    data: [
+      { fromCurrency: "USD", toCurrency: "VND", rate: 25000, userId: user.id },
+      { fromCurrency: "VND", toCurrency: "USD", rate: 0.00004, userId: user.id },
+    ],
+  });
 
   const now = new Date("2026-03-14");
   const d = (daysAgo: number) => new Date(now.getTime() - daysAgo * 86400000);
@@ -157,6 +164,7 @@ async function main() {
       {
         name: "Ăn uống hàng tháng",
         amount: 4000000,
+        currency: "VND",
         period: "monthly",
         startDate: monthStart,
         categoryId: byName["Ăn uống"].id,
@@ -165,6 +173,7 @@ async function main() {
       {
         name: "Đi lại",
         amount: 1500000,
+        currency: "VND",
         period: "monthly",
         startDate: monthStart,
         categoryId: byName["Đi lại"].id,
@@ -173,6 +182,7 @@ async function main() {
       {
         name: "Giải trí",
         amount: 1000000,
+        currency: "VND",
         period: "monthly",
         startDate: monthStart,
         categoryId: byName["Giải trí"].id,
@@ -181,6 +191,7 @@ async function main() {
       {
         name: "Chi tiêu tổng",
         amount: 15000000,
+        currency: "VND",
         period: "monthly",
         startDate: monthStart,
         userId: user.id,
@@ -188,6 +199,7 @@ async function main() {
       {
         name: "Chi tiêu tài khoản chính",
         amount: 12000000,
+        currency: "VND",
         period: "monthly",
         startDate: monthStart,
         accountId: checking.id,

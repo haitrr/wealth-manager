@@ -4,15 +4,12 @@ import Link from "next/link";
 import { Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Budget } from "@/lib/api/budgets";
+import { formatCurrency } from "@/lib/utils";
 
 interface BudgetCardProps {
   budget: Budget;
   onEdit: (budget: Budget) => void;
   onDelete: (budget: Budget) => void;
-}
-
-function formatCurrency(amount: number) {
-  return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 2 }).format(amount);
 }
 
 const PERIOD_LABELS: Record<string, string> = {
@@ -24,6 +21,7 @@ const PERIOD_LABELS: Record<string, string> = {
 export function BudgetCard({ budget, onEdit, onDelete }: BudgetCardProps) {
   const percent = Math.min(100, budget.percentUsed);
   const isOver = budget.spent > budget.amount;
+  const currency = budget.currency;
 
   return (
     <div className="rounded-lg border p-4 space-y-3">
@@ -58,9 +56,9 @@ export function BudgetCard({ budget, onEdit, onDelete }: BudgetCardProps) {
         </div>
         <div className="flex justify-between text-xs">
           <span className={isOver ? "text-destructive font-medium" : "text-muted-foreground"}>
-            {formatCurrency(budget.spent)} spent
+            {formatCurrency(budget.spent, currency)} spent
           </span>
-          <span className="text-muted-foreground">{formatCurrency(budget.amount)} budget</span>
+          <span className="text-muted-foreground">{formatCurrency(budget.amount, currency)} budget</span>
         </div>
       </div>
 
@@ -68,14 +66,14 @@ export function BudgetCard({ budget, onEdit, onDelete }: BudgetCardProps) {
       <div className="grid grid-cols-2 gap-2 text-xs">
         <div className="rounded-md bg-muted/50 px-3 py-2">
           <p className="text-muted-foreground">Avg/day</p>
-          <p className="font-medium">{formatCurrency(budget.avgSpentPerDay)}</p>
+          <p className="font-medium">{formatCurrency(budget.avgSpentPerDay, currency)}</p>
         </div>
         <div className="rounded-md bg-muted/50 px-3 py-2">
           <p className="text-muted-foreground">
             {budget.daysRemaining > 0 ? `${budget.daysRemaining}d left · suggested` : "Period ended"}
           </p>
           <p className={`font-medium ${budget.suggestedDailySpend < 0 ? "text-destructive" : ""}`}>
-            {budget.daysRemaining > 0 ? `${formatCurrency(Math.max(0, budget.suggestedDailySpend))}/day` : "—"}
+            {budget.daysRemaining > 0 ? `${formatCurrency(Math.max(0, budget.suggestedDailySpend), currency)}/day` : "—"}
           </p>
         </div>
       </div>

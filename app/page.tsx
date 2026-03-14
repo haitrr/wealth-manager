@@ -9,6 +9,7 @@ import { TransactionForm } from "@/components/transactions/transaction-form";
 import { createTransaction } from "@/lib/api/transactions";
 import { getAccounts } from "@/lib/api/accounts";
 import { getTransactionCategories } from "@/lib/api/transaction-categories";
+import { formatCurrency } from "@/lib/utils";
 import api from "@/lib/axios";
 
 interface MonthlySummary {
@@ -21,10 +22,6 @@ interface MonthlySummary {
 async function getMonthlySummary(): Promise<MonthlySummary> {
   const { data } = await api.get<MonthlySummary>("/transactions/summary");
   return data;
-}
-
-function formatCurrency(value: number) {
-  return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(value);
 }
 
 export default function Home() {
@@ -48,6 +45,10 @@ export default function Home() {
       queryClient.invalidateQueries({ queryKey: ["transactions"] });
     },
   });
+
+  // Use default account's currency or fallback to USD
+  const defaultAccount = accounts.find(acc => acc.isDefault);
+  const currency = defaultAccount?.currency ?? accounts[0]?.currency ?? "USD";
 
   return (
     <main className="max-w-lg mx-auto px-4 py-8">
@@ -76,7 +77,7 @@ export default function Home() {
                       : "text-red-600 dark:text-red-400"
                   }`}
                 >
-                  {formatCurrency(summary.netBalance)}
+                  {formatCurrency(summary.netBalance, currency)}
                 </p>
               </div>
             </CardContent>
@@ -91,7 +92,7 @@ export default function Home() {
                 <div>
                   <p className="text-xs text-muted-foreground">Income</p>
                   <p className="font-semibold text-green-600 dark:text-green-400">
-                    {formatCurrency(summary.totalIncome)}
+                    {formatCurrency(summary.totalIncome, currency)}
                   </p>
                 </div>
               </CardContent>
@@ -105,7 +106,7 @@ export default function Home() {
                 <div>
                   <p className="text-xs text-muted-foreground">Expenses</p>
                   <p className="font-semibold text-red-600 dark:text-red-400">
-                    {formatCurrency(summary.totalExpenses)}
+                    {formatCurrency(summary.totalExpenses, currency)}
                   </p>
                 </div>
               </CardContent>
@@ -128,7 +129,9 @@ export default function Home() {
         onClose={() => setFormOpen(false)}
         accounts={accounts}
         categories={categories}
-        onSubmit={(data) => createMutation.mutateAsync(data)}
+        onSubmit={async (data) => {
+          await createMutation.mutateAsync(data);
+        }}
       />
     </main>
   );

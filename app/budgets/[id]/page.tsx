@@ -13,10 +13,7 @@ import { getAccounts } from "@/lib/api/accounts";
 import { getTransactionCategories } from "@/lib/api/transaction-categories";
 import { Transaction, updateTransaction, deleteTransaction } from "@/lib/api/transactions";
 import { TransactionForm } from "@/components/transactions/transaction-form";
-
-function formatCurrency(amount: number) {
-  return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 2 }).format(amount);
-}
+import { formatCurrency } from "@/lib/utils";
 
 const PERIOD_LABELS: Record<string, string> = { monthly: "Monthly", yearly: "Yearly", custom: "Custom" };
 
@@ -68,6 +65,7 @@ export default function BudgetDetailPage({ params }: { params: Promise<{ id: str
 
   const percent = Math.min(100, budget.percentUsed);
   const isOver = budget.spent > budget.amount;
+  const currency = budget.currency;
   const periodStart = new Date(budget.periodStart).toLocaleDateString("en-US", { month: "short", day: "numeric" });
   const periodEnd = new Date(budget.periodEnd).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 
@@ -96,8 +94,8 @@ export default function BudgetDetailPage({ params }: { params: Promise<{ id: str
       {/* Progress */}
       <div className="rounded-lg border p-4 space-y-3 mb-6">
         <div className="flex justify-between text-sm font-medium">
-          <span>{formatCurrency(budget.spent)} spent</span>
-          <span className="text-muted-foreground">{formatCurrency(budget.amount)}</span>
+          <span>{formatCurrency(budget.spent, currency)} spent</span>
+          <span className="text-muted-foreground">{formatCurrency(budget.amount, currency)}</span>
         </div>
         <div className="h-3 rounded-full bg-muted overflow-hidden">
           <div
@@ -108,7 +106,7 @@ export default function BudgetDetailPage({ params }: { params: Promise<{ id: str
         <div className="flex justify-between text-xs text-muted-foreground">
           <span>{percent.toFixed(1)}% used</span>
           <span className={isOver ? "text-destructive font-medium" : ""}>
-            {isOver ? `${formatCurrency(Math.abs(budget.remaining))} over` : `${formatCurrency(budget.remaining)} remaining`}
+            {isOver ? `${formatCurrency(Math.abs(budget.remaining), currency)} over` : `${formatCurrency(budget.remaining, currency)} remaining`}
           </span>
         </div>
 
@@ -119,14 +117,14 @@ export default function BudgetDetailPage({ params }: { params: Promise<{ id: str
           </div>
           <div className="rounded-md bg-muted/50 px-3 py-2 text-center">
             <p className="text-xs text-muted-foreground">Avg/day</p>
-            <p className="text-sm font-medium">{formatCurrency(budget.avgSpentPerDay)}</p>
+            <p className="text-sm font-medium">{formatCurrency(budget.avgSpentPerDay, currency)}</p>
           </div>
           <div className="rounded-md bg-muted/50 px-3 py-2 text-center">
             <p className="text-xs text-muted-foreground">
               {budget.daysRemaining > 0 ? `${budget.daysRemaining}d left` : "Ended"}
             </p>
             <p className={`text-sm font-medium ${budget.suggestedDailySpend < 0 ? "text-destructive" : ""}`}>
-              {budget.daysRemaining > 0 ? `${formatCurrency(Math.max(0, budget.suggestedDailySpend))}/day` : "—"}
+              {budget.daysRemaining > 0 ? `${formatCurrency(Math.max(0, budget.suggestedDailySpend), currency)}/day` : "—"}
             </p>
           </div>
         </div>
@@ -155,7 +153,9 @@ export default function BudgetDetailPage({ params }: { params: Promise<{ id: str
         accounts={accounts}
         categories={categories}
         onClose={() => setEditOpen(false)}
-        onSubmit={(data) => updateMutation.mutateAsync(data)}
+        onSubmit={async (data) => {
+          await updateMutation.mutateAsync(data);
+        }}
       />
 
       <TransactionForm

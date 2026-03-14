@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/app/lib/db";
 import { getSession } from "@/app/lib/auth";
-import { getPeriodBounds, computeProgress } from "./budget-utils";
+import { getPeriodBounds, computeProgress, convertCurrency } from "./budget-utils";
 
 export async function GET() {
   const session = await getSession();
@@ -10,7 +10,7 @@ export async function GET() {
   const budgets = await prisma.budget.findMany({
     where: { userId: session.userId },
     include: {
-      account: { select: { id: true, name: true } },
+      account: { select: { id: true, name: true, currency: true } },
       category: { select: { id: true, name: true, type: true } },
     },
     orderBy: { createdAt: "desc" },
@@ -21,7 +21,9 @@ export async function GET() {
   const result = await Promise.all(
     budgets.map(async (budget) => {
       const { start, end } = getPeriodBounds(budget, now);
-      const spent = await prisma.transaction.aggregate({
+      
+      // Fetch transactions with account info to get currency
+      const transactions = await prisma.transaction.findMany({
         where: {
           userId: session.userId,
           date: { gte: start, lte: end },
@@ -30,9 +32,24 @@ export async function GET() {
             ? { categoryId: budget.categoryId }
             : { category: { type: { in: ["expense", "payable"] } } }),
         },
-        _sum: { amount: true },
+        include: {
+          account: { select: { currency: true } },
+        },
       });
-      const progress = computeProgress(budget, spent._sum.amount ?? 0, now);
+
+      // Convert each transaction to budget currency and sum
+      let spent = 0;
+      for (const tx of transactions) {
+        const convertedAmount = await convertCurrency(
+          tx.amount,
+          tx.account.currency,
+          budget.currency,
+          session.userId
+        );
+        spent += convertedAmount;
+      }
+
+      const progress = computeProgress(budget, spent, now);
       return { ...budget, ...progress };
     })
   );
@@ -44,7 +61,7 @@ export async function POST(req: NextRequest) {
   const session = await getSession();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { name, amount, period, startDate, endDate, accountId, categoryId } = await req.json();
+  const { name, amount, currency, period, startDate, endDate, accountId, categoryId } = await req.json();
 
   if (!name?.trim()) return NextResponse.json({ error: "Name is required" }, { status: 400 });
   if (!amount || amount <= 0) return NextResponse.json({ error: "Amount must be positive" }, { status: 400 });
@@ -68,6 +85,7 @@ export async function POST(req: NextRequest) {
     data: {
       name: name.trim(),
       amount: parseFloat(amount),
+      currency: currency || "USD",
       period,
       startDate: new Date(startDate ?? new Date()),
       endDate: period === "custom" ? new Date(endDate) : null,
@@ -76,14 +94,16 @@ export async function POST(req: NextRequest) {
       userId: session.userId,
     },
     include: {
-      account: { select: { id: true, name: true } },
+      account: { select: { id: true, name: true, currency: true } },
       category: { select: { id: true, name: true, type: true } },
     },
   });
 
   const now = new Date();
   const { start, end } = getPeriodBounds(budget, now);
-  const spent = await prisma.transaction.aggregate({
+  
+  // Fetch transactions with account info to get currency
+  const transactions = await prisma.transaction.findMany({
     where: {
       userId: session.userId,
       date: { gte: start, lte: end },
@@ -92,9 +112,24 @@ export async function POST(req: NextRequest) {
         ? { categoryId: budget.categoryId }
         : { category: { type: { in: ["expense", "payable"] } } }),
     },
-    _sum: { amount: true },
+    include: {
+      account: { select: { currency: true } },
+    },
   });
-  const progress = computeProgress(budget, spent._sum.amount ?? 0, now);
+
+  // Convert each transaction to budget currency and sum
+  let spent = 0;
+  for (const tx of transactions) {
+    const convertedAmount = await convertCurrency(
+      tx.amount,
+      tx.account.currency,
+      budget.currency,
+      session.userId
+    );
+    spent += convertedAmount;
+  }
+
+  const progress = computeProgress(budget, spent, now);
 
   return NextResponse.json({ ...budget, ...progress }, { status: 201 });
 }

@@ -23,7 +23,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
         : { category: { type: { in: ["expense", "payable"] } } }),
     },
     include: {
-      account: { select: { id: true, name: true } },
+      account: { select: { id: true, name: true, currency: true } },
       category: { select: { id: true, name: true, type: true } },
     },
     orderBy: { date: "desc" },

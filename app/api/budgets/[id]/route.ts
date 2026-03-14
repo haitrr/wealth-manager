@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/app/lib/db";
 import { getSession } from "@/app/lib/auth";
-import { getPeriodBounds, computeProgress } from "../budget-utils";
+import { getPeriodBounds, computeProgress, convertCurrency } from "../budget-utils";
 
 async function getBudgetWithProgress(budgetId: string, userId: string) {
   const budget = await prisma.budget.findFirst({
     where: { id: budgetId, userId },
     include: {
-      account: { select: { id: true, name: true } },
+      account: { select: { id: true, name: true, currency: true } },
       category: { select: { id: true, name: true, type: true } },
     },
   });
@@ -15,7 +15,9 @@ async function getBudgetWithProgress(budgetId: string, userId: string) {
 
   const now = new Date();
   const { start, end } = getPeriodBounds(budget, now);
-  const spent = await prisma.transaction.aggregate({
+  
+  // Fetch transactions with account info to get currency
+  const transactions = await prisma.transaction.findMany({
     where: {
       userId,
       date: { gte: start, lte: end },
@@ -24,9 +26,25 @@ async function getBudgetWithProgress(budgetId: string, userId: string) {
         ? { categoryId: budget.categoryId }
         : { category: { type: { in: ["expense", "payable"] } } }),
     },
-    _sum: { amount: true },
+    include: {
+      account: { select: { currency: true } },
+    },
   });
-  const progress = computeProgress(budget, spent._sum.amount ?? 0, now);
+
+  // Convert each transaction to budget currency and sum
+  let spent = 0;
+  for (const tx of transactions) {
+    const convertedAmount = await convertCurrency(
+      tx.amount,
+      tx.account.currency,
+      budget.currency,
+      userId
+    );
+    spent += convertedAmount;
+  }
+
+  const progress = computeProgress(budget, spent, now);
+  
   return { ...budget, ...progress };
 }
 
@@ -49,7 +67,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   const existing = await prisma.budget.findFirst({ where: { id, userId: session.userId } });
   if (!existing) return NextResponse.json({ error: "Budget not found" }, { status: 404 });
 
-  const { name, amount, period, startDate, endDate, accountId, categoryId } = await req.json();
+  const { name, amount, currency, period, startDate, endDate, accountId, categoryId } = await req.json();
 
   if (!name?.trim()) return NextResponse.json({ error: "Name is required" }, { status: 400 });
   if (!amount || amount <= 0) return NextResponse.json({ error: "Amount must be positive" }, { status: 400 });
@@ -74,6 +92,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     data: {
       name: name.trim(),
       amount: parseFloat(amount),
+      currency: currency || existing.currency,
       period,
       startDate: new Date(startDate ?? existing.startDate),
       endDate: period === "custom" ? new Date(endDate) : null,
