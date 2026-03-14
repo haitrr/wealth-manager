@@ -5,6 +5,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ArrowDownRight, ArrowUpRight, Plus, Wallet } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { BalanceTrendChart } from "@/components/dashboard/balance-trend-chart";
+import { CategoryPieChart } from "@/components/dashboard/category-pie-chart";
 import { TransactionForm } from "@/components/transactions/transaction-form";
 import { createTransaction } from "@/lib/api/transactions";
 import { getAccounts } from "@/lib/api/accounts";
@@ -12,11 +14,26 @@ import { getTransactionCategories } from "@/lib/api/transaction-categories";
 import { formatCurrency } from "@/lib/utils";
 import api from "@/lib/axios";
 
+interface DailyData {
+  date: string;
+  balance: number;
+  income: number;
+  expenses: number;
+}
+
+interface CategoryData {
+  name: string;
+  amount: number;
+}
+
 interface MonthlySummary {
   totalIncome: number;
   totalExpenses: number;
   netBalance: number;
   month: string;
+  dailyData: DailyData[];
+  incomeByCategory: CategoryData[];
+  expensesByCategory: CategoryData[];
 }
 
 async function getMonthlySummary(): Promise<MonthlySummary> {
@@ -111,6 +128,23 @@ export default function Home() {
                 </div>
               </CardContent>
             </Card>
+          </div>
+
+          {/* Balance Trend Chart */}
+          <BalanceTrendChart dailyData={summary.dailyData} currency={currency} />
+
+          {/* Category Pie Charts */}
+          <div className="grid grid-cols-1 gap-3">
+            <CategoryPieChart
+              title="Expenses by Category"
+              data={summary.expensesByCategory}
+              currency={currency}
+            />
+            <CategoryPieChart
+              title="Income by Category"
+              data={summary.incomeByCategory}
+              currency={currency}
+            />
           </div>
         </div>
       )}

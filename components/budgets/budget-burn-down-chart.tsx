@@ -1,7 +1,9 @@
 "use client";
 
+import { Line, LineChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import { formatCurrency } from "@/lib/utils";
 import { Currency } from "@/lib/api/accounts";
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 
 interface Transaction {
   id: string;
@@ -56,188 +58,111 @@ export function BudgetBurnDownChart({
     dataPoints.push({ date: now, cumulative });
   }
 
-  // Chart dimensions
-  const width = 320;
-  const height = 200;
-  const padding = { top: 20, right: 10, bottom: 30, left: 45 };
-  const chartWidth = width - padding.left - padding.right;
-  const chartHeight = height - padding.top - padding.bottom;
+  const formatDate = (date: Date) => {
+    return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  };
 
-  // Scales
-  const maxAmount = Math.max(budgetAmount, cumulative) * 1.1;
-  const xScale = (date: Date) => {
-    const elapsed = date.getTime() - startDate.getTime();
+  // Build chart data with both ideal and actual values
+  // Start with the period start
+  const chartDataMap = new Map<string, { date: string; ideal: number; actual: number | null }>();
+  
+  // Add start point
+  const startKey = formatDate(startDate);
+  chartDataMap.set(startKey, {
+    date: startKey,
+    ideal: 0,
+    actual: 0,
+  });
+
+  // Add all actual spending points
+  dataPoints.forEach((point) => {
+    const dateStr = formatDate(point.date);
+    const elapsed = point.date.getTime() - startDate.getTime();
     const total = endDate.getTime() - startDate.getTime();
-    return padding.left + (elapsed / total) * chartWidth;
-  };
-  const yScale = (amount: number) => {
-    return padding.top + chartHeight - (amount / maxAmount) * chartHeight;
-  };
+    const progress = Math.max(0, Math.min(1, elapsed / total));
+    const ideal = progress * budgetAmount;
 
-  // Ideal spending line (linear)
-  const idealPath = `M ${xScale(startDate)},${yScale(0)} L ${xScale(endDate)},${yScale(budgetAmount)}`;
+    chartDataMap.set(dateStr, {
+      date: dateStr,
+      ideal,
+      actual: point.cumulative,
+    });
+  });
 
-  // Actual spending line
-  const actualPath = dataPoints.map((p, i) => {
-    const x = xScale(p.date);
-    const y = yScale(p.cumulative);
-    return i === 0 ? `M ${x},${y}` : `L ${x},${y}`;
-  }).join(" ");
+  // Add end point for ideal line
+  const endKey = formatDate(endDate);
+  if (!chartDataMap.has(endKey)) {
+    chartDataMap.set(endKey, {
+      date: endKey,
+      ideal: budgetAmount,
+      actual: cumulative,
+    });
+  }
 
-  // Y-axis ticks
-  const yTicks = [0, budgetAmount / 2, budgetAmount, maxAmount].filter((v, i, arr) => arr.indexOf(v) === i);
-
-  // X-axis ticks (start, middle, end)
-  const midDate = new Date(startDate.getTime() + (endDate.getTime() - startDate.getTime()) / 2);
-  const xTicks = [
-    { date: startDate, label: startDate.toLocaleDateString("en-US", { month: "short", day: "numeric" }) },
-    { date: midDate, label: midDate.toLocaleDateString("en-US", { month: "short", day: "numeric" }) },
-    { date: endDate, label: endDate.toLocaleDateString("en-US", { month: "short", day: "numeric" }) },
-  ];
+  // Convert to array and sort by date
+  const chartData = Array.from(chartDataMap.values());
 
   const isOverBudget = cumulative > budgetAmount;
+
+  const chartConfig = {
+    ideal: {
+      label: "Ideal",
+      color: "#94a3b8",
+    },
+    actual: {
+      label: "Actual",
+      color: isOverBudget ? "#ef4444" : "#3b82f6",
+    },
+  };
 
   return (
     <div className="rounded-lg border p-4">
       <h3 className="text-sm font-medium mb-3">Burn Down Chart</h3>
-      <svg width={width} height={height} className="text-xs">
-        {/* Y-axis */}
-        <line
-          x1={padding.left}
-          y1={padding.top}
-          x2={padding.left}
-          y2={height - padding.bottom}
-          stroke="currentColor"
-          strokeOpacity={0.2}
-        />
-        {/* Y-axis ticks */}
-        {yTicks.map((tick) => {
-          const y = yScale(tick);
-          return (
-            <g key={tick}>
-              <line
-                x1={padding.left - 4}
-                y1={y}
-                x2={padding.left}
-                y2={y}
-                stroke="currentColor"
-                strokeOpacity={0.3}
-              />
-              <line
-                x1={padding.left}
-                y1={y}
-                x2={width - padding.right}
-                y2={y}
-                stroke="currentColor"
-                strokeOpacity={0.1}
-              />
-              <text
-                x={padding.left - 8}
-                y={y}
-                textAnchor="end"
-                alignmentBaseline="middle"
-                fill="currentColor"
-                className="text-[10px] fill-muted-foreground"
-              >
-                {formatCurrency(tick, currency, true)}
-              </text>
-            </g>
-          );
-        })}
-
-        {/* X-axis */}
-        <line
-          x1={padding.left}
-          y1={height - padding.bottom}
-          x2={width - padding.right}
-          y2={height - padding.bottom}
-          stroke="currentColor"
-          strokeOpacity={0.2}
-        />
-        {/* X-axis ticks */}
-        {xTicks.map((tick) => {
-          const x = xScale(tick.date);
-          return (
-            <g key={tick.label}>
-              <line
-                x1={x}
-                y1={height - padding.bottom}
-                x2={x}
-                y2={height - padding.bottom + 4}
-                stroke="currentColor"
-                strokeOpacity={0.3}
-              />
-              <text
-                x={x}
-                y={height - padding.bottom + 16}
-                textAnchor="middle"
-                fill="currentColor"
-                className="text-[10px] fill-muted-foreground"
-              >
-                {tick.label}
-              </text>
-            </g>
-          );
-        })}
-
-        {/* Ideal spending line */}
-        <path
-          d={idealPath}
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={2}
-          strokeDasharray="4 4"
-          className="stroke-muted-foreground"
-          opacity={0.5}
-        />
-
-        {/* Actual spending line */}
-        <path
-          d={actualPath}
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={2}
-          className={isOverBudget ? "stroke-destructive" : "stroke-primary"}
-        />
-
-        {/* Data points */}
-        {dataPoints.map((p, i) => (
-          <circle
-            key={i}
-            cx={xScale(p.date)}
-            cy={yScale(p.cumulative)}
-            r={3}
-            fill="currentColor"
-            className={isOverBudget ? "fill-destructive" : "fill-primary"}
+      <ChartContainer config={chartConfig} className="h-50 w-full">
+        <LineChart data={chartData}>
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis
+            dataKey="date"
+            tickLine={false}
+            axisLine={false}
+            tickMargin={8}
+            minTickGap={32}
           />
-        ))}
-
-        {/* Current date marker */}
-        {now > startDate && now < endDate && (
-          <line
-            x1={xScale(now)}
-            y1={padding.top}
-            x2={xScale(now)}
-            y2={height - padding.bottom}
-            stroke="currentColor"
-            strokeWidth={1}
-            strokeDasharray="2 2"
-            className="stroke-muted-foreground"
-            opacity={0.3}
+          <YAxis
+            tickLine={false}
+            axisLine={false}
+            tickMargin={8}
+            tickFormatter={(value) => formatCurrency(value, currency, true)}
           />
-        )}
-      </svg>
-
-      <div className="flex gap-4 mt-3 text-xs text-muted-foreground">
-        <div className="flex items-center gap-1.5">
-          <div className="w-6 h-0.5 bg-muted-foreground opacity-50" style={{ borderTop: "2px dashed" }} />
-          <span>Ideal</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <div className={`w-6 h-0.5 ${isOverBudget ? "bg-destructive" : "bg-primary"}`} />
-          <span>Actual</span>
-        </div>
-      </div>
+          <ChartTooltip
+            content={
+              <ChartTooltipContent
+                formatter={(value, name) => {
+                  const label = name === "ideal" ? "Ideal" : "Actual";
+                  return [`${formatCurrency(Number(value), currency)} `, label];
+                }}
+              />
+            }
+          />
+          <Line
+            type="monotone"
+            dataKey="ideal"
+            stroke="#94a3b8"
+            strokeWidth={2}
+            strokeDasharray="5 5"
+            dot={false}
+            connectNulls
+          />
+          <Line
+            type="monotone"
+            dataKey="actual"
+            stroke={isOverBudget ? "#ef4444" : "#3b82f6"}
+            strokeWidth={3}
+            dot={{ fill: isOverBudget ? "#ef4444" : "#3b82f6", r: 4, strokeWidth: 0 }}
+            connectNulls
+          />
+        </LineChart>
+      </ChartContainer>
     </div>
   );
 }
