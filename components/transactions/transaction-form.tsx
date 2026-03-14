@@ -11,46 +11,18 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { cn } from "@/lib/utils";
 import { Transaction } from "@/lib/api/transactions";
 import { Account } from "@/lib/api/accounts";
-import { TransactionCategory } from "@/lib/api/transaction-categories";
+import { TransactionCategory, CategoryType } from "@/lib/api/transaction-categories";
 
-const TYPE_LABELS: Record<string, string> = {
-  income: "Income",
-  expense: "Expense",
-  payable: "Payable",
-  receivable: "Receivable",
-};
-
-const TYPE_ORDER = ["income", "expense", "payable", "receivable"];
-
-function groupByType(categories: TransactionCategory[]) {
-  return categories.reduce<Record<string, TransactionCategory[]>>((acc, cat) => {
-    if (!acc[cat.type]) acc[cat.type] = [];
-    acc[cat.type].push(cat);
-    return acc;
-  }, {});
-}
-
-function CategoryOptions({ categories }: { categories: TransactionCategory[] }) {
-  const grouped = groupByType(categories);
-  return (
-    <>
-      <option value="" disabled>
-        Select a category
-      </option>
-      {TYPE_ORDER.filter((t) => grouped[t]?.length).map((type) => (
-        <optgroup key={type} label={TYPE_LABELS[type]}>
-          {grouped[type].map((cat) => (
-            <option key={cat.id} value={cat.id}>
-              {cat.name}
-            </option>
-          ))}
-        </optgroup>
-      ))}
-    </>
-  );
-}
+const TAB_TYPES: { value: CategoryType; label: string }[] = [
+  { value: "expense", label: "Expense" },
+  { value: "income", label: "Income" },
+  { value: "payable", label: "Payable" },
+  { value: "receivable", label: "Receivable" },
+];
 
 interface TransactionFieldsProps {
   transaction?: Transaction | null;
@@ -59,6 +31,8 @@ interface TransactionFieldsProps {
   defaultDate: string;
   defaultAccountId: string;
   error: string;
+  selectedCategoryId: string;
+  onCategoryChange: (id: string) => void;
 }
 
 function TransactionFields({
@@ -68,7 +42,18 @@ function TransactionFields({
   defaultDate,
   defaultAccountId,
   error,
+  selectedCategoryId,
+  onCategoryChange,
 }: TransactionFieldsProps) {
+  const selectedCategory = categories.find((c) => c.id === selectedCategoryId);
+  const defaultTab = selectedCategory?.type ?? "expense";
+  const [activeTab, setActiveTab] = useState<CategoryType>(defaultTab);
+
+  function handleTabChange(tab: string) {
+    setActiveTab(tab as CategoryType);
+    onCategoryChange("");
+  }
+
   return (
     <div className="space-y-4 py-2">
       <div className="space-y-2">
@@ -81,6 +66,7 @@ function TransactionFields({
           min="0.01"
           placeholder="0.00"
           defaultValue={transaction?.amount ?? ""}
+          onKeyDown={(e) => e.key === "-" && e.preventDefault()}
           required
         />
       </div>
@@ -91,16 +77,37 @@ function TransactionFields({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="categoryId">Category</Label>
-        <select
-          id="categoryId"
-          name="categoryId"
-          defaultValue={transaction?.categoryId ?? ""}
-          className="h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-          required
-        >
-          <CategoryOptions categories={categories} />
-        </select>
+        <Label>Category</Label>
+        <Tabs value={activeTab} onValueChange={handleTabChange}>
+          <TabsList className="w-full">
+            {TAB_TYPES.map(({ value, label }) => (
+              <TabsTrigger key={value} value={value} className="flex-1">
+                {label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+          {TAB_TYPES.map(({ value: type }) => (
+            <TabsContent key={type} value={type} className="mt-2">
+              <div className="flex flex-wrap gap-2">
+                {categories.filter((c) => c.type === type).map((cat) => (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    onClick={() => onCategoryChange(cat.id)}
+                    className={cn(
+                      "rounded-full border px-3 py-1 text-sm transition-colors",
+                      selectedCategoryId === cat.id
+                        ? "border-primary bg-primary text-primary-foreground"
+                        : "border-input hover:bg-accent"
+                    )}
+                  >
+                    {cat.name}
+                  </button>
+                ))}
+              </div>
+            </TabsContent>
+          ))}
+        </Tabs>
       </div>
 
       <div className="space-y-2">
@@ -161,6 +168,9 @@ export function TransactionForm({
 }: TransactionFormProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [selectedCategoryId, setSelectedCategoryId] = useState(
+    transaction?.categoryId ?? ""
+  );
 
   const defaultAccount = accounts.find((a) => a.isDefault) ?? accounts[0];
 
@@ -174,7 +184,7 @@ export function TransactionForm({
     const date = (form.elements.namedItem("date") as HTMLInputElement).value;
     const description = (form.elements.namedItem("description") as HTMLInputElement).value;
     const accountId = (form.elements.namedItem("accountId") as HTMLSelectElement).value;
-    const categoryId = (form.elements.namedItem("categoryId") as HTMLSelectElement).value;
+    const categoryId = selectedCategoryId;
 
     try {
       await onSubmit({ amount, date, description: description || undefined, accountId, categoryId });
@@ -208,6 +218,8 @@ export function TransactionForm({
             defaultDate={defaultDate}
             defaultAccountId={defaultAccount?.id ?? ""}
             error={error}
+            selectedCategoryId={selectedCategoryId}
+            onCategoryChange={setSelectedCategoryId}
           />
           <DialogFooter className="pt-4">
             <Button type="button" variant="outline" onClick={onClose} disabled={loading}>
