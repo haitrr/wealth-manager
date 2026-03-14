@@ -7,9 +7,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { Category } from "@prisma/client";
+import { Category, CategoryType } from "@prisma/client";
 import { useState, useMemo } from "react";
+import { BORROWING_TRANSACTION_TYPES, LOAN_TRANSACTION_TYPES } from "@/lib/utils";
 
 type Props = {
   categories: Category[];
@@ -18,21 +18,32 @@ type Props = {
   onChange: (value: string) => void;
 };
 
-const CategorySelect = ({
-  categories,
-  className,
-  value,
-  onChange,
-  ...props
-}: Props) => {
-  const [searchTerm, setSearchTerm] = useState("");
+type Tab = "expense" | "income" | "debt";
 
-  const filteredCategories = useMemo(() => {
-    if (!searchTerm) return categories;
-    return categories.filter(category =>
-      category.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [categories, searchTerm]);
+const TABS: { id: Tab; label: string }[] = [
+  { id: "expense", label: "Expense" },
+  { id: "income", label: "Income" },
+  { id: "debt", label: "Debt/Loan" },
+];
+
+const DEBT_TYPES = [
+  ...BORROWING_TRANSACTION_TYPES,
+  ...LOAN_TRANSACTION_TYPES,
+] as CategoryType[];
+
+function getTab(type: CategoryType): Tab {
+  if (type === CategoryType.EXPENSE) return "expense";
+  if (type === CategoryType.INCOME) return "income";
+  return "debt";
+}
+
+const CategorySelect = ({ categories, className, value, onChange, ...props }: Props) => {
+  const [activeTab, setActiveTab] = useState<Tab>("expense");
+
+  const tabCategories = useMemo(
+    () => categories.filter((c) => getTab(c.type) === activeTab),
+    [categories, activeTab]
+  );
 
   return (
     <Select {...props} value={value} onValueChange={onChange}>
@@ -40,29 +51,38 @@ const CategorySelect = ({
         <SelectValue placeholder="Select category" />
       </SelectTrigger>
       <SelectContent>
-        <div className="p-2">
-          <Input
-            placeholder="Search categories..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="h-8"
-            onKeyDown={(e) => {
-              e.stopPropagation();
-            }}
-            autoFocus={false}
-          />
+        {/* Tabs */}
+        <div className="flex border-b border-border mb-1">
+          {TABS.map((tab) => (
+            <button
+              key={tab.id}
+              type="button"
+              onPointerDown={(e) => {
+                e.preventDefault();
+                setActiveTab(tab.id);
+              }}
+              className={`flex-1 px-2 py-1.5 text-xs font-medium transition-colors ${
+                activeTab === tab.id
+                  ? "border-b-2 border-primary text-primary"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
         </div>
-        {filteredCategories.length === 0 ? (
-          <div className="p-2 text-sm text-muted-foreground">
-            No categories found
-          </div>
-        ) : (
-          filteredCategories.map((category) => (
-            <SelectItem key={category.id} value={category.id}>
-              {category.name}
-            </SelectItem>
-          ))
-        )}
+
+        <div className="h-48 overflow-y-auto">
+          {tabCategories.length === 0 ? (
+            <div className="p-2 text-sm text-muted-foreground">No categories</div>
+          ) : (
+            tabCategories.map((category) => (
+              <SelectItem key={category.id} value={category.id}>
+                {category.name}
+              </SelectItem>
+            ))
+          )}
+        </div>
       </SelectContent>
     </Select>
   );

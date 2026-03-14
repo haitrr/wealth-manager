@@ -226,20 +226,26 @@ export const TransactionForm = ({onSubmit, defaultValues}: Props) => {
       </FieldContainer>
       <FieldContainer className="flex items-center">
         <Label className="w-24">Category</Label>
-        <Controller
-          name="categoryId"
-          control={control}
-          render={({field: {value, onChange}}) => {
-            return (
-              <CategorySelect
-                className="w-50"
-                categories={categories}
-                value={value}
-                onChange={onChange}
-              />
-            );
-          }}
-        />
+        <div>
+          <Controller
+            name="categoryId"
+            control={control}
+            rules={{ required: "Please select a category" }}
+            render={({field: {value, onChange}}) => {
+              return (
+                <CategorySelect
+                  className="w-50"
+                  categories={categories}
+                  value={value}
+                  onChange={onChange}
+                />
+              );
+            }}
+          />
+          {errors.categoryId && (
+            <p className="text-red-500 text-xs mt-1">{errors.categoryId.message}</p>
+          )}
+        </div>
       </FieldContainer>
       <FieldContainer className="flex items-center">
         <Label className="w-24">Account</Label>

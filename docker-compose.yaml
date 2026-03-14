@@ -10,4 +10,13 @@ services:
     environment:
       POSTGRES_PASSWORD: postgres
     ports:
-      - "54323:5432"
+      - "54523:5432"
+  app:
+    build: .
+    profiles:
+      - prod
+    restart: always
+    depends_on:
+      - postgres
+    ports:
+      - "3412:8000"
