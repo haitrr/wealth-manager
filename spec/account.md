@@ -1,3 +1,4 @@
 - each user can have multiple accounts.
 - each account has a name and a balance.
+- there is a setting page where users can manage their accounts, including adding new accounts, editing existing accounts, and deleting accounts.
 - user can set a default account so when they perform transactions, the default account is used automatically.
