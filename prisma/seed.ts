@@ -10,6 +10,7 @@ const prisma = new PrismaClient({ adapter });
 
 async function main() {
   // Clean up existing seed data
+  await prisma.budget.deleteMany({ where: { user: { email: "test@example.com" } } });
   await prisma.transaction.deleteMany({ where: { user: { email: "test@example.com" } } });
   await prisma.transactionCategory.deleteMany({ where: { user: { email: "test@example.com" } } });
   await prisma.account.deleteMany({ where: { user: { email: "test@example.com" } } });
@@ -67,7 +68,7 @@ async function main() {
         userId: user.id,
       },
       {
-        amount: -1200,
+        amount: 1200,
         date: d(9),
         description: "Monthly rent",
         accountId: checking.id,
@@ -75,7 +76,7 @@ async function main() {
         userId: user.id,
       },
       {
-        amount: -85,
+        amount: 85,
         date: d(8),
         description: "Electricity & water",
         accountId: checking.id,
@@ -83,7 +84,7 @@ async function main() {
         userId: user.id,
       },
       {
-        amount: -45,
+        amount: 45,
         date: d(7),
         description: "Groceries",
         accountId: checking.id,
@@ -91,7 +92,7 @@ async function main() {
         userId: user.id,
       },
       {
-        amount: -32,
+        amount: 32,
         date: d(6),
         description: "Grab rides",
         accountId: checking.id,
@@ -99,7 +100,7 @@ async function main() {
         userId: user.id,
       },
       {
-        amount: -60,
+        amount: 60,
         date: d(5),
         description: "Netflix & Spotify",
         accountId: checking.id,
@@ -107,7 +108,7 @@ async function main() {
         userId: user.id,
       },
       {
-        amount: -120,
+        amount: 120,
         date: d(4),
         description: "Restaurant dinner",
         accountId: checking.id,
@@ -115,7 +116,7 @@ async function main() {
         userId: user.id,
       },
       {
-        amount: -500,
+        amount: 500,
         date: d(3),
         description: "Credit card payment",
         accountId: checking.id,
@@ -131,7 +132,7 @@ async function main() {
         userId: user.id,
       },
       {
-        amount: -25,
+        amount: 25,
         date: d(1),
         description: "Coffee & snacks",
         accountId: checking.id,
@@ -139,11 +140,57 @@ async function main() {
         userId: user.id,
       },
       {
-        amount: -18,
+        amount: 18,
         date: d(0),
         description: "Bus pass",
         accountId: checking.id,
         categoryId: byName["Transport"].id,
+        userId: user.id,
+      },
+    ],
+  });
+
+  const monthStart = new Date("2026-03-01");
+
+  await prisma.budget.createMany({
+    data: [
+      {
+        name: "Monthly Food",
+        amount: 400,
+        period: "monthly",
+        startDate: monthStart,
+        categoryId: byName["Food & Dining"].id,
+        userId: user.id,
+      },
+      {
+        name: "Transport",
+        amount: 100,
+        period: "monthly",
+        startDate: monthStart,
+        categoryId: byName["Transport"].id,
+        userId: user.id,
+      },
+      {
+        name: "Entertainment",
+        amount: 80,
+        period: "monthly",
+        startDate: monthStart,
+        categoryId: byName["Entertainment"].id,
+        userId: user.id,
+      },
+      {
+        name: "All Expenses",
+        amount: 2500,
+        period: "monthly",
+        startDate: monthStart,
+        userId: user.id,
+      },
+      {
+        name: "Checking Spending",
+        amount: 2000,
+        period: "monthly",
+        startDate: monthStart,
+        accountId: checking.id,
         userId: user.id,
       },
     ],

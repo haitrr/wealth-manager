@@ -15,6 +15,7 @@ model User {
   accounts             Account[]
   transactionCategories TransactionCategory[]
   transactions         Transaction[]
+  budgets              Budget[]
 }
 
 model Account {
@@ -25,6 +26,7 @@ model Account {
   userId       String
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   transactions Transaction[]
+  budgets      Budget[]
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
 }
@@ -43,6 +45,7 @@ model TransactionCategory {
   userId       String
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   transactions Transaction[]
+  budgets      Budget[]
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
 }
@@ -60,4 +63,21 @@ model Transaction {
   user        User                @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt   DateTime            @default(now())
   updatedAt   DateTime            @updatedAt
+}
+
+model Budget {
+  id         String               @id @default(cuid())
+  name       String
+  amount     Float
+  period     String
+  startDate  DateTime
+  endDate    DateTime?
+  accountId  String?
+  account    Account?             @relation(fields: [accountId], references: [id])
+  categoryId String?
+  category   TransactionCategory? @relation(fields: [categoryId], references: [id])
+  userId     String
+  user       User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt  DateTime             @default(now())
+  updatedAt  DateTime             @updatedAt
 }

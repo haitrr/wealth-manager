@@ -1,0 +1,8 @@
+- user can create budgets that apply for:
+  - specific accounts or all accounts
+  - specific categories or all categories
+  - specific time periods (e.g. monthly, yearly)
+- user can view budget progress and history.
+- user can see all transactions that contribute to a budget.
+- user can edit or delete budgets.
+- user can see average spending per day for the budget, and suggest how much they can spend per day to stay within the budget in the remaining days of the budget period.
