@@ -6,11 +6,12 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export function formatCurrency(amount: number, currency: Currency): string {
+export function formatCurrency(amount: number, currency: Currency, compact = false): string {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: currency,
     minimumFractionDigits: currency === "VND" ? 0 : 2,
     maximumFractionDigits: currency === "VND" ? 0 : 2,
+    ...(compact ? { notation: "compact", compactDisplay: "short" } : {}),
   }).format(amount);
 }

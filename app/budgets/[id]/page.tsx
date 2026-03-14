@@ -7,6 +7,7 @@ import { ArrowLeft, Pencil, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { BudgetForm } from "@/components/budgets/budget-form";
+import { BudgetBurnDownChart } from "@/components/budgets/budget-burn-down-chart";
 import { TransactionRow } from "@/components/transactions/transaction-row";
 import { getBudget, updateBudget, deleteBudget, getBudgetTransactions, BudgetPayload } from "@/lib/api/budgets";
 import { getAccounts } from "@/lib/api/accounts";
@@ -130,8 +131,17 @@ export default function BudgetDetailPage({ params }: { params: Promise<{ id: str
         </div>
       </div>
 
+      {/* Burn Down Chart */}
+      <BudgetBurnDownChart
+        periodStart={budget.periodStart}
+        periodEnd={budget.periodEnd}
+        budgetAmount={budget.amount}
+        currency={currency}
+        transactions={transactions}
+      />
+
       {/* Transactions */}
-      <h2 className="text-sm font-medium text-muted-foreground mb-2">Transactions this period</h2>
+      <h2 className="text-sm font-medium text-muted-foreground mb-2 mt-6">Transactions this period</h2>
       {transactions.length === 0 ? (
         <p className="text-sm text-muted-foreground">No transactions for this budget period.</p>
       ) : (
