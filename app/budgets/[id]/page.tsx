@@ -3,7 +3,7 @@
 import { use, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Pencil, Trash2 } from "lucide-react";
+import { ArrowLeft, Pencil } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { BudgetForm } from "@/components/budgets/budget-form";
@@ -38,10 +38,6 @@ export default function BudgetDetailPage({ params }: { params: Promise<{ id: str
   };
 
   const updateMutation = useMutation({ mutationFn: (data: BudgetPayload) => updateBudget(id, data), onSuccess: invalidateBudget });
-  const deleteMutation = useMutation({
-    mutationFn: () => deleteBudget(id),
-    onSuccess: () => router.push("/budgets"),
-  });
   const updateTxMutation = useMutation({
     mutationFn: ({ txId, ...data }: { txId: string } & Parameters<typeof updateTransaction>[1]) =>
       updateTransaction(txId, data),
@@ -78,9 +74,6 @@ export default function BudgetDetailPage({ params }: { params: Promise<{ id: str
         </Link>
         <h1 className="text-2xl font-semibold flex-1 truncate">{budget.name}</h1>
         <Button variant="ghost" size="icon" onClick={() => setEditOpen(true)}><Pencil className="size-4" /></Button>
-        <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" onClick={() => deleteMutation.mutate()}>
-          <Trash2 className="size-4" />
-        </Button>
       </div>
 
       {/* Meta */}
@@ -164,6 +157,10 @@ export default function BudgetDetailPage({ params }: { params: Promise<{ id: str
         onClose={() => setEditOpen(false)}
         onSubmit={async (data) => {
           await updateMutation.mutateAsync(data);
+        }}
+        onDelete={async () => {
+          await deleteBudget(id);
+          router.push("/budgets");
         }}
       />
 

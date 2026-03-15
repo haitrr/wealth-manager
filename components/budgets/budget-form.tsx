@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, FormEvent } from "react";
+import { Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,6 +23,7 @@ interface BudgetFormProps {
   categories: TransactionCategory[];
   onClose: () => void;
   onSubmit: (data: BudgetPayload) => Promise<void>;
+  onDelete?: (budget: Budget) => Promise<void>;
 }
 
 const PERIOD_OPTIONS: { value: BudgetPeriod; label: string }[] = [
@@ -30,9 +32,10 @@ const PERIOD_OPTIONS: { value: BudgetPeriod; label: string }[] = [
   { value: "custom", label: "Custom range" },
 ];
 
-export function BudgetForm({ open, budget, accounts, categories, onClose, onSubmit }: BudgetFormProps) {
+export function BudgetForm({ open, budget, accounts, categories, onClose, onSubmit, onDelete }: BudgetFormProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const [period, setPeriod] = useState<BudgetPeriod>(budget?.period ?? "monthly");
 
   const today = new Date().toISOString().split("T")[0];
@@ -75,7 +78,7 @@ export function BudgetForm({ open, budget, accounts, categories, onClose, onSubm
   }
 
   return (
-    <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
+    <Dialog open={open} onOpenChange={(v) => { if (!v) { setConfirmDelete(false); onClose(); } }}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{budget ? "Edit Budget" : "New Budget"}</DialogTitle>
@@ -191,12 +194,60 @@ export function BudgetForm({ open, budget, accounts, categories, onClose, onSubm
           </div>
 
           <DialogFooter className="pt-4">
-            <Button type="button" variant="outline" onClick={onClose} disabled={loading}>
-              Cancel
-            </Button>
-            <Button type="submit" disabled={loading}>
-              {loading ? "Saving…" : budget ? "Save Changes" : "Create Budget"}
-            </Button>
+            <div className="flex items-center justify-between w-full gap-2">
+              <div>
+                {budget && onDelete && (
+                  confirmDelete ? (
+                    <p className="text-sm text-destructive">Delete this budget?</p>
+                  ) : (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="text-destructive hover:text-destructive border-destructive/40 hover:border-destructive"
+                      onClick={() => setConfirmDelete(true)}
+                      disabled={loading}
+                    >
+                      <Trash2 className="size-4 mr-1" />
+                      Delete
+                    </Button>
+                  )
+                )}
+              </div>
+              <div className="flex gap-2">
+                {confirmDelete ? (
+                  <>
+                    <Button type="button" variant="outline" onClick={() => setConfirmDelete(false)}>
+                      Cancel
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      disabled={loading}
+                      onClick={async () => {
+                        setLoading(true);
+                        try {
+                          await onDelete!(budget!);
+                          onClose();
+                        } finally {
+                          setLoading(false);
+                        }
+                      }}
+                    >
+                      {loading ? "Deleting…" : "Confirm Delete"}
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button type="button" variant="outline" onClick={onClose} disabled={loading}>
+                      Cancel
+                    </Button>
+                    <Button type="submit" disabled={loading}>
+                      {loading ? "Saving…" : budget ? "Save Changes" : "Create Budget"}
+                    </Button>
+                  </>
+                )}
+              </div>
+            </div>
           </DialogFooter>
         </form>
       </DialogContent>

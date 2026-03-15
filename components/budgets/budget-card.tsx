@@ -1,15 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { Pencil, Trash2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Budget } from "@/lib/api/budgets";
 import { formatCurrency } from "@/lib/utils";
 
 interface BudgetCardProps {
   budget: Budget;
-  onEdit: (budget: Budget) => void;
-  onDelete: (budget: Budget) => void;
 }
 
 const PERIOD_LABELS: Record<string, string> = {
@@ -18,32 +14,23 @@ const PERIOD_LABELS: Record<string, string> = {
   custom: "Custom",
 };
 
-export function BudgetCard({ budget, onEdit, onDelete }: BudgetCardProps) {
+export function BudgetCard({ budget }: BudgetCardProps) {
   const percent = Math.min(100, budget.percentUsed);
   const isOver = budget.spent > budget.amount;
   const currency = budget.currency;
 
   return (
-    <div className="rounded-lg border p-4 space-y-3">
-      <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0">
-          <Link href={`/budgets/${budget.id}`} className="font-medium hover:underline truncate block">
-            {budget.name}
-          </Link>
-          <p className="text-xs text-muted-foreground">
-            {PERIOD_LABELS[budget.period]}
-            {budget.account ? ` · ${budget.account.name}` : ""}
-            {budget.category ? ` · ${budget.category.name}` : ""}
-          </p>
-        </div>
-        <div className="flex gap-1 shrink-0">
-          <Button variant="ghost" size="icon" className="size-8" onClick={() => onEdit(budget)}>
-            <Pencil className="size-3.5" />
-          </Button>
-          <Button variant="ghost" size="icon" className="size-8 text-destructive hover:text-destructive" onClick={() => onDelete(budget)}>
-            <Trash2 className="size-3.5" />
-          </Button>
-        </div>
+    <Link
+      href={`/budgets/${budget.id}`}
+      className="block rounded-lg border p-4 space-y-3 hover:bg-muted/50 transition-colors"
+    >
+      <div className="min-w-0">
+        <p className="font-medium truncate">{budget.name}</p>
+        <p className="text-xs text-muted-foreground">
+          {PERIOD_LABELS[budget.period]}
+          {budget.account ? ` · ${budget.account.name}` : ""}
+          {budget.category ? ` · ${budget.category.name}` : ""}
+        </p>
       </div>
 
       {/* Progress bar */}
@@ -77,6 +64,6 @@ export function BudgetCard({ budget, onEdit, onDelete }: BudgetCardProps) {
           </p>
         </div>
       </div>
-    </div>
+    </Link>
   );
 }
