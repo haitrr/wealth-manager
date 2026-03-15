@@ -2,10 +2,11 @@
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus } from "lucide-react";
+import { Plus, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TransactionRow } from "@/components/transactions/transaction-row";
 import { TransactionForm } from "@/components/transactions/transaction-form";
+import { ImportDialog } from "@/components/transactions/import-dialog";
 import {
   Transaction,
   getTransactions,
@@ -19,6 +20,7 @@ import { getTransactionCategories } from "@/lib/api/transaction-categories";
 export default function TransactionsPage() {
   const queryClient = useQueryClient();
   const [formOpen, setFormOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
 
   const { data: transactions = [], isLoading } = useQuery({
@@ -89,10 +91,16 @@ export default function TransactionsPage() {
     <main className="max-w-lg mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-semibold">Transactions</h1>
-        <Button onClick={openAdd} size="sm" disabled={accounts.length === 0 || categories.length === 0}>
-          <Plus className="size-4 mr-1" />
-          Add
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={() => setImportOpen(true)}>
+            <Upload className="size-4 mr-1" />
+            Import
+          </Button>
+          <Button onClick={openAdd} size="sm" disabled={accounts.length === 0 || categories.length === 0}>
+            <Plus className="size-4 mr-1" />
+            Add
+          </Button>
+        </div>
       </div>
 
       {isLoading && <p className="text-muted-foreground text-sm">Loading…</p>}
@@ -120,6 +128,8 @@ export default function TransactionsPage() {
           </div>
         ))}
       </div>
+
+      <ImportDialog open={importOpen} onClose={() => setImportOpen(false)} />
 
       <TransactionForm
         open={formOpen}

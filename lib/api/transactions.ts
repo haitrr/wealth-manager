@@ -49,3 +49,18 @@ export async function updateTransaction(
 export async function deleteTransaction(id: string): Promise<void> {
   await api.delete(`/transactions/${id}`);
 }
+
+export interface ImportResult {
+  imported: number;
+  skipped: number;
+  errors: string[];
+}
+
+export async function importTransactions(file: File): Promise<ImportResult> {
+  const formData = new FormData();
+  formData.append("file", file);
+  const { data } = await api.post<ImportResult>("/transactions/import", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+  return data;
+}

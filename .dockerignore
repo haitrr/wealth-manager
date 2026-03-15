@@ -3,5 +3,7 @@ node_modules
 .git
 *.md
 logs
+backups
 .env*
 !.env.example
+docker-compose*.yml
