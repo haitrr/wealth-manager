@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
+import { AmountInput } from "@/components/transactions/amount-input";
 import { Transaction } from "@/lib/api/transactions";
 import { Account } from "@/lib/api/accounts";
 import { TransactionCategory, CategoryType } from "@/lib/api/transaction-categories";
@@ -58,17 +59,7 @@ function TransactionFields({
     <div className="space-y-4 py-2">
       <div className="space-y-2">
         <Label htmlFor="amount">Amount</Label>
-        <Input
-          id="amount"
-          name="amount"
-          type="number"
-          step="0.01"
-          min="0.01"
-          placeholder="0.00"
-          defaultValue={transaction?.amount ?? ""}
-          onKeyDown={(e) => e.key === "-" && e.preventDefault()}
-          required
-        />
+        <AmountInput defaultValue={transaction?.amount} required />
       </div>
 
       <div className="space-y-2">
@@ -183,7 +174,7 @@ export function TransactionForm({
     setLoading(true);
 
     const form = e.currentTarget;
-    const amount = parseFloat((form.elements.namedItem("amount") as HTMLInputElement).value);
+    const amount = parseFloat((form.elements.namedItem("amount") as HTMLInputElement).value.replace(/,/g, ""));
     const date = (form.elements.namedItem("date") as HTMLInputElement).value;
     const description = (form.elements.namedItem("description") as HTMLInputElement).value;
     const accountId = (form.elements.namedItem("accountId") as HTMLSelectElement).value;
