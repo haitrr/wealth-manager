@@ -151,7 +151,8 @@ export default function Home() {
 
       <Button
         size="icon"
-        className="fixed bottom-20 right-6 size-14 rounded-full shadow-lg"
+        className="fixed right-6 size-14 rounded-full shadow-lg"
+        style={{ bottom: "calc(5rem + env(safe-area-inset-bottom))" }}
         onClick={() => setFormOpen(true)}
         aria-label="Add transaction"
       >

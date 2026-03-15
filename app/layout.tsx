@@ -37,7 +37,7 @@ export default function RootLayout({
     <html lang="en" className={inter.variable}>
       <body className="antialiased">
         <QueryProvider>
-          <div className="pb-16">{children}</div>
+          <div style={{ paddingBottom: "calc(4rem + env(safe-area-inset-bottom))" }}>{children}</div>
           <BottomNav />
         </QueryProvider>
       </body>
