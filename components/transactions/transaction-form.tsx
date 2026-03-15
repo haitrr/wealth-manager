@@ -88,7 +88,7 @@ function TransactionFields({
           </TabsList>
           {TAB_TYPES.map(({ value: type }) => (
             <TabsContent key={type} value={type} className="mt-2">
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto">
                 {categories.filter((c) => c.type === type).map((cat) => (
                   <button
                     key={cat.id}
