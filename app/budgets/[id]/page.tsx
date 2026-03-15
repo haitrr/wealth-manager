@@ -151,7 +151,6 @@ export default function BudgetDetailPage({ params }: { params: Promise<{ id: str
               key={tx.id}
               transaction={tx}
               onEdit={openEditTx}
-              onDelete={(t) => deleteTxMutation.mutate(t.id)}
             />
           ))}
         </div>
@@ -177,6 +176,7 @@ export default function BudgetDetailPage({ params }: { params: Promise<{ id: str
         onSubmit={async (data) => {
           if (editingTx) await updateTxMutation.mutateAsync({ txId: editingTx.id, ...data });
         }}
+        onDelete={async (t) => { await deleteTxMutation.mutateAsync(t.id); setTxFormOpen(false); }}
       />
     </main>
   );
