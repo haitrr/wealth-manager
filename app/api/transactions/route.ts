@@ -2,12 +2,26 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/app/lib/db";
 import { getSession } from "@/app/lib/auth";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   const session = await getSession();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+  const { searchParams } = req.nextUrl;
+  const startDate = searchParams.get("startDate");
+  const endDate = searchParams.get("endDate");
+
   const transactions = await prisma.transaction.findMany({
-    where: { userId: session.userId },
+    where: {
+      userId: session.userId,
+      ...(startDate || endDate
+        ? {
+            date: {
+              ...(startDate ? { gte: new Date(startDate) } : {}),
+              ...(endDate ? { lte: new Date(endDate) } : {}),
+            },
+          }
+        : {}),
+    },
     include: {
       account: { select: { id: true, name: true, currency: true } },
       category: { select: { id: true, name: true, type: true } },

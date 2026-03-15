@@ -8,6 +8,11 @@ import { TransactionRow } from "@/components/transactions/transaction-row";
 import { TransactionForm } from "@/components/transactions/transaction-form";
 import { ImportDialog } from "@/components/transactions/import-dialog";
 import {
+  TimeRangeSelector,
+  TimeRange,
+  getDateRange,
+} from "@/components/transactions/time-range-selector";
+import {
   Transaction,
   getTransactions,
   createTransaction,
@@ -22,10 +27,13 @@ export default function TransactionsPage() {
   const [formOpen, setFormOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
+  const [timeRange, setTimeRange] = useState<TimeRange>("this-month");
+
+  const dateRange = getDateRange(timeRange);
 
   const { data: transactions = [], isLoading } = useQuery({
-    queryKey: ["transactions"],
-    queryFn: getTransactions,
+    queryKey: ["transactions", timeRange],
+    queryFn: () => getTransactions(dateRange),
   });
   const { data: accounts = [] } = useQuery({
     queryKey: ["accounts"],
@@ -79,9 +87,14 @@ export default function TransactionsPage() {
     }
   }
 
-  // Group transactions by month
+  // Group transactions by day
   const grouped = transactions.reduce<Record<string, Transaction[]>>((acc, tx) => {
-    const key = new Date(tx.date).toLocaleDateString("en-US", { month: "long", year: "numeric" });
+    const key = new Date(tx.date).toLocaleDateString("en-US", {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
     if (!acc[key]) acc[key] = [];
     acc[key].push(tx);
     return acc;
@@ -89,7 +102,7 @@ export default function TransactionsPage() {
 
   return (
     <main className="max-w-lg mx-auto px-4 py-8">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-4">
         <h1 className="text-2xl font-semibold">Transactions</h1>
         <div className="flex gap-2">
           <Button variant="outline" size="sm" onClick={() => setImportOpen(true)}>
@@ -103,18 +116,20 @@ export default function TransactionsPage() {
         </div>
       </div>
 
-      {isLoading && <p className="text-muted-foreground text-sm">Loading…</p>}
+      <TimeRangeSelector value={timeRange} onChange={setTimeRange} />
+
+      {isLoading && <p className="text-muted-foreground text-sm mt-4">Loading…</p>}
 
       {!isLoading && transactions.length === 0 && (
-        <p className="text-muted-foreground text-sm">
+        <p className="text-muted-foreground text-sm mt-4">
           No transactions yet. Add one to get started.
         </p>
       )}
 
-      <div className="space-y-6">
-        {Object.entries(grouped).map(([month, txs]) => (
-          <div key={month}>
-            <h2 className="text-sm font-medium text-muted-foreground mb-1">{month}</h2>
+      <div className="space-y-6 mt-6">
+        {Object.entries(grouped).map(([day, txs]) => (
+          <div key={day}>
+            <h2 className="text-sm font-medium text-muted-foreground mb-1">{day}</h2>
             <div className="rounded-lg border px-4">
               {txs.map((tx) => (
                 <TransactionRow

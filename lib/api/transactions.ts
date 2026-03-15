@@ -16,8 +16,11 @@ export interface Transaction {
   updatedAt: string;
 }
 
-export async function getTransactions(): Promise<Transaction[]> {
-  const { data } = await api.get<Transaction[]>("/transactions");
+export async function getTransactions(params?: {
+  startDate?: string;
+  endDate?: string;
+}): Promise<Transaction[]> {
+  const { data } = await api.get<Transaction[]>("/transactions", { params });
   return data;
 }
 

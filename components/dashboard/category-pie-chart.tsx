@@ -65,16 +65,21 @@ export function CategoryPieChart({ title, data, currency }: CategoryPieChartProp
 
   const total = data.reduce((sum, d) => sum + d.amount, 0);
 
-  // Sort by amount descending
+  // Sort by amount descending, take top 5, group rest as "Other"
   const sortedData = [...data].sort((a, b) => b.amount - a.amount);
+  const top5 = sortedData.slice(0, 5);
+  const rest = sortedData.slice(5);
+  const otherAmount = rest.reduce((sum, d) => sum + d.amount, 0);
 
-  const chartData = sortedData.map((item) => ({
+  const displayData = otherAmount > 0 ? [...top5, { name: "Other", amount: otherAmount }] : top5;
+
+  const chartData = displayData.map((item) => ({
     name: item.name,
     value: item.amount,
     percentage: ((item.amount / total) * 100).toFixed(1),
   }));
 
-  const chartConfig = sortedData.reduce((acc, item, index) => {
+  const chartConfig = displayData.reduce((acc, item, index) => {
     acc[item.name] = {
       label: item.name,
       color: COLORS[index % COLORS.length],
