@@ -1,6 +1,6 @@
 "use client";
 
-import { Pencil, Trash2, Star } from "lucide-react";
+import { Pencil, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Account } from "@/lib/api/accounts";
@@ -9,11 +9,10 @@ import { formatCurrency } from "@/lib/utils";
 interface AccountCardProps {
   account: Account;
   onEdit: (account: Account) => void;
-  onDelete: (account: Account) => void;
   onSetDefault: (account: Account) => void;
 }
 
-export function AccountCard({ account, onEdit, onDelete, onSetDefault }: AccountCardProps) {
+export function AccountCard({ account, onEdit, onSetDefault }: AccountCardProps) {
   const formattedBalance = formatCurrency(account.balance, account.currency);
 
   return (
@@ -44,15 +43,6 @@ export function AccountCard({ account, onEdit, onDelete, onSetDefault }: Account
           )}
           <Button variant="ghost" size="icon" title="Edit" onClick={() => onEdit(account)}>
             <Pencil className="size-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            title="Delete"
-            className="text-destructive hover:text-destructive"
-            onClick={() => onDelete(account)}
-          >
-            <Trash2 className="size-4" />
           </Button>
         </div>
       </CardContent>

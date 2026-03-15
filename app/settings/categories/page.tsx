@@ -108,7 +108,6 @@ export default function CategoriesSettingsPage() {
                       <CategoryCard
                         category={category}
                         onEdit={openEdit}
-                        onDelete={(c) => deleteMutation.mutate(c.id)}
                         onAddSubcategory={() => openAdd(category.id)}
                       />
                       {children.length > 0 && (
@@ -118,7 +117,6 @@ export default function CategoriesSettingsPage() {
                               key={child.id}
                               category={child}
                               onEdit={openEdit}
-                              onDelete={(c) => deleteMutation.mutate(c.id)}
                             />
                           ))}
                         </div>
@@ -138,6 +136,7 @@ export default function CategoriesSettingsPage() {
         defaultParentId={defaultParentId}
         onClose={() => setFormOpen(false)}
         onSubmit={handleSubmit}
+        onDelete={(c) => { deleteMutation.mutate(c.id); setFormOpen(false); }}
       />
     </main>
   );

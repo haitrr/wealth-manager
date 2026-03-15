@@ -1,6 +1,6 @@
 "use client";
 
-import { Pencil, Plus, Trash2 } from "lucide-react";
+import { Pencil, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { TransactionCategory, CategoryType } from "@/lib/api/transaction-categories";
@@ -22,11 +22,10 @@ const TYPE_LABELS: Record<CategoryType, string> = {
 interface CategoryCardProps {
   category: TransactionCategory;
   onEdit: (category: TransactionCategory) => void;
-  onDelete: (category: TransactionCategory) => void;
   onAddSubcategory?: () => void;
 }
 
-export function CategoryCard({ category, onEdit, onDelete, onAddSubcategory }: CategoryCardProps) {
+export function CategoryCard({ category, onEdit, onAddSubcategory }: CategoryCardProps) {
   return (
     <Card>
       <CardContent className="flex items-center justify-between gap-4 p-4">
@@ -49,15 +48,6 @@ export function CategoryCard({ category, onEdit, onDelete, onAddSubcategory }: C
           )}
           <Button variant="ghost" size="icon" title="Edit" onClick={() => onEdit(category)}>
             <Pencil className="size-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            title="Delete"
-            className="text-destructive hover:text-destructive"
-            onClick={() => onDelete(category)}
-          >
-            <Trash2 className="size-4" />
           </Button>
         </div>
       </CardContent>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, FormEvent, useRef, useEffect } from "react";
-import { ChevronDown, Search, X } from "lucide-react";
+import { ChevronDown, Search, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,7 +10,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from "@/components/ui/dialog";
 import {
   Select,
@@ -175,6 +174,7 @@ interface CategoryFormProps {
   defaultParentId?: string | null;
   onClose: () => void;
   onSubmit: (data: { name: string; type: CategoryType; parentId?: string | null }) => Promise<void>;
+  onDelete?: (category: TransactionCategory) => void;
 }
 
 export function CategoryForm({
@@ -184,13 +184,24 @@ export function CategoryForm({
   defaultParentId,
   onClose,
   onSubmit,
+  onDelete,
 }: CategoryFormProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const [selectedParentId, setSelectedParentId] = useState<string>(
     category?.parentId ?? defaultParentId ?? ""
   );
   const [selectedType, setSelectedType] = useState<CategoryType>(category?.type ?? "expense");
+
+  useEffect(() => {
+    if (open) {
+      setSelectedParentId(category?.parentId ?? defaultParentId ?? "");
+      setSelectedType(category?.type ?? "expense");
+      setError("");
+      setConfirmDelete(false);
+    }
+  }, [open, category, defaultParentId]);
 
   const selectedParent = parentCategories.find((p) => p.id === selectedParentId);
 
@@ -292,14 +303,37 @@ export function CategoryForm({
             {error && <p className="text-sm text-destructive">{error}</p>}
           </div>
 
-          <DialogFooter className="pt-4">
-            <Button type="button" variant="outline" onClick={onClose} disabled={loading}>
-              Cancel
-            </Button>
-            <Button type="submit" disabled={loading}>
-              {loading ? "Saving…" : category ? "Save Changes" : "Add Category"}
-            </Button>
-          </DialogFooter>
+          <div className="-mx-4 -mb-4 rounded-b-xl border-t bg-muted/50 p-4">
+            {category && onDelete && confirmDelete ? (
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-sm text-destructive">Delete this category?</span>
+                <div className="flex gap-2">
+                  <Button type="button" variant="ghost" size="sm" onClick={() => setConfirmDelete(false)}>
+                    Cancel
+                  </Button>
+                  <Button type="button" variant="destructive" size="sm" onClick={() => { onDelete(category); onClose(); }}>
+                    Delete
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center justify-between gap-2">
+                <div>
+                  {category && onDelete && (
+                    <Button type="button" variant="ghost" size="icon" className="text-destructive hover:text-destructive" onClick={() => setConfirmDelete(true)} disabled={loading}>
+                      <Trash2 className="size-4" />
+                    </Button>
+                  )}
+                </div>
+                <div className="flex gap-2">
+                  <Button type="button" variant="outline" onClick={onClose} disabled={loading}>Cancel</Button>
+                  <Button type="submit" disabled={loading}>
+                    {loading ? "Saving…" : category ? "Save Changes" : "Add Category"}
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
         </form>
       </DialogContent>
     </Dialog>

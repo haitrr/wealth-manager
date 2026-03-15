@@ -79,7 +79,6 @@ export default function AccountsSettingsPage() {
             key={account.id}
             account={account}
             onEdit={openEdit}
-            onDelete={(a) => deleteMutation.mutate(a.id)}
             onSetDefault={(a) => defaultMutation.mutate(a.id)}
           />
         ))}
@@ -90,6 +89,7 @@ export default function AccountsSettingsPage() {
         account={editingAccount}
         onClose={() => setFormOpen(false)}
         onSubmit={handleSubmit}
+        onDelete={(a) => deleteMutation.mutate(a.id)}
       />
     </main>
   );

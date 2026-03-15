@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Pencil, Trash2, ArrowLeft } from "lucide-react";
+import { Plus, Pencil, ArrowLeft, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,7 +12,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from "@/components/ui/dialog";
 import {
   getExchangeRates,
@@ -98,19 +97,9 @@ export default function ExchangeRatesPage() {
                   1 {rate.fromCurrency} = {rate.rate} {rate.toCurrency}
                 </p>
               </div>
-              <div className="flex gap-2">
-                <Button variant="ghost" size="icon" onClick={() => openEdit(rate)}>
-                  <Pencil className="size-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="text-destructive hover:text-destructive"
-                  onClick={() => deleteMutation.mutate(rate.id)}
-                >
-                  <Trash2 className="size-4" />
-                </Button>
-              </div>
+              <Button variant="ghost" size="icon" onClick={() => openEdit(rate)}>
+                <Pencil className="size-4" />
+              </Button>
             </div>
           ))}
         </div>
@@ -121,6 +110,7 @@ export default function ExchangeRatesPage() {
         exchangeRate={editingRate}
         onClose={() => setFormOpen(false)}
         onSubmit={handleSubmit}
+        onDelete={(r) => { deleteMutation.mutate(r.id); setFormOpen(false); }}
       />
     </main>
   );
@@ -131,11 +121,20 @@ interface ExchangeRateFormProps {
   exchangeRate?: ExchangeRate | null;
   onClose: () => void;
   onSubmit: (data: { fromCurrency: Currency; toCurrency: Currency; rate: number }) => Promise<void>;
+  onDelete?: (rate: ExchangeRate) => void;
 }
 
-function ExchangeRateForm({ open, exchangeRate, onClose, onSubmit }: ExchangeRateFormProps) {
+function ExchangeRateForm({ open, exchangeRate, onClose, onSubmit, onDelete }: ExchangeRateFormProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [confirmDelete, setConfirmDelete] = useState(false);
+
+  useEffect(() => {
+    if (open) {
+      setConfirmDelete(false);
+      setError("");
+    }
+  }, [open, exchangeRate]);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -223,14 +222,37 @@ function ExchangeRateForm({ open, exchangeRate, onClose, onSubmit }: ExchangeRat
             {error && <p className="text-sm text-destructive">{error}</p>}
           </div>
 
-          <DialogFooter className="pt-4">
-            <Button type="button" variant="outline" onClick={onClose} disabled={loading}>
-              Cancel
-            </Button>
-            <Button type="submit" disabled={loading}>
-              {loading ? "Saving…" : exchangeRate ? "Save Changes" : "Create"}
-            </Button>
-          </DialogFooter>
+          <div className="-mx-4 -mb-4 rounded-b-xl border-t bg-muted/50 p-4">
+            {exchangeRate && onDelete && confirmDelete ? (
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-sm text-destructive">Delete this rate?</span>
+                <div className="flex gap-2">
+                  <Button type="button" variant="ghost" size="sm" onClick={() => setConfirmDelete(false)}>
+                    Cancel
+                  </Button>
+                  <Button type="button" variant="destructive" size="sm" onClick={() => { onDelete(exchangeRate); onClose(); }}>
+                    Delete
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center justify-between gap-2">
+                <div>
+                  {exchangeRate && onDelete && (
+                    <Button type="button" variant="ghost" size="icon" className="text-destructive hover:text-destructive" onClick={() => setConfirmDelete(true)} disabled={loading}>
+                      <Trash2 className="size-4" />
+                    </Button>
+                  )}
+                </div>
+                <div className="flex gap-2">
+                  <Button type="button" variant="outline" onClick={onClose} disabled={loading}>Cancel</Button>
+                  <Button type="submit" disabled={loading}>
+                    {loading ? "Saving…" : exchangeRate ? "Save Changes" : "Create"}
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
         </form>
       </DialogContent>
     </Dialog>
