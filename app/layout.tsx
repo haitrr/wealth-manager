@@ -13,6 +13,14 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "Wealth Manager",
   description: "Manage your wealth",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Wealth Manager",
+  },
+  formatDetection: {
+    telephone: false,
+  },
 };
 
 export default function RootLayout({
