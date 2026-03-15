@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/app/lib/db";
 import { getSession } from "@/app/lib/auth";
-import { getPeriodBounds } from "../../budget-utils";
+import { getPeriodBounds, getCategoryIdWithDescendants } from "../../budget-utils";
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await getSession();
@@ -13,14 +13,16 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
 
   const { start, end } = getPeriodBounds(budget, new Date());
 
+  const categoryFilter = budget.categoryId
+    ? { categoryId: { in: await getCategoryIdWithDescendants(budget.categoryId, session.userId) } }
+    : { category: { type: { in: ["expense", "payable"] } } };
+
   const transactions = await prisma.transaction.findMany({
     where: {
       userId: session.userId,
       date: { gte: start, lte: end },
       ...(budget.accountId ? { accountId: budget.accountId } : {}),
-      ...(budget.categoryId
-        ? { categoryId: budget.categoryId }
-        : { category: { type: { in: ["expense", "payable"] } } }),
+      ...categoryFilter,
     },
     include: {
       account: { select: { id: true, name: true, currency: true } },

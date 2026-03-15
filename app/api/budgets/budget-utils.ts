@@ -58,6 +58,27 @@ export async function convertCurrency(
   return amount;
 }
 
+/**
+ * Returns the given category ID plus all descendant category IDs (recursive children).
+ */
+export async function getCategoryIdWithDescendants(categoryId: string, userId: string): Promise<string[]> {
+  const allCategories = await prisma.transactionCategory.findMany({
+    where: { userId },
+    select: { id: true, parentId: true },
+  });
+
+  const ids = new Set<string>();
+  const queue = [categoryId];
+  while (queue.length > 0) {
+    const current = queue.shift()!;
+    ids.add(current);
+    for (const cat of allCategories) {
+      if (cat.parentId === current) queue.push(cat.id);
+    }
+  }
+  return Array.from(ids);
+}
+
 export function getPeriodBounds(budget: Budget, now: Date): { start: Date; end: Date } {
   if (budget.period === "custom") {
     return { start: new Date(budget.startDate), end: new Date(budget.endDate!) };

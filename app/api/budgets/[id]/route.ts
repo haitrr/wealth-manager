@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/app/lib/db";
 import { getSession } from "@/app/lib/auth";
-import { getPeriodBounds, computeProgress, convertCurrency } from "../budget-utils";
+import { getPeriodBounds, computeProgress, convertCurrency, getCategoryIdWithDescendants } from "../budget-utils";
 
 async function getBudgetWithProgress(budgetId: string, userId: string) {
   const budget = await prisma.budget.findFirst({
@@ -15,16 +15,18 @@ async function getBudgetWithProgress(budgetId: string, userId: string) {
 
   const now = new Date();
   const { start, end } = getPeriodBounds(budget, now);
-  
+
+  const categoryFilter = budget.categoryId
+    ? { categoryId: { in: await getCategoryIdWithDescendants(budget.categoryId, userId) } }
+    : { category: { type: { in: ["expense", "payable"] } } };
+
   // Fetch transactions with account info to get currency
   const transactions = await prisma.transaction.findMany({
     where: {
       userId,
       date: { gte: start, lte: end },
       ...(budget.accountId ? { accountId: budget.accountId } : {}),
-      ...(budget.categoryId
-        ? { categoryId: budget.categoryId }
-        : { category: { type: { in: ["expense", "payable"] } } }),
+      ...categoryFilter,
     },
     include: {
       account: { select: { currency: true } },
