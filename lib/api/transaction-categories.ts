@@ -7,6 +7,7 @@ export interface TransactionCategory {
   name: string;
   type: CategoryType;
   userId: string;
+  parentId: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -19,6 +20,7 @@ export async function getTransactionCategories(): Promise<TransactionCategory[]>
 export async function createTransactionCategory(payload: {
   name: string;
   type: CategoryType;
+  parentId?: string | null;
 }): Promise<TransactionCategory> {
   const { data } = await api.post<TransactionCategory>("/transaction-categories", payload);
   return data;
@@ -26,7 +28,7 @@ export async function createTransactionCategory(payload: {
 
 export async function updateTransactionCategory(
   id: string,
-  payload: { name: string; type: CategoryType }
+  payload: { name: string; type: CategoryType; parentId?: string | null }
 ): Promise<TransactionCategory> {
   const { data } = await api.put<TransactionCategory>(`/transaction-categories/${id}`, payload);
   return data;

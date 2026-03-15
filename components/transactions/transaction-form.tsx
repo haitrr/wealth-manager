@@ -77,27 +77,64 @@ function TransactionFields({
               </TabsTrigger>
             ))}
           </TabsList>
-          {TAB_TYPES.map(({ value: type }) => (
-            <TabsContent key={type} value={type} className="mt-2">
-              <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto">
-                {categories.filter((c) => c.type === type).map((cat) => (
-                  <button
-                    key={cat.id}
-                    type="button"
-                    onClick={() => onCategoryChange(cat.id)}
-                    className={cn(
-                      "rounded-full border px-3 py-1 text-sm transition-colors",
-                      selectedCategoryId === cat.id
-                        ? "border-primary bg-primary text-primary-foreground"
-                        : "border-input hover:bg-accent"
-                    )}
-                  >
-                    {cat.name}
-                  </button>
-                ))}
-              </div>
-            </TabsContent>
-          ))}
+          {TAB_TYPES.map(({ value: type }) => {
+            const typeCategories = categories.filter((c) => c.type === type);
+            const roots = typeCategories.filter((c) => !c.parentId);
+            const childrenOf = (parentId: string) =>
+              typeCategories.filter((c) => c.parentId === parentId);
+
+            return (
+              <TabsContent key={type} value={type} className="mt-2">
+                <div className="max-h-40 overflow-y-auto space-y-2">
+                  {roots.map((root) => {
+                    const children = childrenOf(root.id);
+                    return (
+                      <div key={root.id}>
+                        {children.length > 0 ? (
+                          <>
+                            <p className="text-xs text-muted-foreground font-medium mb-1">{root.name}</p>
+                            <div className="flex flex-wrap gap-2">
+                              {children.map((child) => (
+                                <button
+                                  key={child.id}
+                                  type="button"
+                                  onClick={() => onCategoryChange(child.id)}
+                                  className={cn(
+                                    "rounded-full border px-3 py-1 text-sm transition-colors",
+                                    selectedCategoryId === child.id
+                                      ? "border-primary bg-primary text-primary-foreground"
+                                      : "border-input hover:bg-accent"
+                                  )}
+                                >
+                                  {child.name}
+                                </button>
+                              ))}
+                            </div>
+                          </>
+                        ) : (
+                          <div className="flex flex-wrap gap-2">
+                            <button
+                              key={root.id}
+                              type="button"
+                              onClick={() => onCategoryChange(root.id)}
+                              className={cn(
+                                "rounded-full border px-3 py-1 text-sm transition-colors",
+                                selectedCategoryId === root.id
+                                  ? "border-primary bg-primary text-primary-foreground"
+                                  : "border-input hover:bg-accent"
+                              )}
+                            >
+                              {root.name}
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </TabsContent>
+            );
+          })}
         </Tabs>
       </div>
 

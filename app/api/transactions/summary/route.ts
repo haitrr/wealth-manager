@@ -15,7 +15,7 @@ export async function GET() {
       userId: session.userId,
       date: { gte: start, lte: end },
     },
-    include: { category: { select: { id: true, name: true, type: true } } },
+    include: { category: { select: { id: true, name: true, type: true, parentId: true, parent: { select: { id: true, name: true } } } } },
     orderBy: { date: "asc" },
   });
 
@@ -42,24 +42,26 @@ export async function GET() {
     }
 
     const dayData = txByDate.get(dateKey)!;
+    // Roll up to parent category if one exists
+    const groupId = tx.category.parent?.id ?? tx.category.id;
+    const groupName = tx.category.parent?.name ?? tx.category.name;
+
     if (isIncome) {
       dayData.income += tx.amount;
       totalIncome += tx.amount;
 
-      // Income by category
-      if (!incomeByCategory.has(tx.category.id)) {
-        incomeByCategory.set(tx.category.id, { name: tx.category.name, amount: 0 });
+      if (!incomeByCategory.has(groupId)) {
+        incomeByCategory.set(groupId, { name: groupName, amount: 0 });
       }
-      incomeByCategory.get(tx.category.id)!.amount += tx.amount;
+      incomeByCategory.get(groupId)!.amount += tx.amount;
     } else {
       dayData.expenses += tx.amount;
       totalExpenses += tx.amount;
 
-      // Expenses by category
-      if (!expensesByCategory.has(tx.category.id)) {
-        expensesByCategory.set(tx.category.id, { name: tx.category.name, amount: 0 });
+      if (!expensesByCategory.has(groupId)) {
+        expensesByCategory.set(groupId, { name: groupName, amount: 0 });
       }
-      expensesByCategory.get(tx.category.id)!.amount += tx.amount;
+      expensesByCategory.get(groupId)!.amount += tx.amount;
     }
   }
 
