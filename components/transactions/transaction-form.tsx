@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, FormEvent } from "react";
+import { Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,7 +10,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
@@ -156,6 +156,7 @@ interface TransactionFormProps {
     accountId: string;
     categoryId: string;
   }) => Promise<void>;
+  onDelete?: (transaction: Transaction) => Promise<void>;
 }
 
 export function TransactionForm({
@@ -165,9 +166,11 @@ export function TransactionForm({
   categories,
   onClose,
   onSubmit,
+  onDelete,
 }: TransactionFormProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const [selectedCategoryId, setSelectedCategoryId] = useState(
     transaction?.categoryId ?? ""
   );
@@ -204,7 +207,7 @@ export function TransactionForm({
     : today;
 
   return (
-    <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
+    <Dialog open={open} onOpenChange={(v) => { if (!v) { setConfirmDelete(false); onClose(); } }}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{transaction ? "Edit Transaction" : "Add Transaction"}</DialogTitle>
@@ -221,14 +224,60 @@ export function TransactionForm({
             selectedCategoryId={selectedCategoryId}
             onCategoryChange={setSelectedCategoryId}
           />
-          <DialogFooter className="pt-4">
-            <Button type="button" variant="outline" onClick={onClose} disabled={loading}>
-              Cancel
-            </Button>
-            <Button type="submit" disabled={loading}>
-              {loading ? "Saving…" : transaction ? "Save Changes" : "Add Transaction"}
-            </Button>
-          </DialogFooter>
+          <div className="flex items-center justify-between pt-4 gap-2">
+            <div>
+              {transaction && onDelete && (
+                confirmDelete ? (
+                  <p className="text-sm text-destructive">Delete this transaction?</p>
+                ) : (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="text-destructive hover:text-destructive border-destructive/40 hover:border-destructive"
+                    onClick={() => setConfirmDelete(true)}
+                    disabled={loading}
+                  >
+                    <Trash2 className="size-4 mr-1" />
+                    Delete
+                  </Button>
+                )
+              )}
+            </div>
+            <div className="flex gap-2">
+              {confirmDelete ? (
+                <>
+                  <Button type="button" variant="outline" onClick={() => setConfirmDelete(false)}>
+                    Cancel
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    disabled={loading}
+                    onClick={async () => {
+                      setLoading(true);
+                      try {
+                        await onDelete!(transaction!);
+                        onClose();
+                      } finally {
+                        setLoading(false);
+                      }
+                    }}
+                  >
+                    {loading ? "Deleting…" : "Confirm Delete"}
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button type="button" variant="outline" onClick={onClose} disabled={loading}>
+                    Cancel
+                  </Button>
+                  <Button type="submit" disabled={loading}>
+                    {loading ? "Saving…" : transaction ? "Save Changes" : "Add Transaction"}
+                  </Button>
+                </>
+              )}
+            </div>
+          </div>
         </form>
       </DialogContent>
     </Dialog>

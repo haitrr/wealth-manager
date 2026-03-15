@@ -47,6 +47,7 @@ export default function TransactionsPage() {
   const invalidate = () => queryClient.invalidateQueries({ queryKey: ["transactions"] });
 
   const createMutation = useMutation({ mutationFn: createTransaction, onSuccess: invalidate });
+  const deleteMutation = useMutation({ mutationFn: deleteTransaction, onSuccess: invalidate });
   const updateMutation = useMutation({
     mutationFn: ({
       id,
@@ -61,7 +62,6 @@ export default function TransactionsPage() {
     }) => updateTransaction(id, data),
     onSuccess: invalidate,
   });
-  const deleteMutation = useMutation({ mutationFn: deleteTransaction, onSuccess: invalidate });
 
   function openAdd() {
     setEditingTransaction(null);
@@ -136,7 +136,6 @@ export default function TransactionsPage() {
                   key={tx.id}
                   transaction={tx}
                   onEdit={openEdit}
-                  onDelete={(t) => deleteMutation.mutate(t.id)}
                 />
               ))}
             </div>
@@ -153,6 +152,7 @@ export default function TransactionsPage() {
         categories={categories}
         onClose={() => setFormOpen(false)}
         onSubmit={handleSubmit}
+        onDelete={async (t) => { await deleteMutation.mutateAsync(t.id); }}
       />
     </main>
   );
