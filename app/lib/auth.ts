@@ -9,7 +9,7 @@ const SECRET = new TextEncoder().encode(
 export const COOKIE_NAME = "auth-token";
 export const COOKIE_OPTIONS = {
   httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
+  secure: process.env.COOKIE_SECURE === "true",
   sameSite: "lax" as const,
   maxAge: 60 * 60 * 24 * 7, // 7 days
   path: "/",
