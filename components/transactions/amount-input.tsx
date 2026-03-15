@@ -68,7 +68,7 @@ export function AmountInput({ defaultValue, required }: AmountInputProps) {
         onClick={() => setOpen(true)}
         required={required}
         className={cn(
-          "h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-shadow",
+          "h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-[16px] md:text-sm shadow-sm transition-shadow",
           "placeholder:text-muted-foreground cursor-pointer select-none",
           open ? "outline-none ring-1 ring-ring" : ""
         )}
