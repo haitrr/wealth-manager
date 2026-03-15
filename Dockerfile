@@ -7,7 +7,7 @@ RUN corepack enable && corepack prepare pnpm@8 --activate
 FROM base AS deps
 WORKDIR /app
 COPY package.json pnpm-lock.yaml* ./
-RUN pnpm install --frozen-lockfile
+RUN echo "node-linker=hoisted" > .npmrc && pnpm install --frozen-lockfile
 
 # ---- builder ----
 FROM base AS builder
