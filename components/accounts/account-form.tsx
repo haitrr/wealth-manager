@@ -24,7 +24,7 @@ interface AccountFormProps {
   open: boolean;
   account?: Account | null;
   onClose: () => void;
-  onSubmit: (data: { name: string; balance: number; currency: Currency }) => Promise<void>;
+  onSubmit: (data: { name: string; currency: Currency }) => Promise<void>;
   onDelete?: (account: Account) => void;
 }
 
@@ -63,10 +63,9 @@ export function AccountForm({ open, account, onClose, onSubmit, onDelete }: Acco
 
     const form = e.currentTarget;
     const name = (form.elements.namedItem("name") as HTMLInputElement).value;
-    const balance = parseFloat((form.elements.namedItem("balance") as HTMLInputElement).value) || 0;
 
     try {
-      await onSubmit({ name, balance, currency });
+      await onSubmit({ name, currency });
       onClose();
     } catch {
       setError("Something went wrong. Please try again.");
@@ -92,18 +91,6 @@ export function AccountForm({ open, account, onClose, onSubmit, onDelete }: Acco
                 placeholder="e.g. Savings, Checking"
                 defaultValue={account?.name ?? ""}
                 required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="balance">Balance</Label>
-              <Input
-                id="balance"
-                name="balance"
-                type="number"
-                step="0.01"
-                placeholder="0.00"
-                defaultValue={account?.balance ?? 0}
               />
             </div>
 

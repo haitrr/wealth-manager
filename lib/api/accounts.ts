@@ -18,9 +18,8 @@ export async function getAccounts(): Promise<Account[]> {
   return data;
 }
 
-export async function createAccount(payload: { 
-  name: string; 
-  balance?: number;
+export async function createAccount(payload: {
+  name: string;
   currency?: Currency;
 }): Promise<Account> {
   const { data } = await api.post<Account>("/accounts", payload);
@@ -29,9 +28,8 @@ export async function createAccount(payload: {
 
 export async function updateAccount(
   id: string,
-  payload: { 
-    name: string; 
-    balance?: number;
+  payload: {
+    name: string;
     currency?: Currency;
   }
 ): Promise<Account> {

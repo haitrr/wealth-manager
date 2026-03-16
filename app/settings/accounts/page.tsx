@@ -30,7 +30,7 @@ export default function AccountsSettingsPage() {
 
   const createMutation = useMutation({ mutationFn: createAccount, onSuccess: invalidate });
   const updateMutation = useMutation({
-    mutationFn: ({ id, ...data }: { id: string; name: string; balance?: number; currency?: Currency }) =>
+    mutationFn: ({ id, ...data }: { id: string; name: string; currency?: Currency }) =>
       updateAccount(id, data),
     onSuccess: invalidate,
   });
@@ -47,7 +47,7 @@ export default function AccountsSettingsPage() {
     setFormOpen(true);
   }
 
-  async function handleSubmit(data: { name: string; balance: number; currency: Currency }) {
+  async function handleSubmit(data: { name: string; currency: Currency }) {
     if (editingAccount) {
       await updateMutation.mutateAsync({ id: editingAccount.id, ...data });
     } else {

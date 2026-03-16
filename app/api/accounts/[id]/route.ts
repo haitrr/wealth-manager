@@ -14,21 +14,31 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   const account = await getOwnedAccount(id, session.userId);
   if (!account) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  const { name, balance, currency } = await req.json();
+  const { name, currency } = await req.json();
   if (!name?.trim()) {
     return NextResponse.json({ error: "Name is required" }, { status: 400 });
   }
 
   const updated = await prisma.account.update({
     where: { id },
-    data: { 
-      name: name.trim(), 
-      balance: balance ?? account.balance,
+    data: {
+      name: name.trim(),
       currency: currency ?? account.currency,
+    },
+    include: {
+      transactions: {
+        include: { category: { select: { type: true } } },
+      },
     },
   });
 
-  return NextResponse.json(updated);
+  const { transactions, ...rest } = updated;
+  const balance = transactions.reduce((sum: number, tx: { amount: number; category: { type: string } }) => {
+    const isIncome = tx.category.type === "income" || tx.category.type === "receivable";
+    return sum + (isIncome ? tx.amount : -tx.amount);
+  }, 0);
+
+  return NextResponse.json({ ...rest, balance });
 }
 
 export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {

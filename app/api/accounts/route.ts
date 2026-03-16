@@ -9,16 +9,29 @@ export async function GET() {
   const accounts = await prisma.account.findMany({
     where: { userId: session.userId },
     orderBy: [{ isDefault: "desc" }, { createdAt: "asc" }],
+    include: {
+      transactions: {
+        include: { category: { select: { type: true } } },
+      },
+    },
   });
 
-  return NextResponse.json(accounts);
+  const result = accounts.map(({ transactions, ...account }) => {
+    const balance = transactions.reduce((sum, tx) => {
+      const isIncome = tx.category.type === "income" || tx.category.type === "receivable";
+      return sum + (isIncome ? tx.amount : -tx.amount);
+    }, 0);
+    return { ...account, balance };
+  });
+
+  return NextResponse.json(result);
 }
 
 export async function POST(req: NextRequest) {
   const session = await getSession();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { name, balance, currency } = await req.json();
+  const { name, currency } = await req.json();
   if (!name?.trim()) {
     return NextResponse.json({ error: "Name is required" }, { status: 400 });
   }
@@ -29,12 +42,12 @@ export async function POST(req: NextRequest) {
   const account = await prisma.account.create({
     data: {
       name: name.trim(),
-      balance: balance ?? 0,
+      balance: 0,
       currency: currency ?? "USD",
       isDefault: isFirst,
       userId: session.userId,
     },
   });
 
-  return NextResponse.json(account, { status: 201 });
+  return NextResponse.json({ ...account, balance: 0 }, { status: 201 });
 }
