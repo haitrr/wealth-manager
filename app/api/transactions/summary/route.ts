@@ -2,13 +2,17 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/app/lib/db";
 import { getSession } from "@/app/lib/auth";
 
-export async function GET() {
+export async function GET(request: Request) {
   const session = await getSession();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+  const { searchParams } = new URL(request.url);
+  const startParam = searchParams.get("startDate");
+  const endParam = searchParams.get("endDate");
+
   const now = new Date();
-  const start = new Date(now.getFullYear(), now.getMonth(), 1);
-  const end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+  const start = startParam ? new Date(startParam) : new Date(now.getFullYear(), now.getMonth(), 1);
+  const end = endParam ? new Date(endParam) : new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
 
   const transactions = await prisma.transaction.findMany({
     where: {
@@ -98,7 +102,10 @@ export async function GET() {
     totalIncome,
     totalExpenses,
     netBalance: totalIncome - totalExpenses,
-    month: now.toLocaleDateString("en-US", { month: "long", year: "numeric" }),
+    month: start.toLocaleDateString("en-US", { month: "short", year: "numeric" }) +
+      (start.getMonth() !== end.getMonth() || start.getFullYear() !== end.getFullYear()
+        ? " – " + end.toLocaleDateString("en-US", { month: "short", year: "numeric" })
+        : ""),
     dailyData,
     incomeByCategory: Array.from(incomeByCategory.values()),
     expensesByCategory: Array.from(expensesByCategory.values()),
