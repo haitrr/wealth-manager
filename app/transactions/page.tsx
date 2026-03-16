@@ -104,16 +104,10 @@ export default function TransactionsPage() {
     <main className="max-w-lg mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-2xl font-semibold">Transactions</h1>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={() => setImportOpen(true)}>
-            <Upload className="size-4 mr-1" />
-            Import
-          </Button>
-          <Button onClick={openAdd} size="sm" disabled={accounts.length === 0 || categories.length === 0}>
-            <Plus className="size-4 mr-1" />
-            Add
-          </Button>
-        </div>
+        <Button variant="outline" size="sm" onClick={() => setImportOpen(true)}>
+          <Upload className="size-4 mr-1" />
+          Import
+        </Button>
       </div>
 
       <TimeRangeSelector value={timeRange} onChange={setTimeRange} />
@@ -142,6 +136,17 @@ export default function TransactionsPage() {
           </div>
         ))}
       </div>
+
+      <Button
+        size="icon"
+        className="fixed right-6 size-14 rounded-full shadow-lg"
+        style={{ bottom: "calc(5rem + env(safe-area-inset-bottom))" }}
+        onClick={openAdd}
+        disabled={accounts.length === 0 || categories.length === 0}
+        aria-label="Add transaction"
+      >
+        <Plus className="size-6" />
+      </Button>
 
       <ImportDialog open={importOpen} onClose={() => setImportOpen(false)} />
 

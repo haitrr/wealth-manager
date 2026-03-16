@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ArrowDownRight, ArrowUpRight, Plus, Wallet } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -42,6 +43,7 @@ async function getMonthlySummary(): Promise<MonthlySummary> {
 }
 
 export default function Home() {
+  const router = useRouter();
   const queryClient = useQueryClient();
   const [formOpen, setFormOpen] = useState(false);
 
@@ -166,6 +168,7 @@ export default function Home() {
         categories={categories}
         onSubmit={async (data) => {
           await createMutation.mutateAsync(data);
+          router.push("/transactions");
         }}
       />
     </main>
