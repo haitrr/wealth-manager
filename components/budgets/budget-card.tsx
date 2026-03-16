@@ -18,6 +18,9 @@ export function BudgetCard({ budget }: BudgetCardProps) {
   const percent = Math.min(100, budget.percentUsed);
   const isOver = budget.spent > budget.amount;
   const currency = budget.currency;
+  const expectedPercent = budget.daysTotal > 0
+    ? Math.min(100, (budget.daysElapsed / budget.daysTotal) * 100)
+    : 0;
 
   return (
     <Link
@@ -35,10 +38,16 @@ export function BudgetCard({ budget }: BudgetCardProps) {
 
       {/* Progress bar */}
       <div className="space-y-1">
-        <div className="h-2 rounded-full bg-muted overflow-hidden">
+        <div className="relative h-2">
+          <div className="h-full rounded-full bg-muted overflow-hidden">
+            <div
+              className={`h-full rounded-full transition-all ${isOver ? "bg-destructive" : "bg-primary"}`}
+              style={{ width: `${percent}%` }}
+            />
+          </div>
           <div
-            className={`h-full rounded-full transition-all ${isOver ? "bg-destructive" : "bg-primary"}`}
-            style={{ width: `${percent}%` }}
+            className="absolute top-1/2 -translate-y-1/2 h-3.5 w-0.5 rounded-full bg-foreground/60"
+            style={{ left: `${expectedPercent}%` }}
           />
         </div>
         <div className="flex justify-between text-xs">
