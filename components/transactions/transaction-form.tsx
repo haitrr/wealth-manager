@@ -192,7 +192,7 @@ export function TransactionForm({
 
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v) { setConfirmDelete(false); onClose(); } }}>
-      <DialogContent>
+      <DialogContent className="w-[95vw] max-w-lg">
         <DialogHeader>
           <DialogTitle>{transaction ? "Edit Transaction" : "Add Transaction"}</DialogTitle>
         </DialogHeader>

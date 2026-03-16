@@ -83,7 +83,7 @@ export function BudgetForm({ open, budget, accounts, categories, onClose, onSubm
 
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v) { setConfirmDelete(false); onClose(); } }}>
-      <DialogContent>
+      <DialogContent className="w-[95vw] max-w-lg">
         <DialogHeader>
           <DialogTitle>{budget ? "Edit Budget" : "New Budget"}</DialogTitle>
         </DialogHeader>
