@@ -169,8 +169,7 @@ function ExchangeRateForm({ open, exchangeRate, onClose, onSubmit, onDelete }: E
           <DialogTitle>{exchangeRate ? "Edit Exchange Rate" : "New Exchange Rate"}</DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit}>
-          <div className="space-y-4 py-2">
+        <form onSubmit={handleSubmit} className="space-y-4 py-2">
             <div className="space-y-2">
               <Label htmlFor="fromCurrency">From Currency</Label>
               <select
@@ -220,7 +219,6 @@ function ExchangeRateForm({ open, exchangeRate, onClose, onSubmit, onDelete }: E
             </div>
 
             {error && <p className="text-sm text-destructive">{error}</p>}
-          </div>
 
           <div className="-mx-4 -mb-4 rounded-b-xl border-t bg-muted/50 p-4">
             {exchangeRate && onDelete && confirmDelete ? (

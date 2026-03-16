@@ -84,8 +84,7 @@ export function BudgetForm({ open, budget, accounts, categories, onClose, onSubm
           <DialogTitle>{budget ? "Edit Budget" : "New Budget"}</DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit}>
-          <div className="space-y-4 py-2">
+        <form onSubmit={handleSubmit} className="space-y-4 py-2">
             <div className="space-y-2">
               <Label htmlFor="name">Name</Label>
               <Input id="name" name="name" placeholder="e.g. Monthly Food" defaultValue={budget?.name ?? ""} required />
@@ -191,7 +190,6 @@ export function BudgetForm({ open, budget, accounts, categories, onClose, onSubm
             </div>
 
             {error && <p className="text-sm text-destructive">{error}</p>}
-          </div>
 
           <DialogFooter className="pt-4">
             <div className="flex items-center justify-between w-full gap-2">
