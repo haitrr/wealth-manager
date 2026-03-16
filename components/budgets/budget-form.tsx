@@ -111,7 +111,7 @@ export function BudgetForm({ open, budget, accounts, categories, onClose, onSubm
                 id="currency"
                 name="currency"
                 defaultValue={budget?.currency ?? "USD"}
-                className="h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                className="h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-[16px] md:text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                 required
               >
                 <option value="USD">USD - US Dollar</option>
@@ -126,7 +126,7 @@ export function BudgetForm({ open, budget, accounts, categories, onClose, onSubm
                 name="period"
                 value={period}
                 onChange={(e) => setPeriod(e.target.value as BudgetPeriod)}
-                className="h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                className="h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-[16px] md:text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
               >
                 {PERIOD_OPTIONS.map(({ value, label }) => (
                   <option key={value} value={value}>{label}</option>
@@ -165,7 +165,7 @@ export function BudgetForm({ open, budget, accounts, categories, onClose, onSubm
                 id="accountId"
                 name="accountId"
                 defaultValue={budget?.accountId ?? ""}
-                className="h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                className="h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-[16px] md:text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
               >
                 <option value="">All accounts</option>
                 {accounts.map((a) => (
@@ -180,7 +180,7 @@ export function BudgetForm({ open, budget, accounts, categories, onClose, onSubm
                 id="categoryId"
                 name="categoryId"
                 defaultValue={budget?.categoryId ?? ""}
-                className="h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                className="h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-[16px] md:text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
               >
                 <option value="">All expense categories</option>
                 {categories.map((c) => (

@@ -177,7 +177,7 @@ function ExchangeRateForm({ open, exchangeRate, onClose, onSubmit, onDelete }: E
                 name="fromCurrency"
                 defaultValue={exchangeRate?.fromCurrency ?? "USD"}
                 disabled={!!exchangeRate}
-                className="h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                className="h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-[16px] md:text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
                 required
               >
                 <option value="USD">USD - US Dollar</option>
@@ -192,7 +192,7 @@ function ExchangeRateForm({ open, exchangeRate, onClose, onSubmit, onDelete }: E
                 name="toCurrency"
                 defaultValue={exchangeRate?.toCurrency ?? "VND"}
                 disabled={!!exchangeRate}
-                className="h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                className="h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-[16px] md:text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
                 required
               >
                 <option value="USD">USD - US Dollar</option>

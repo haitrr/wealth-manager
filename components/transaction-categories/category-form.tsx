@@ -54,7 +54,7 @@ function PickerDropdown({ inputRef, search, onSearch, filtered, value, onSelect 
           value={search}
           onChange={(e) => onSearch(e.target.value)}
           placeholder="Search categories…"
-          className="flex-1 bg-transparent py-2 text-sm outline-none placeholder:text-muted-foreground"
+          className="flex-1 bg-transparent py-2 text-[16px] md:text-sm outline-none placeholder:text-muted-foreground"
         />
       </div>
       <div className="max-h-48 overflow-y-auto p-1">
