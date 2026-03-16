@@ -2,7 +2,7 @@
 name: wm
 description: "Manage personal finances — query accounts, transactions, budgets, and add expenses using the Wealth Manager CLI"
 user-invocable: true
-metadata: {"openclaw": {"requires": {"bins": ["wm"], "config": ["~/.wm/config.yml"]}, "emoji": "💰"}}
+metadata: {"openclaw": {"requires": {"bins": ["wm"]}, "emoji": "💰"}}
 ---
 
 Use the `wm` CLI to answer questions about personal finances and handle expense tracking.

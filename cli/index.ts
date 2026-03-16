@@ -8,7 +8,21 @@
  */
 
 import axios from "axios";
+import https from "https";
+import fs from "fs";
 import { resolvedConfig, configCommand } from "./config.js";
+
+function systemCaAgent(): https.Agent | undefined {
+  const candidates = [
+    "/etc/ssl/certs/ca-certificates.crt", // Debian/Ubuntu
+    "/etc/pki/tls/certs/ca-bundle.crt",   // RHEL/CentOS
+    "/etc/ssl/ca-bundle.pem",             // OpenSUSE
+    "/etc/ssl/cert.pem",                  // macOS/Alpine
+  ];
+  for (const p of candidates) {
+    if (fs.existsSync(p)) return new https.Agent({ ca: fs.readFileSync(p) });
+  }
+}
 
 // Initialized in main() after config is resolved
 let http = axios.create();
@@ -215,7 +229,7 @@ async function main() {
     process.exit(1);
   }
 
-  http = axios.create({ baseURL: baseUrl, headers: { Authorization: `Bearer ${apiKey}` } });
+  http = axios.create({ baseURL: baseUrl, headers: { Authorization: `Bearer ${apiKey}` }, httpsAgent: systemCaAgent() });
 
   const commands: Record<string, () => Promise<void> | void> = {
     accounts,
