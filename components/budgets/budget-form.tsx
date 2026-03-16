@@ -12,6 +12,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { AmountInput } from "@/components/transactions/amount-input";
 import { Account, Currency } from "@/lib/api/accounts";
 import { TransactionCategory } from "@/lib/api/transaction-categories";
 import { Budget, BudgetPayload, BudgetPeriod } from "@/lib/api/budgets";
@@ -39,6 +40,7 @@ export function BudgetForm({ open, budget, accounts, categories, onClose, onSubm
   const [period, setPeriod] = useState<BudgetPeriod>(budget?.period ?? "monthly");
 
   const today = new Date().toISOString().split("T")[0];
+  const defaultAccount = accounts.find((a) => a.isDefault) ?? accounts[0];
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -47,7 +49,7 @@ export function BudgetForm({ open, budget, accounts, categories, onClose, onSubm
 
     const form = e.currentTarget;
     const name = (form.elements.namedItem("name") as HTMLInputElement).value;
-    const amount = parseFloat((form.elements.namedItem("amount") as HTMLInputElement).value);
+    const amount = parseFloat((form.elements.namedItem("amount") as HTMLInputElement).value.replace(/,/g, ""));
     const currency = (form.elements.namedItem("currency") as HTMLSelectElement).value as Currency;
     const accountId = (form.elements.namedItem("accountId") as HTMLSelectElement).value;
     const categoryId = (form.elements.namedItem("categoryId") as HTMLSelectElement).value;
@@ -92,17 +94,7 @@ export function BudgetForm({ open, budget, accounts, categories, onClose, onSubm
 
             <div className="space-y-2">
               <Label htmlFor="amount">Budget Amount</Label>
-              <Input
-                id="amount"
-                name="amount"
-                type="number"
-                step="0.01"
-                min="0.01"
-                placeholder="0.00"
-                defaultValue={budget?.amount ?? ""}
-                onKeyDown={(e) => e.key === "-" && e.preventDefault()}
-                required
-              />
+              <AmountInput defaultValue={budget?.amount} required />
             </div>
 
             <div className="space-y-2">
@@ -110,7 +102,7 @@ export function BudgetForm({ open, budget, accounts, categories, onClose, onSubm
               <select
                 id="currency"
                 name="currency"
-                defaultValue={budget?.currency ?? "USD"}
+                defaultValue={budget?.currency ?? defaultAccount?.currency ?? "USD"}
                 className="h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-[16px] md:text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                 required
               >
