@@ -58,49 +58,47 @@ export function BudgetBurnDownChart({
     dataPoints.push({ date: now, cumulative });
   }
 
-  const formatDate = (date: Date) => {
-    return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  const formatDate = (ts: number) => {
+    return new Date(ts).toLocaleDateString("en-US", { month: "short", day: "numeric" });
   };
 
-  // Build chart data with both ideal and actual values
-  // Start with the period start
-  const chartDataMap = new Map<string, { date: string; ideal: number; actual: number | null }>();
-  
+  // Build chart data with both ideal and actual values using timestamps for linear scaling
+  const chartDataMap = new Map<number, { date: number; ideal: number; actual: number | null }>();
+
   // Add start point
-  const startKey = formatDate(startDate);
-  chartDataMap.set(startKey, {
-    date: startKey,
+  chartDataMap.set(startDate.getTime(), {
+    date: startDate.getTime(),
     ideal: 0,
     actual: 0,
   });
 
   // Add all actual spending points
   dataPoints.forEach((point) => {
-    const dateStr = formatDate(point.date);
-    const elapsed = point.date.getTime() - startDate.getTime();
+    const ts = point.date.getTime();
+    const elapsed = ts - startDate.getTime();
     const total = endDate.getTime() - startDate.getTime();
     const progress = Math.max(0, Math.min(1, elapsed / total));
     const ideal = progress * budgetAmount;
 
-    chartDataMap.set(dateStr, {
-      date: dateStr,
+    chartDataMap.set(ts, {
+      date: ts,
       ideal,
       actual: point.cumulative,
     });
   });
 
   // Add end point for ideal line
-  const endKey = formatDate(endDate);
-  if (!chartDataMap.has(endKey)) {
-    chartDataMap.set(endKey, {
-      date: endKey,
+  const endTs = endDate.getTime();
+  if (!chartDataMap.has(endTs)) {
+    chartDataMap.set(endTs, {
+      date: endTs,
       ideal: budgetAmount,
       actual: cumulative,
     });
   }
 
-  // Convert to array and sort by date
-  const chartData = Array.from(chartDataMap.values());
+  // Convert to array and sort by timestamp
+  const chartData = Array.from(chartDataMap.values()).sort((a, b) => a.date - b.date);
 
   const isOverBudget = cumulative > budgetAmount;
 
@@ -123,10 +121,14 @@ export function BudgetBurnDownChart({
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis
             dataKey="date"
+            type="number"
+            scale="time"
+            domain={["dataMin", "dataMax"]}
             tickLine={false}
             axisLine={false}
             tickMargin={8}
             minTickGap={32}
+            tickFormatter={formatDate}
           />
           <YAxis
             tickLine={false}
