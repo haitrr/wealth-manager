@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { CategoryType } from "@prisma/client";
 import { prisma } from "@/app/lib/db";
 import { getSession } from "@/app/lib/auth";
 import { getPeriodBounds, computeProgress, convertCurrency, getCategoryIdWithDescendants } from "../budget-utils";
@@ -16,18 +17,21 @@ async function getBudgetWithProgress(budgetId: string, userId: string) {
   const now = new Date();
   const { start, end } = getPeriodBounds(budget, now);
 
-  const categoryFilter = budget.categoryId
-    ? { categoryId: { in: await getCategoryIdWithDescendants(budget.categoryId, userId) } }
-    : { category: { type: { in: ["expense", "payable"] } } };
+  const categoryIds = budget.categoryId
+    ? await getCategoryIdWithDescendants(budget.categoryId, userId)
+    : null;
+
+  const baseWhere = {
+    userId,
+    date: { gte: start, lte: end },
+    ...(budget.accountId ? { accountId: budget.accountId } : {}),
+  };
 
   // Fetch transactions with account info to get currency
   const transactions = await prisma.transaction.findMany({
-    where: {
-      userId,
-      date: { gte: start, lte: end },
-      ...(budget.accountId ? { accountId: budget.accountId } : {}),
-      ...categoryFilter,
-    },
+    where: categoryIds
+      ? { ...baseWhere, categoryId: { in: categoryIds } }
+      : { ...baseWhere, category: { is: { type: { in: ["expense", "payable"] as CategoryType[] } } } },
     include: {
       account: { select: { currency: true } },
     },

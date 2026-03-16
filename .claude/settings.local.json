@@ -10,7 +10,11 @@
       "Bash(POSTGRES_URL=\"postgres://postgres:postgres@localhost:54523/wm\" pnpm exec prisma migrate dev --name add_transaction_categories_and_transactions)",
       "Bash(pnpm db:seed)",
       "Bash(xargs ls:*)",
-      "Bash(docker compose:*)"
+      "Bash(docker compose:*)",
+      "Bash(pnpm build:*)",
+      "Bash(node -e \"const p = require\\(''''/Users/haitran/code/wealth-manager/node_modules/.pnpm/@prisma+client*/node_modules/@prisma/client''''\\); console.log\\(Object.keys\\(p\\).filter\\(k => !k.startsWith\\(''''_''''\\)\\)\\)\")",
+      "Bash(node -e \"const p = require\\(''''@prisma/client''''\\); console.log\\(Object.keys\\(p\\).filter\\(k => !k.startsWith\\(''''_''''\\)\\)\\)\")",
+      "Bash(node -e \"const p = require\\(''''@prisma/client''''\\); console.log\\(Object.keys\\(p\\).join\\(''''\\\\n''''\\)\\)\")"
     ]
   }
 }

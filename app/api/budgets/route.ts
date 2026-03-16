@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { CategoryType } from "@prisma/client";
 import { prisma } from "@/app/lib/db";
 import { getSession } from "@/app/lib/auth";
 import { getPeriodBounds, computeProgress, convertCurrency, getCategoryIdWithDescendants } from "./budget-utils";
@@ -24,7 +25,7 @@ export async function GET() {
 
       const categoryFilter = budget.categoryId
         ? { categoryId: { in: await getCategoryIdWithDescendants(budget.categoryId, session.userId) } }
-        : { category: { type: { in: ["expense", "payable"] } } };
+        : { category: { is: { type: { in: ["expense", "payable"] as CategoryType[] } } } };
 
       // Fetch transactions with account info to get currency
       const transactions = await prisma.transaction.findMany({
@@ -106,7 +107,7 @@ export async function POST(req: NextRequest) {
 
   const categoryFilter = budget.categoryId
     ? { categoryId: { in: await getCategoryIdWithDescendants(budget.categoryId, session.userId) } }
-    : { category: { type: { in: ["expense", "payable"] } } };
+    : { category: { is: { type: { in: ["expense", "payable"] as CategoryType[] } } } };
 
   // Fetch transactions with account info to get currency
   const transactions = await prisma.transaction.findMany({
