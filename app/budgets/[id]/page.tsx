@@ -141,7 +141,9 @@ export default function BudgetDetailPage({ params }: { params: Promise<{ id: str
         <div className="space-y-4">
           {(Object.entries(
             transactions.reduce((groups: Record<string, Transaction[]>, tx: Transaction) => {
-              const day = tx.date.slice(0, 10);
+              const d = new Date(tx.date);
+              const day = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+
               (groups[day] ??= []).push(tx);
               return groups;
             }, {} as Record<string, Transaction[]>)
