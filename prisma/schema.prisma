@@ -17,6 +17,7 @@ model User {
   transactions         Transaction[]
   budgets              Budget[]
   exchangeRates        ExchangeRate[]
+  apiKeys              ApiKey[]
 }
 
 enum Currency {
@@ -91,6 +92,17 @@ model Budget {
   user       User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt  DateTime             @default(now())
   updatedAt  DateTime             @updatedAt
+}
+
+model ApiKey {
+  id         String    @id @default(cuid())
+  name       String
+  keyHash    String    @unique
+  prefix     String
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt  DateTime  @default(now())
+  lastUsedAt DateTime?
 }
 
 model ExchangeRate {

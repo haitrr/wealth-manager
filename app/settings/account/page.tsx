@@ -8,6 +8,7 @@ import axios from "@/lib/axios";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ChangePasswordForm } from "@/components/user/change-password-form";
+import { ApiKeyCard } from "@/components/user/api-key-card";
 
 export default function AccountSettingsPage() {
   const router = useRouter();
@@ -78,6 +79,8 @@ export default function AccountSettingsPage() {
             <ChangePasswordForm />
           </CardContent>
         </Card>
+
+        <ApiKeyCard />
 
         <Card>
           <CardHeader>

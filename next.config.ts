@@ -15,6 +15,14 @@ const withPWA = withPWAInit({
 const nextConfig: NextConfig = {
   output: "standalone",
   turbopack: {},
+  async rewrites() {
+    return [
+      {
+        source: "/.well-known/:path*",
+        destination: "/api/well-known/:path*",
+      },
+    ];
+  },
 };
 
 export default withPWA(nextConfig);

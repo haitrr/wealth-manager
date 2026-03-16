@@ -14,7 +14,8 @@
       "Bash(pnpm build:*)",
       "Bash(node -e \"const p = require\\(''''/Users/haitran/code/wealth-manager/node_modules/.pnpm/@prisma+client*/node_modules/@prisma/client''''\\); console.log\\(Object.keys\\(p\\).filter\\(k => !k.startsWith\\(''''_''''\\)\\)\\)\")",
       "Bash(node -e \"const p = require\\(''''@prisma/client''''\\); console.log\\(Object.keys\\(p\\).filter\\(k => !k.startsWith\\(''''_''''\\)\\)\\)\")",
-      "Bash(node -e \"const p = require\\(''''@prisma/client''''\\); console.log\\(Object.keys\\(p\\).join\\(''''\\\\n''''\\)\\)\")"
+      "Bash(node -e \"const p = require\\(''''@prisma/client''''\\); console.log\\(Object.keys\\(p\\).join\\(''''\\\\n''''\\)\\)\")",
+      "Bash(npx tsc:*)"
     ]
   }
 }
