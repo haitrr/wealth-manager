@@ -174,7 +174,7 @@ interface CategoryFormProps {
   defaultParentId?: string | null;
   onClose: () => void;
   onSubmit: (data: { name: string; type: CategoryType; parentId?: string | null }) => Promise<void>;
-  onDelete?: (category: TransactionCategory) => void;
+  onDelete?: (category: TransactionCategory) => Promise<void>;
 }
 
 export function CategoryForm({
@@ -311,7 +311,24 @@ export function CategoryForm({
                   <Button type="button" variant="ghost" size="sm" onClick={() => setConfirmDelete(false)}>
                     Cancel
                   </Button>
-                  <Button type="button" variant="destructive" size="sm" onClick={() => { onDelete(category); onClose(); }}>
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="sm"
+                    onClick={async () => {
+                    try {
+                      setLoading(true);
+                      await onDelete(category);
+                      onClose();
+                    } catch (err: unknown) {
+                      const message = (err as { response?: { data?: { error?: string } } })?.response?.data?.error ?? "Failed to delete category";
+                      setError(message);
+                      setConfirmDelete(false);
+                    } finally {
+                      setLoading(false);
+                    }
+                  }}
+                  >
                     Delete
                   </Button>
                 </div>

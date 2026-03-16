@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import { CategoryCard } from "@/components/transaction-categories/category-card";
 import { CategoryForm } from "@/components/transaction-categories/category-form";
@@ -136,7 +137,7 @@ export default function CategoriesSettingsPage() {
         defaultParentId={defaultParentId}
         onClose={() => setFormOpen(false)}
         onSubmit={handleSubmit}
-        onDelete={(c) => { deleteMutation.mutate(c.id); setFormOpen(false); }}
+        onDelete={(c) => deleteMutation.mutateAsync(c.id)}
       />
     </main>
   );
