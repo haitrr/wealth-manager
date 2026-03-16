@@ -138,14 +138,27 @@ export default function BudgetDetailPage({ params }: { params: Promise<{ id: str
       {transactions.length === 0 ? (
         <p className="text-sm text-muted-foreground">No transactions for this budget period.</p>
       ) : (
-        <div className="rounded-lg border px-4">
-          {transactions.map((tx: Transaction) => (
-            <TransactionRow
-              key={tx.id}
-              transaction={tx}
-              onEdit={openEditTx}
-            />
-          ))}
+        <div className="space-y-4">
+          {(Object.entries(
+            transactions.reduce((groups: Record<string, Transaction[]>, tx: Transaction) => {
+              const day = tx.date.slice(0, 10);
+              (groups[day] ??= []).push(tx);
+              return groups;
+            }, {} as Record<string, Transaction[]>)
+          ) as [string, Transaction[]][])
+            .sort(([a], [b]) => b.localeCompare(a))
+            .map(([day, txs]) => (
+              <div key={day}>
+                <p className="text-xs text-muted-foreground mb-1 px-1">
+                  {new Date(day + "T00:00:00").toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}
+                </p>
+                <div className="rounded-lg border px-4">
+                  {txs.map((tx) => (
+                    <TransactionRow key={tx.id} transaction={tx} onEdit={openEditTx} />
+                  ))}
+                </div>
+              </div>
+            ))}
         </div>
       )}
 

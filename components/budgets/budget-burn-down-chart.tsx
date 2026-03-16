@@ -115,7 +115,6 @@ export function BudgetBurnDownChart({
 
   return (
     <div className="rounded-lg border p-4">
-      <h3 className="text-sm font-medium mb-3">Burn Down Chart</h3>
       <ChartContainer config={chartConfig} className="h-50 w-full">
         <LineChart data={chartData}>
           <CartesianGrid strokeDasharray="3 3" />
