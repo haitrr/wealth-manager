@@ -27,13 +27,12 @@ export function BalanceTrendChart({ dailyData, currency }: BalanceTrendChartProp
     );
   }
 
-  const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr + "T00:00:00");
-    return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  const formatDate = (ts: number) => {
+    return new Date(ts).toLocaleDateString("en-US", { month: "short", day: "numeric" });
   };
 
   const chartData = dailyData.map((d) => ({
-    date: formatDate(d.date),
+    date: new Date(d.date + "T00:00:00").getTime(),
     balance: d.balance,
   }));
 
@@ -54,10 +53,14 @@ export function BalanceTrendChart({ dailyData, currency }: BalanceTrendChartProp
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis
             dataKey="date"
+            type="number"
+            scale="time"
+            domain={["dataMin", "dataMax"]}
             tickLine={false}
             axisLine={false}
             tickMargin={8}
             minTickGap={32}
+            tickFormatter={formatDate}
           />
           <YAxis
             tickLine={false}
