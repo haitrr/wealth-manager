@@ -13,6 +13,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { AmountInput } from "@/components/transactions/amount-input";
+import { CategorySelector } from "@/components/transactions/category-selector";
 import { Account, Currency } from "@/lib/api/accounts";
 import { TransactionCategory } from "@/lib/api/transaction-categories";
 import { Budget, BudgetPayload, BudgetPeriod } from "@/lib/api/budgets";
@@ -38,6 +39,7 @@ export function BudgetForm({ open, budget, accounts, categories, onClose, onSubm
   const [error, setError] = useState("");
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [period, setPeriod] = useState<BudgetPeriod>(budget?.period ?? "monthly");
+  const [selectedCategoryId, setSelectedCategoryId] = useState(budget?.categoryId ?? "");
 
   const today = new Date().toISOString().split("T")[0];
   const defaultAccount = accounts.find((a) => a.isDefault) ?? accounts[0];
@@ -52,7 +54,7 @@ export function BudgetForm({ open, budget, accounts, categories, onClose, onSubm
     const amount = parseFloat((form.elements.namedItem("amount") as HTMLInputElement).value.replace(/,/g, ""));
     const currency = (form.elements.namedItem("currency") as HTMLSelectElement).value as Currency;
     const accountId = (form.elements.namedItem("accountId") as HTMLSelectElement).value;
-    const categoryId = (form.elements.namedItem("categoryId") as HTMLSelectElement).value;
+    const categoryId = selectedCategoryId;
     const startDate = period === "custom"
       ? (form.elements.namedItem("startDate") as HTMLInputElement).value
       : undefined;
@@ -166,20 +168,12 @@ export function BudgetForm({ open, budget, accounts, categories, onClose, onSubm
               </select>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="categoryId">Category</Label>
-              <select
-                id="categoryId"
-                name="categoryId"
-                defaultValue={budget?.categoryId ?? ""}
-                className="h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-[16px] md:text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-              >
-                <option value="">All expense categories</option>
-                {categories.map((c) => (
-                  <option key={c.id} value={c.id}>{c.name} ({c.type})</option>
-                ))}
-              </select>
-            </div>
+            <CategorySelector
+              categories={categories}
+              selectedCategoryId={selectedCategoryId}
+              onCategoryChange={setSelectedCategoryId}
+              filterType="expense"
+            />
 
             {error && <p className="text-sm text-destructive">{error}</p>}
 

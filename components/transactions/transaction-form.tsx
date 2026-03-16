@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, FormEvent, useMemo, useRef } from "react";
-import { ChevronLeft, ChevronRight, Trash2, Search, X } from "lucide-react";
+import { useState, FormEvent } from "react";
+import { ChevronLeft, ChevronRight, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,19 +11,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { cn } from "@/lib/utils";
 import { AmountInput } from "@/components/transactions/amount-input";
+import { CategorySelector } from "@/components/transactions/category-selector";
 import { Transaction } from "@/lib/api/transactions";
 import { Account } from "@/lib/api/accounts";
-import { TransactionCategory, CategoryType } from "@/lib/api/transaction-categories";
-
-const TAB_TYPES: { value: CategoryType; label: string }[] = [
-  { value: "expense", label: "Expense" },
-  { value: "income", label: "Income" },
-  { value: "payable", label: "Payable" },
-  { value: "receivable", label: "Receivable" },
-];
+import { TransactionCategory } from "@/lib/api/transaction-categories";
 
 interface TransactionFieldsProps {
   transaction?: Transaction | null;
@@ -46,19 +38,7 @@ function TransactionFields({
   selectedCategoryId,
   onCategoryChange,
 }: TransactionFieldsProps) {
-  const selectedCategory = categories.find((c) => c.id === selectedCategoryId);
-  const defaultTab = selectedCategory?.type ?? "expense";
-  const [activeTab, setActiveTab] = useState<CategoryType>(defaultTab);
   const [date, setDate] = useState(defaultDate);
-  const [categoryFilter, setCategoryFilter] = useState("");
-  const [filterOpen, setFilterOpen] = useState(false);
-  const filterInputRef = useRef<HTMLInputElement>(null);
-
-  const filteredCategories = useMemo(() => {
-    const q = categoryFilter.trim().toLowerCase();
-    if (!q) return null;
-    return categories.filter((c) => c.name.toLowerCase().includes(q));
-  }, [categories, categoryFilter]);
 
   function shiftDate(days: number) {
     const d = new Date(date + "T00:00:00");
@@ -67,11 +47,6 @@ function TransactionFields({
     const mm = String(d.getMonth() + 1).padStart(2, "0");
     const dd = String(d.getDate()).padStart(2, "0");
     setDate(`${yyyy}-${mm}-${dd}`);
-  }
-
-  function handleTabChange(tab: string) {
-    setActiveTab(tab as CategoryType);
-    onCategoryChange("");
   }
 
   return (
@@ -107,144 +82,11 @@ function TransactionFields({
         </div>
       </div>
 
-      <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <Label>Category</Label>
-          <button
-            type="button"
-            onClick={() => {
-              if (filterOpen) {
-                setFilterOpen(false);
-                setCategoryFilter("");
-              } else {
-                setFilterOpen(true);
-                setTimeout(() => filterInputRef.current?.focus(), 0);
-              }
-            }}
-            className="flex items-center justify-center size-7 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
-          >
-            {filterOpen ? <X className="size-5" /> : <Search className="size-5" />}
-          </button>
-        </div>
-        {filterOpen && (
-          <input
-            ref={filterInputRef}
-            type="text"
-            placeholder="Filter categories…"
-            value={categoryFilter}
-            onChange={(e) => setCategoryFilter(e.target.value)}
-            className="h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-[16px] md:text-sm shadow-sm outline-none focus-visible:ring-1 focus-visible:ring-ring"
-          />
-        )}
-        <Tabs value={activeTab} onValueChange={handleTabChange}>
-          <TabsList className="w-full">
-            {TAB_TYPES.map(({ value, label }) => (
-              <TabsTrigger key={value} value={value} className="flex-1">
-                {label}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-          <div className="h-48 mt-2 overflow-y-auto">
-            {TAB_TYPES.map(({ value: type }) => {
-              const typeCategories = categories.filter((c) => c.type === type);
-              const visibleCategories = filteredCategories
-                ? filteredCategories.filter((c) => c.type === type)
-                : typeCategories;
-              const roots = visibleCategories.filter((c) => !c.parentId);
-              const childrenOf = (parentId: string) =>
-                visibleCategories.filter((c) => c.parentId === parentId);
-              const orphanChildren = filteredCategories
-                ? visibleCategories.filter(
-                    (c) => c.parentId && !visibleCategories.find((p) => p.id === c.parentId)
-                  )
-                : [];
-
-              return (
-                <div key={type} className={cn("space-y-2", activeTab !== type && "hidden")}>
-                  {visibleCategories.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">No categories found.</p>
-                  ) : (
-                    <>
-                      {roots.map((root) => {
-                        const children = childrenOf(root.id);
-                        return (
-                          <div key={root.id}>
-                            {children.length > 0 ? (
-                              <div className="space-y-1">
-                                <button
-                                  type="button"
-                                  onClick={() => onCategoryChange(root.id)}
-                                  className={cn(
-                                    "rounded-full border px-3 py-1 text-sm font-medium transition-colors",
-                                    selectedCategoryId === root.id
-                                      ? "border-primary bg-primary text-primary-foreground"
-                                      : "border-input hover:bg-accent"
-                                  )}
-                                >
-                                  {root.name}
-                                </button>
-                                <div className="flex flex-wrap gap-2 pl-3 border-l-2 border-muted ml-2">
-                                  {children.map((child) => (
-                                    <button
-                                      key={child.id}
-                                      type="button"
-                                      onClick={() => onCategoryChange(child.id)}
-                                      className={cn(
-                                        "rounded-full border px-3 py-1 text-sm transition-colors",
-                                        selectedCategoryId === child.id
-                                          ? "border-primary bg-primary text-primary-foreground"
-                                          : "border-input hover:bg-accent"
-                                      )}
-                                    >
-                                      {child.name}
-                                    </button>
-                                  ))}
-                                </div>
-                              </div>
-                            ) : (
-                              <button
-                                type="button"
-                                onClick={() => onCategoryChange(root.id)}
-                                className={cn(
-                                  "rounded-full border px-3 py-1 text-sm transition-colors",
-                                  selectedCategoryId === root.id
-                                    ? "border-primary bg-primary text-primary-foreground"
-                                    : "border-input hover:bg-accent"
-                                )}
-                              >
-                                {root.name}
-                              </button>
-                            )}
-                          </div>
-                        );
-                      })}
-                      {orphanChildren.length > 0 && (
-                        <div className="flex flex-wrap gap-2">
-                          {orphanChildren.map((child) => (
-                            <button
-                              key={child.id}
-                              type="button"
-                              onClick={() => onCategoryChange(child.id)}
-                              className={cn(
-                                "rounded-full border px-3 py-1 text-sm transition-colors",
-                                selectedCategoryId === child.id
-                                  ? "border-primary bg-primary text-primary-foreground"
-                                  : "border-input hover:bg-accent"
-                              )}
-                            >
-                              {child.name}
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </Tabs>
-      </div>
+      <CategorySelector
+        categories={categories}
+        selectedCategoryId={selectedCategoryId}
+        onCategoryChange={onCategoryChange}
+      />
 
       <div className="space-y-2">
         <Label htmlFor="accountId">Account</Label>
