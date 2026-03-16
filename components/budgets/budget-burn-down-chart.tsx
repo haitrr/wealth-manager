@@ -20,6 +20,8 @@ interface BudgetBurnDownChartProps {
   currentDate?: Date;
 }
 
+type ChartPoint = { date: number; ideal: number; actual: number | null; projection: number | null };
+
 export function BudgetBurnDownChart({
   periodStart,
   periodEnd,
@@ -43,7 +45,6 @@ export function BudgetBurnDownChart({
   sortedTxs.forEach((tx) => {
     cumulative += tx.amount;
     const txDate = new Date(tx.date);
-    // Check if we already have a point for this date
     const existing = dataPoints.find((p) => p.date.toDateString() === txDate.toDateString());
     if (existing) {
       existing.cumulative = cumulative;
@@ -62,14 +63,23 @@ export function BudgetBurnDownChart({
     return new Date(ts).toLocaleDateString("en-US", { month: "short", day: "numeric" });
   };
 
-  // Build chart data with both ideal and actual values using timestamps for linear scaling
-  const chartDataMap = new Map<number, { date: number; ideal: number; actual: number | null }>();
+  // Calculate projection for remaining period
+  const nowTs = now.getTime();
+  const passedDays = (nowTs - startDate.getTime()) / (1000 * 60 * 60 * 24);
+  const avgDailySpend = passedDays > 0 ? cumulative / passedDays : 0;
+  const remainingDays = (endDate.getTime() - nowTs) / (1000 * 60 * 60 * 24);
+  const projectedEnd = cumulative + avgDailySpend * remainingDays;
+  const showProjection = currentDate < endDate;
+
+  // Build chart data with ideal, actual, and projection values
+  const chartDataMap = new Map<number, ChartPoint>();
 
   // Add start point
   chartDataMap.set(startDate.getTime(), {
     date: startDate.getTime(),
     ideal: 0,
     actual: 0,
+    projection: null,
   });
 
   // Add all actual spending points
@@ -79,38 +89,40 @@ export function BudgetBurnDownChart({
     const total = endDate.getTime() - startDate.getTime();
     const progress = Math.max(0, Math.min(1, elapsed / total));
     const ideal = progress * budgetAmount;
+    const isNow = point.date.toDateString() === now.toDateString();
 
     chartDataMap.set(ts, {
       date: ts,
       ideal,
       actual: point.cumulative,
+      projection: showProjection && isNow ? point.cumulative : null,
     });
   });
 
-  // Add end point for ideal line
+  // Add end point for ideal line and projection
   const endTs = endDate.getTime();
   if (!chartDataMap.has(endTs)) {
     chartDataMap.set(endTs, {
       date: endTs,
       ideal: budgetAmount,
-      actual: cumulative,
+      actual: showProjection ? null : cumulative,
+      projection: showProjection ? projectedEnd : null,
     });
+  } else {
+    const existing = chartDataMap.get(endTs)!;
+    existing.projection = showProjection ? projectedEnd : null;
   }
 
   // Convert to array and sort by timestamp
   const chartData = Array.from(chartDataMap.values()).sort((a, b) => a.date - b.date);
 
   const isOverBudget = cumulative > budgetAmount;
+  const isProjectedOverBudget = projectedEnd > budgetAmount;
 
   const chartConfig = {
-    ideal: {
-      label: "Ideal",
-      color: "#94a3b8",
-    },
-    actual: {
-      label: "Actual",
-      color: isOverBudget ? "#ef4444" : "#3b82f6",
-    },
+    ideal: { label: "Ideal", color: "#94a3b8" },
+    actual: { label: "Actual", color: isOverBudget ? "#ef4444" : "#3b82f6" },
+    projection: { label: "Projected", color: isProjectedOverBudget ? "#f97316" : "#3b82f6" },
   };
 
   return (
@@ -139,7 +151,7 @@ export function BudgetBurnDownChart({
             content={
               <ChartTooltipContent
                 formatter={(value, name) => {
-                  const label = name === "ideal" ? "Ideal" : "Actual";
+                  const label = name === "ideal" ? "Ideal" : name === "projection" ? "Projected" : "Actual";
                   return [`${formatCurrency(Number(value), currency)} `, label];
                 }}
               />
@@ -162,6 +174,17 @@ export function BudgetBurnDownChart({
             dot={{ fill: isOverBudget ? "#ef4444" : "#3b82f6", r: 4, strokeWidth: 0 }}
             connectNulls
           />
+          {showProjection && (
+            <Line
+              type="monotone"
+              dataKey="projection"
+              stroke={isProjectedOverBudget ? "#f97316" : "#3b82f6"}
+              strokeWidth={2}
+              strokeDasharray="4 4"
+              dot={false}
+              connectNulls
+            />
+          )}
         </LineChart>
       </ChartContainer>
     </div>
