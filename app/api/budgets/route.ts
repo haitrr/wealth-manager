@@ -4,8 +4,8 @@ import { prisma } from "@/app/lib/db";
 import { getSession } from "@/app/lib/auth";
 import { getPeriodBounds, computeProgress, convertCurrency, getCategoryIdWithDescendants } from "./budget-utils";
 
-export async function GET() {
-  const session = await getSession();
+export async function GET(req: NextRequest) {
+  const session = await getSession(req);
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const budgets = await prisma.budget.findMany({
@@ -61,7 +61,7 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
-  const session = await getSession();
+  const session = await getSession(req);
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { name, amount, currency, period, startDate, endDate, accountId, categoryId } = await req.json();

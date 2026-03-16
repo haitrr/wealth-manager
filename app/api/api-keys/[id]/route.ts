@@ -3,7 +3,7 @@ import { prisma } from "@/app/lib/db";
 import { getSession } from "@/app/lib/auth";
 
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const session = await getSession();
+  const session = await getSession(req);
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id } = await params;

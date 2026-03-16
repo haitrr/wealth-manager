@@ -13,6 +13,12 @@ export async function middleware(req: NextRequest) {
   const isPublic = PUBLIC_PATHS.some((path) => pathname.startsWith(path));
   if (isPublic) return NextResponse.next();
 
+  // API key via Authorization header — let the route handler verify it
+  const authHeader = req.headers.get("authorization");
+  if (authHeader?.startsWith("Bearer wm_")) {
+    return NextResponse.next();
+  }
+
   const token = req.cookies.get("auth-token")?.value;
   const isApiRoute = pathname.startsWith("/api");
 

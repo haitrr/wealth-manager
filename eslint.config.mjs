@@ -18,6 +18,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Plain CJS Node.js launcher — require() is intentional
+    "bin/wm.js",
   ]),
 ]);
 

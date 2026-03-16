@@ -4,8 +4,8 @@ import { prisma } from "@/app/lib/db";
 import { getSession } from "@/app/lib/auth";
 import { getPeriodBounds, getCategoryIdWithDescendants } from "../../budget-utils";
 
-export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const session = await getSession();
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const session = await getSession(req);
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id } = await params;

@@ -41,6 +41,9 @@ dependencies:
   jose:
     specifier: ^6.2.1
     version: 6.2.1
+  js-yaml:
+    specifier: ^4.1.1
+    version: 4.1.1
   lucide-react:
     specifier: ^0.577.0
     version: 0.577.0(react@19.2.3)
@@ -87,6 +90,9 @@ devDependencies:
   '@types/express':
     specifier: ^5.0.6
     version: 5.0.6
+  '@types/js-yaml':
+    specifier: ^4.0.9
+    version: 4.0.9
   '@types/node':
     specifier: ^20
     version: 20.19.37
@@ -2847,6 +2853,10 @@ packages:
 
   /@types/http-errors@2.0.5:
     resolution: {integrity: sha512-r8Tayk8HJnX0FztbZN7oVqGccWgw98T/0neJphO91KkmOzug1KkofZURD4UaD5uH8AqcFLfdPErnBod0u71/qg==}
+    dev: true
+
+  /@types/js-yaml@4.0.9:
+    resolution: {integrity: sha512-k4MGaQl5TGo/iipqb2UDG2UwjXziSWkh0uysQelTlJpX1qGlpUZYm8PnO4DxG1qBomtJUdYJ6qR6xdIah10JLg==}
     dev: true
 
   /@types/json-schema@7.0.15:
