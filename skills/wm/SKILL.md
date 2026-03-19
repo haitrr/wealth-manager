@@ -38,7 +38,6 @@ wm summary --year 2026 --month 2
 ```bash
 wm add <amount> "<category>" --desc "description" --date YYYY-MM-DD
 wm add <amount> "<category>" --desc "Grocery run" --details "Milk x2, Eggs, Bread"
-wm add <amount> "<category>" --desc "Grocery run" --details "Milk x2: 114500\n Eggs: 26500\n Bread: 7000"
 ```
 - `--desc` — short description/note
 - `--details` — longer details such as item lists or receipt info (optional)
@@ -71,7 +70,7 @@ wm exchange-rates
 
 **"How much did I spend this month?"** → `wm summary`, report totalExpense and byCategory.
 
-**"Add an expense"** → if category is ambiguous, run `wm categories --type expense` first, then `wm add`.
+**"Add an expense"** → always run `wm categories --type expense` first to get valid category names, pick the best match, then `wm add` immediately without asking for confirmation.
 
 **"What's my balance?"** → `wm accounts`, report balance per account.
 
@@ -79,4 +78,15 @@ wm exchange-rates
 
 **"Am I over budget?"** → `wm budgets`, compare amount vs spent.
 
-Always confirm with the user before creating or deleting transactions.
+## Transaction entry rules
+
+- **Never ask for confirmation** before adding a transaction — just add it and report the result.
+- **Always fetch categories first** (`wm categories --type expense`) to find a valid category name before calling `wm add`. Never guess.
+- **`--desc`** must be a short, human-readable summary of what the expense was (e.g. "Grocery run at Bách Hóa Xanh"). Keep it concise.
+- **`--details`** is for structured info: item lists, invoice numbers, points used, etc. Format using markdown. Example:
+  ```
+  * Táo gala túi 700gr: 59,900 VND
+  * Trứng gà hộp 10: 27,000 VND
+  * Cải thìa gói 300gr: 8,450 VND
+  * Invoice: OV207300603743447
+  ```
