@@ -81,7 +81,7 @@ export function TransactionDetail({
             {transaction.details && (
               <div className="flex flex-col gap-1">
                 <span className="text-muted-foreground">Details</span>
-                <span className="whitespace-pre-wrap">{transaction.details}</span>
+                <span className="whitespace-pre-wrap">{transaction.details.replace(/\\n/g, '\n')}</span>
               </div>
             )}
           </div>
