@@ -38,6 +38,7 @@ wm summary --year 2026 --month 2
 ```bash
 wm add <amount> "<category>" --desc "description" --date YYYY-MM-DD
 wm add <amount> "<category>" --desc "Grocery run" --details "Milk x2, Eggs, Bread"
+wm add <amount> "<category>" --desc "Grocery run" --details "Milk x2: 114500\n Eggs: 26500\n Bread: 7000"
 ```
 - `--desc` — short description/note
 - `--details` — longer details such as item lists or receipt info (optional)
