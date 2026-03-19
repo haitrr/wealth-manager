@@ -26,7 +26,7 @@ export async function GET(req: NextRequest) {
       account: { select: { id: true, name: true, currency: true } },
       category: { select: { id: true, name: true, type: true, icon: true } },
     },
-    orderBy: { date: "desc" },
+    orderBy: [{ date: "desc" }, { createdAt: "desc" }],
   });
 
   return NextResponse.json(transactions);
