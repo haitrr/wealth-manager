@@ -5,6 +5,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TransactionRow } from "@/components/transactions/transaction-row";
+import { TransactionDetail } from "@/components/transactions/transaction-detail";
 import { TransactionForm } from "@/components/transactions/transaction-form";
 import { ImportDialog } from "@/components/transactions/import-dialog";
 import { TransactionSearch } from "@/components/transactions/transaction-search";
@@ -27,6 +28,7 @@ export default function TransactionsPage() {
   const queryClient = useQueryClient();
   const [formOpen, setFormOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
+  const [viewingTransaction, setViewingTransaction] = useState<Transaction | null>(null);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const [timeRange, setTimeRange] = useState<TimeRange>("this-month");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -73,7 +75,12 @@ export default function TransactionsPage() {
     setFormOpen(true);
   }
 
+  function openView(transaction: Transaction) {
+    setViewingTransaction(transaction);
+  }
+
   function openEdit(transaction: Transaction) {
+    setViewingTransaction(null);
     setEditingTransaction(transaction);
     setFormOpen(true);
   }
@@ -142,7 +149,7 @@ export default function TransactionsPage() {
                 <TransactionRow
                   key={tx.id}
                   transaction={tx}
-                  onEdit={openEdit}
+                  onEdit={openView}
                 />
               ))}
             </div>
@@ -162,6 +169,13 @@ export default function TransactionsPage() {
       </Button>
 
       <ImportDialog open={importOpen} onClose={() => setImportOpen(false)} />
+
+      <TransactionDetail
+        open={!!viewingTransaction}
+        transaction={viewingTransaction}
+        onClose={() => setViewingTransaction(null)}
+        onEdit={openEdit}
+      />
 
       <TransactionForm
         open={formOpen}
