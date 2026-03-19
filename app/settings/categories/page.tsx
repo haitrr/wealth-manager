@@ -5,6 +5,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { CategoryCard } from "@/components/transaction-categories/category-card";
 import { CategoryForm } from "@/components/transaction-categories/category-form";
 import {
@@ -16,7 +17,7 @@ import {
   deleteTransactionCategory,
 } from "@/lib/api/transaction-categories";
 
-const typeOrder = ["income", "expense", "payable", "receivable"];
+const typeOrder = ["expense", "income", "payable", "receivable"];
 const typeLabels: Record<string, string> = {
   income: "Income",
   expense: "Expense",
@@ -29,6 +30,7 @@ export default function CategoriesSettingsPage() {
   const [formOpen, setFormOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<TransactionCategory | null>(null);
   const [defaultParentId, setDefaultParentId] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
 
   const { data: categories = [], isLoading } = useQuery({
     queryKey: ["transaction-categories"],
@@ -66,6 +68,8 @@ export default function CategoriesSettingsPage() {
     }
   }
 
+  const query = search.trim().toLowerCase();
+
   // Root categories (no parent)
   const rootCategories = categories.filter((c) => !c.parentId);
   // Only root categories can be parents in the form
@@ -73,7 +77,17 @@ export default function CategoriesSettingsPage() {
     ? rootCategories.filter((c) => c.id !== editingCategory.id)
     : rootCategories;
 
-  const grouped = rootCategories.reduce<Record<string, TransactionCategory[]>>((acc, cat) => {
+  const filteredRoot = query
+    ? rootCategories.filter((c) => {
+        const children = categories.filter((ch) => ch.parentId === c.id);
+        return (
+          c.name.toLowerCase().includes(query) ||
+          children.some((ch) => ch.name.toLowerCase().includes(query))
+        );
+      })
+    : rootCategories;
+
+  const grouped = filteredRoot.reduce<Record<string, TransactionCategory[]>>((acc, cat) => {
     if (!acc[cat.type]) acc[cat.type] = [];
     acc[cat.type].push(cat);
     return acc;
@@ -89,10 +103,20 @@ export default function CategoriesSettingsPage() {
         </Button>
       </div>
 
+      <Input
+        placeholder="Filter by name…"
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        className="mb-6 text-[16px] md:text-sm"
+      />
+
       {isLoading && <p className="text-muted-foreground text-sm">Loading…</p>}
 
       {!isLoading && categories.length === 0 && (
         <p className="text-muted-foreground text-sm">No categories yet. Add one to get started.</p>
+      )}
+      {!isLoading && categories.length > 0 && query && Object.keys(grouped).length === 0 && (
+        <p className="text-muted-foreground text-sm">No categories match &quot;{search}&quot;.</p>
       )}
 
       <div className="space-y-6">
@@ -103,7 +127,9 @@ export default function CategoriesSettingsPage() {
               <h2 className="text-sm font-medium text-muted-foreground mb-2">{typeLabels[type]}</h2>
               <div className="space-y-2">
                 {grouped[type].map((category) => {
-                  const children = categories.filter((c) => c.parentId === category.id);
+                  const children = categories
+                    .filter((c) => c.parentId === category.id)
+                    .filter((c) => !query || c.name.toLowerCase().includes(query) || category.name.toLowerCase().includes(query));
                   return (
                     <div key={category.id}>
                       <CategoryCard

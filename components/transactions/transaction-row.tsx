@@ -38,10 +38,10 @@ export function TransactionRow({ transaction, onEdit }: TransactionRowProps) {
     <button
       type="button"
       onClick={() => onEdit(transaction)}
-      className="flex w-full items-center justify-between gap-4 py-3 border-b last:border-0 text-left hover:bg-muted/50 transition-colors rounded"
+      className="flex w-full items-center justify-between gap-4 px-3 py-3 border-b last:border-0 text-left hover:bg-muted/50 transition-colors rounded"
     >
       <div className="flex items-center gap-3 min-w-0 flex-1">
-        <CategoryIcon icon={transaction.category.icon} size={28} />
+        <CategoryIcon icon={transaction.category.icon} size={36} />
         <div className="min-w-0">
           <div className="flex items-center gap-2">
           <p className="font-medium text-sm truncate">

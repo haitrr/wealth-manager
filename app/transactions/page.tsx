@@ -137,7 +137,7 @@ export default function TransactionsPage() {
         {Object.entries(grouped).map(([day, txs]) => (
           <div key={day}>
             <h2 className="text-sm font-medium text-muted-foreground mb-1">{day}</h2>
-            <div className="rounded-lg border px-4">
+            <div className="rounded-lg border">
               {txs.map((tx) => (
                 <TransactionRow
                   key={tx.id}
