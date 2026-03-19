@@ -24,7 +24,7 @@ export async function GET(req: NextRequest) {
     },
     include: {
       account: { select: { id: true, name: true, currency: true } },
-      category: { select: { id: true, name: true, type: true } },
+      category: { select: { id: true, name: true, type: true, icon: true } },
     },
     orderBy: { date: "desc" },
   });
@@ -70,7 +70,7 @@ export async function POST(req: NextRequest) {
     },
     include: {
       account: { select: { id: true, name: true, currency: true } },
-      category: { select: { id: true, name: true, type: true } },
+      category: { select: { id: true, name: true, type: true, icon: true } },
     },
   });
 

@@ -3,6 +3,7 @@
 import { Transaction } from "@/lib/api/transactions";
 import { CategoryType } from "@/lib/api/transaction-categories";
 import { formatCurrency } from "@/lib/utils";
+import { CategoryIcon } from "@/components/transaction-categories/category-icon";
 
 const TYPE_COLORS: Record<CategoryType, string> = {
   income: "text-green-600 dark:text-green-400",
@@ -39,8 +40,10 @@ export function TransactionRow({ transaction, onEdit }: TransactionRowProps) {
       onClick={() => onEdit(transaction)}
       className="flex w-full items-center justify-between gap-4 py-3 border-b last:border-0 text-left hover:bg-muted/50 transition-colors rounded"
     >
-      <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-2">
+      <div className="flex items-center gap-3 min-w-0 flex-1">
+        <CategoryIcon icon={transaction.category.icon} size={28} />
+        <div className="min-w-0">
+          <div className="flex items-center gap-2">
           <p className="font-medium text-sm truncate">
             {transaction.description || transaction.category.name}
           </p>
@@ -49,11 +52,12 @@ export function TransactionRow({ transaction, onEdit }: TransactionRowProps) {
               {transaction.category.name}
             </span>
           )}
-        </div>
-        <div className="flex items-center gap-2 mt-0.5">
-          <p className="text-xs text-muted-foreground">{formattedDate}</p>
-          <span className="text-xs text-muted-foreground">·</span>
-          <p className="text-xs text-muted-foreground">{transaction.account.name}</p>
+          </div>
+          <div className="flex items-center gap-2 mt-0.5">
+            <p className="text-xs text-muted-foreground">{formattedDate}</p>
+            <span className="text-xs text-muted-foreground">·</span>
+            <p className="text-xs text-muted-foreground">{transaction.account.name}</p>
+          </div>
         </div>
       </div>
 

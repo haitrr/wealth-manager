@@ -14,7 +14,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   const category = await getOwnedCategory(id, session.userId);
   if (!category) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  const { name, parentId } = await req.json();
+  const { name, parentId, icon } = await req.json();
   if (!name?.trim()) {
     return NextResponse.json({ error: "Name is required" }, { status: 400 });
   }
@@ -44,7 +44,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 
   const updated = await prisma.transactionCategory.update({
     where: { id },
-    data: { name: name.trim(), type: resolvedType, parentId: parentId ?? null },
+    data: { name: name.trim(), type: resolvedType, parentId: parentId ?? null, icon: icon !== undefined ? icon : undefined },
   });
 
   return NextResponse.json(updated);

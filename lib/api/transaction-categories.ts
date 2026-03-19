@@ -5,6 +5,7 @@ export type CategoryType = "income" | "expense" | "payable" | "receivable";
 export interface TransactionCategory {
   id: string;
   name: string;
+  icon: string | null;
   type: CategoryType;
   userId: string;
   parentId: string | null;
@@ -21,6 +22,7 @@ export async function createTransactionCategory(payload: {
   name: string;
   type: CategoryType;
   parentId?: string | null;
+  icon?: string | null;
 }): Promise<TransactionCategory> {
   const { data } = await api.post<TransactionCategory>("/transaction-categories", payload);
   return data;
@@ -28,7 +30,7 @@ export async function createTransactionCategory(payload: {
 
 export async function updateTransactionCategory(
   id: string,
-  payload: { name: string; type: CategoryType; parentId?: string | null }
+  payload: { name: string; type: CategoryType; parentId?: string | null; icon?: string | null }
 ): Promise<TransactionCategory> {
   const { data } = await api.put<TransactionCategory>(`/transaction-categories/${id}`, payload);
   return data;

@@ -49,6 +49,7 @@ enum CategoryType {
 model TransactionCategory {
   id           String                @id @default(cuid())
   name         String
+  icon         String?
   type         CategoryType
   userId       String
   parentId     String?

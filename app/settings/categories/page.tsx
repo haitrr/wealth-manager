@@ -40,7 +40,7 @@ export default function CategoriesSettingsPage() {
 
   const createMutation = useMutation({ mutationFn: createTransactionCategory, onSuccess: invalidate });
   const updateMutation = useMutation({
-    mutationFn: ({ id, ...data }: { id: string; name: string; type: CategoryType; parentId?: string | null }) =>
+    mutationFn: ({ id, ...data }: { id: string; name: string; type: CategoryType; parentId?: string | null; icon?: string | null }) =>
       updateTransactionCategory(id, data),
     onSuccess: invalidate,
   });
@@ -58,7 +58,7 @@ export default function CategoriesSettingsPage() {
     setFormOpen(true);
   }
 
-  async function handleSubmit(data: { name: string; type: CategoryType; parentId?: string | null }) {
+  async function handleSubmit(data: { name: string; type: CategoryType; parentId?: string | null; icon?: string | null }) {
     if (editingCategory) {
       await updateMutation.mutateAsync({ id: editingCategory.id, ...data });
     } else {

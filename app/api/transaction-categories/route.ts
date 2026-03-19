@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
   const session = await getSession(req);
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { name, type, parentId } = await req.json();
+  const { name, type, parentId, icon } = await req.json();
   if (!name?.trim()) {
     return NextResponse.json({ error: "Name is required" }, { status: 400 });
   }
@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
   }
 
   const category = await prisma.transactionCategory.create({
-    data: { name: name.trim(), type: resolvedType, userId: session.userId, parentId: parentId ?? null },
+    data: { name: name.trim(), type: resolvedType, userId: session.userId, parentId: parentId ?? null, icon: icon ?? null },
   });
 
   return NextResponse.json(category, { status: 201 });

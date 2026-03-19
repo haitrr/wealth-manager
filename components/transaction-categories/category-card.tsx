@@ -4,6 +4,7 @@ import { Pencil, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { TransactionCategory, CategoryType } from "@/lib/api/transaction-categories";
+import { CategoryIcon } from "./category-icon";
 
 const TYPE_COLORS: Record<CategoryType, string> = {
   income: "bg-green-500/10 text-green-600 dark:text-green-400",
@@ -30,6 +31,7 @@ export function CategoryCard({ category, onEdit, onAddSubcategory }: CategoryCar
     <Card>
       <CardContent className="flex items-center justify-between gap-4 p-4">
         <div className="flex items-center gap-3 min-w-0">
+          <CategoryIcon icon={category.icon} size={18} className="text-muted-foreground shrink-0" />
           <p className="font-medium truncate">{category.name}</p>
           {!category.parentId && (
             <span

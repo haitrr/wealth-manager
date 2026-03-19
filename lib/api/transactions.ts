@@ -10,7 +10,7 @@ export interface Transaction {
   accountId: string;
   account: { id: string; name: string; currency: Currency };
   categoryId: string;
-  category: { id: string; name: string; type: CategoryType };
+  category: { id: string; name: string; type: CategoryType; icon: string | null };
   userId: string;
   createdAt: string;
   updatedAt: string;

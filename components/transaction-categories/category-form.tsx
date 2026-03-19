@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { TransactionCategory, CategoryType } from "@/lib/api/transaction-categories";
+import { IconPicker } from "./icon-picker";
 
 const CATEGORY_TYPE_LABELS: Record<CategoryType, string> = {
   income: "Income",
@@ -165,6 +166,20 @@ function TypeSelect({ value, onChange, disabled }: { value: CategoryType; onChan
   );
 }
 
+// --- Name + icon row ---
+
+function NameField({ defaultValue, icon, onIconChange }: { defaultValue: string; icon: string | null; onIconChange: (v: string | null) => void }) {
+  return (
+    <div className="space-y-2">
+      <Label htmlFor="name">Category Name</Label>
+      <div className="flex items-center gap-2">
+        <IconPicker value={icon} onChange={onIconChange} />
+        <Input id="name" name="name" placeholder="e.g. Salary, Food" defaultValue={defaultValue} required />
+      </div>
+    </div>
+  );
+}
+
 // --- Main form ---
 
 interface CategoryFormProps {
@@ -173,7 +188,7 @@ interface CategoryFormProps {
   parentCategories: TransactionCategory[];
   defaultParentId?: string | null;
   onClose: () => void;
-  onSubmit: (data: { name: string; type: CategoryType; parentId?: string | null }) => Promise<void>;
+  onSubmit: (data: { name: string; type: CategoryType; parentId?: string | null; icon?: string | null }) => Promise<void>;
   onDelete?: (category: TransactionCategory) => Promise<void>;
 }
 
@@ -193,11 +208,13 @@ export function CategoryForm({
     category?.parentId ?? defaultParentId ?? ""
   );
   const [selectedType, setSelectedType] = useState<CategoryType>(category?.type ?? "expense");
+  const [selectedIcon, setSelectedIcon] = useState<string | null>(category?.icon ?? null);
 
   useEffect(() => {
     if (open) {
       setSelectedParentId(category?.parentId ?? defaultParentId ?? "");
       setSelectedType(category?.type ?? "expense");
+      setSelectedIcon(category?.icon ?? null);
       setError("");
       setConfirmDelete(false);
     }
@@ -237,7 +254,7 @@ export function CategoryForm({
     const type = selectedParent ? selectedParent.type : selectedType;
 
     try {
-      await onSubmit({ name, type, parentId: selectedParentId || null });
+      await onSubmit({ name, type, parentId: selectedParentId || null, icon: selectedIcon });
       onClose();
     } catch (err: unknown) {
       const message =
@@ -252,6 +269,7 @@ export function CategoryForm({
     if (!v) {
       setSelectedParentId(category?.parentId ?? defaultParentId ?? "");
       setSelectedType(category?.type ?? "expense");
+      setSelectedIcon(category?.icon ?? null);
       onClose();
     }
   }
@@ -265,16 +283,7 @@ export function CategoryForm({
 
         <form onSubmit={handleSubmit}>
           <div className="space-y-4 py-2">
-            <div className="space-y-2">
-              <Label htmlFor="name">Category Name</Label>
-              <Input
-                id="name"
-                name="name"
-                placeholder="e.g. Salary, Food"
-                defaultValue={category?.name ?? ""}
-                required
-              />
-            </div>
+            <NameField defaultValue={category?.name ?? ""} icon={selectedIcon} onIconChange={setSelectedIcon} />
 
             <div className="space-y-2">
               <Label>Type</Label>

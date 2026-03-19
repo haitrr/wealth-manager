@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import { TransactionCategory, CategoryType } from "@/lib/api/transaction-categories";
+import { CategoryIcon } from "@/components/transaction-categories/category-icon";
 
 const TAB_TYPES: { value: CategoryType; label: string }[] = [
   { value: "expense", label: "Expense" },
@@ -61,12 +62,13 @@ function CategoryList({
                   type="button"
                   onClick={() => onCategoryChange(root.id)}
                   className={cn(
-                    "rounded-full border px-3 py-1 text-sm font-medium transition-colors",
+                    "flex items-center gap-1.5 rounded-full border px-3 py-1 text-sm font-medium transition-colors",
                     selectedCategoryId === root.id
                       ? "border-primary bg-primary text-primary-foreground"
                       : "border-input hover:bg-accent"
                   )}
                 >
+                  <CategoryIcon icon={root.icon} size={13} />
                   {root.name}
                 </button>
                 <div className="flex flex-wrap gap-2 pl-3 border-l-2 border-muted ml-2">
@@ -76,12 +78,13 @@ function CategoryList({
                       type="button"
                       onClick={() => onCategoryChange(child.id)}
                       className={cn(
-                        "rounded-full border px-3 py-1 text-sm transition-colors",
+                        "flex items-center gap-1.5 rounded-full border px-3 py-1 text-sm transition-colors",
                         selectedCategoryId === child.id
                           ? "border-primary bg-primary text-primary-foreground"
                           : "border-input hover:bg-accent"
                       )}
                     >
+                      <CategoryIcon icon={child.icon} size={13} />
                       {child.name}
                     </button>
                   ))}
@@ -92,12 +95,13 @@ function CategoryList({
                 type="button"
                 onClick={() => onCategoryChange(root.id)}
                 className={cn(
-                  "rounded-full border px-3 py-1 text-sm transition-colors",
+                  "flex items-center gap-1.5 rounded-full border px-3 py-1 text-sm transition-colors",
                   selectedCategoryId === root.id
                     ? "border-primary bg-primary text-primary-foreground"
                     : "border-input hover:bg-accent"
                 )}
               >
+                <CategoryIcon icon={root.icon} size={13} />
                 {root.name}
               </button>
             )}
@@ -112,12 +116,13 @@ function CategoryList({
               type="button"
               onClick={() => onCategoryChange(child.id)}
               className={cn(
-                "rounded-full border px-3 py-1 text-sm transition-colors",
+                "flex items-center gap-1.5 rounded-full border px-3 py-1 text-sm transition-colors",
                 selectedCategoryId === child.id
                   ? "border-primary bg-primary text-primary-foreground"
                   : "border-input hover:bg-accent"
               )}
             >
+              <CategoryIcon icon={child.icon} size={13} />
               {child.name}
             </button>
           ))}
