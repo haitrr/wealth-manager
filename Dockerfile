@@ -1,7 +1,7 @@
 FROM node:22-alpine AS base
 
 # Install pnpm
-RUN corepack enable && corepack prepare pnpm@8 --activate
+RUN corepack enable && corepack prepare pnpm@8.12.1 --activate
 
 # ---- deps ----
 FROM base AS deps
