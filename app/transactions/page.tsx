@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { TransactionRow } from "@/components/transactions/transaction-row";
 import { TransactionForm } from "@/components/transactions/transaction-form";
 import { ImportDialog } from "@/components/transactions/import-dialog";
+import { TransactionSearch } from "@/components/transactions/transaction-search";
 import {
   TimeRangeSelector,
   TimeRange,
@@ -28,12 +29,16 @@ export default function TransactionsPage() {
   const [importOpen, setImportOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const [timeRange, setTimeRange] = useState<TimeRange>("this-month");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
 
   const dateRange = getDateRange(timeRange);
 
   const { data: transactions = [], isLoading } = useQuery({
-    queryKey: ["transactions", timeRange],
-    queryFn: () => getTransactions(dateRange),
+    queryKey: ["transactions", debouncedSearch ? { search: debouncedSearch } : { timeRange }],
+    queryFn: () =>
+      debouncedSearch
+        ? getTransactions({ search: debouncedSearch })
+        : getTransactions(dateRange),
   });
   const { data: accounts = [] } = useQuery({
     queryKey: ["accounts"],
@@ -110,14 +115,22 @@ export default function TransactionsPage() {
         </Button>
       </div>
 
-      <TimeRangeSelector value={timeRange} onChange={setTimeRange} />
+      {!debouncedSearch && (
+        <TimeRangeSelector value={timeRange} onChange={setTimeRange} />
+      )}
+
+      <TransactionSearch onSearch={setDebouncedSearch} />
 
       {isLoading && <p className="text-muted-foreground text-sm mt-4">Loading…</p>}
 
-      {!isLoading && transactions.length === 0 && (
+      {!isLoading && transactions.length === 0 && !debouncedSearch && (
         <p className="text-muted-foreground text-sm mt-4">
           No transactions yet. Add one to get started.
         </p>
+      )}
+
+      {!isLoading && transactions.length === 0 && debouncedSearch && (
+        <p className="text-muted-foreground text-sm mt-4">No transactions match your search.</p>
       )}
 
       <div className="space-y-6 mt-6">

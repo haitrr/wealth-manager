@@ -9,6 +9,31 @@ export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl;
   const startDate = searchParams.get("startDate");
   const endDate = searchParams.get("endDate");
+  const search = searchParams.get("search")?.trim();
+
+  if (search) {
+    const pattern = `%${search}%`;
+    const transactions = await prisma.$queryRaw<unknown[]>`
+      SELECT
+        t.id, t.amount, t.date, t.description, t.details,
+        t."accountId", t."categoryId", t."userId", t."createdAt", t."updatedAt",
+        json_build_object('id', a.id, 'name', a.name, 'currency', a.currency::text) AS account,
+        json_build_object('id', c.id, 'name', c.name, 'type', c.type::text, 'icon', c.icon) AS category
+      FROM "Transaction" t
+      JOIN "Account" a ON t."accountId" = a.id
+      JOIN "TransactionCategory" c ON t."categoryId" = c.id
+      WHERE t."userId" = ${session.userId}
+        AND (
+          t.description ILIKE ${pattern}
+          OR t.details ILIKE ${pattern}
+          OR c.name ILIKE ${pattern}
+          OR CAST(t.amount AS TEXT) ILIKE ${pattern}
+          OR TO_CHAR(t.date AT TIME ZONE 'UTC', 'FMDD FMMonth Mon YYYY') ILIKE ${pattern}
+        )
+      ORDER BY t.date DESC, t."createdAt" DESC
+    `;
+    return NextResponse.json(transactions);
+  }
 
   const transactions = await prisma.transaction.findMany({
     where: {

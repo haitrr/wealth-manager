@@ -20,6 +20,7 @@ export interface Transaction {
 export async function getTransactions(params?: {
   startDate?: string;
   endDate?: string;
+  search?: string;
 }): Promise<Transaction[]> {
   const { data } = await api.get<Transaction[]>("/transactions", { params });
   return data;
