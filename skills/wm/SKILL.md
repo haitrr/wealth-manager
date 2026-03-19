@@ -83,7 +83,10 @@ wm exchange-rates
 - **Never ask for confirmation** before adding a transaction — just add it and report the result.
 - **Know the category before adding** — if you already know the valid category name from earlier in the session, use it directly. Only run `wm categories --type expense` if you're unsure; don't fetch it every time.
 - **`--desc`** must be a short, human-readable summary of what the expense was (e.g. "Grocery run at Bách Hóa Xanh"). Keep it concise.
-- **`--details`** is for structured info: item lists, invoice numbers, points used, etc. Format using markdown. Use `$'...'` ANSI-C quoting so `\n` is interpreted as a real newline by the shell. Example:
+- **`--details`** is for structured info: item lists, invoice numbers, points used, etc. Format using markdown. Use literal inline newlines inside the quoted string (ANSI-C quoting or just embed real newlines). Example:
   ```bash
-  wm add 95350 "Grocery" --desc "Grocery run" --details $'* Táo gala túi 700gr: 59,900 VND\n* Trứng gà hộp 10: 27,000 VND\n* Cải thìa gói 300gr: 8,450 VND\n* Invoice: OV207300603743447'
+  wm add 95350 "Grocery" --desc "Grocery run" --details "* Táo gala túi 700gr: 59,900 VND
+* Trứng gà hộp 10: 27,000 VND
+* Cải thìa gói 300gr: 8,450 VND
+* Invoice: OV207300603743447"
   ```

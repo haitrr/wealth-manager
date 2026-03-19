@@ -47,7 +47,10 @@ function positional(index: number): string | undefined {
 }
 
 function pp(data: unknown) {
-  console.log(JSON.stringify(data, null, 2));
+  console.log(JSON.stringify(data, (key, value) => {
+    if (key === "icon" && typeof value === "string" && value.startsWith("data:")) return undefined;
+    return value;
+  }, 2));
 }
 
 // ── Commands ────────────────────────────────────────────────────────────────
