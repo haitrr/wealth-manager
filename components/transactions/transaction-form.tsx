@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, FormEvent } from "react";
+import { useState, useEffect, FormEvent } from "react";
 import { ChevronLeft, ChevronRight, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -166,6 +166,10 @@ export function TransactionForm({
     transaction?.categoryId ?? ""
   );
 
+  useEffect(() => {
+    setSelectedCategoryId(transaction?.categoryId ?? "");
+  }, [transaction?.id]);
+
   const defaultAccount = accounts.find((a) => a.isDefault) ?? accounts[0];
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
@@ -213,6 +217,7 @@ export function TransactionForm({
 
         <form onSubmit={handleSubmit}>
           <TransactionFields
+            key={transaction?.id ?? "new"}
             transaction={transaction}
             accounts={accounts}
             categories={categories}
