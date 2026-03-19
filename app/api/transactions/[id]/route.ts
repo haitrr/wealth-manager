@@ -14,7 +14,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   const transaction = await getOwnedTransaction(id, session.userId);
   if (!transaction) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  const { amount, date, description, accountId, categoryId } = await req.json();
+  const { amount, date, description, details, accountId, categoryId } = await req.json();
 
   if (!amount || amount <= 0) {
     return NextResponse.json({ error: "Amount must be positive" }, { status: 400 });
@@ -43,6 +43,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       amount: parseFloat(amount),
       date: new Date(date),
       description: description?.trim() || null,
+      details: details?.trim() || null,
       accountId,
       categoryId,
     },

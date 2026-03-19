@@ -7,6 +7,7 @@ export interface Transaction {
   amount: number;
   date: string;
   description: string | null;
+  details: string | null;
   accountId: string;
   account: { id: string; name: string; currency: Currency };
   categoryId: string;
@@ -28,6 +29,7 @@ export async function createTransaction(payload: {
   amount: number;
   date: string;
   description?: string;
+  details?: string;
   accountId: string;
   categoryId: string;
 }): Promise<Transaction> {
@@ -41,6 +43,7 @@ export async function updateTransaction(
     amount: number;
     date: string;
     description?: string;
+    details?: string;
     accountId: string;
     categoryId: string;
   }

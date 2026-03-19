@@ -116,6 +116,18 @@ function TransactionFields({
         />
       </div>
 
+      <div className="space-y-2">
+        <Label htmlFor="details">Details (optional)</Label>
+        <textarea
+          id="details"
+          name="details"
+          placeholder="Item list, receipt details…"
+          defaultValue={transaction?.details ?? ""}
+          rows={3}
+          className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-[16px] md:text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring resize-none"
+        />
+      </div>
+
       {error && <p className="text-sm text-destructive">{error}</p>}
     </div>
   );
@@ -131,6 +143,7 @@ interface TransactionFormProps {
     amount: number;
     date: string;
     description?: string;
+    details?: string;
     accountId: string;
     categoryId: string;
   }) => Promise<void>;
@@ -164,6 +177,7 @@ export function TransactionForm({
     const amount = parseFloat((form.elements.namedItem("amount") as HTMLInputElement).value.replace(/,/g, ""));
     const date = (form.elements.namedItem("date") as HTMLInputElement).value;
     const description = (form.elements.namedItem("description") as HTMLInputElement).value;
+    const details = (form.elements.namedItem("details") as HTMLTextAreaElement).value;
     const accountId = (form.elements.namedItem("accountId") as HTMLSelectElement).value;
     const categoryId = selectedCategoryId;
 
@@ -174,7 +188,7 @@ export function TransactionForm({
     }
 
     try {
-      await onSubmit({ amount, date, description: description || undefined, accountId, categoryId });
+      await onSubmit({ amount, date, description: description || undefined, details: details || undefined, accountId, categoryId });
       onClose();
     } catch (err: unknown) {
       const message =

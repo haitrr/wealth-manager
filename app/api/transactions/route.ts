@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
   const session = await getSession(req);
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { amount, date, description, accountId, categoryId } = await req.json();
+  const { amount, date, description, details, accountId, categoryId } = await req.json();
 
   if (!amount || amount <= 0) {
     return NextResponse.json({ error: "Amount must be positive" }, { status: 400 });
@@ -64,6 +64,7 @@ export async function POST(req: NextRequest) {
       amount: parseFloat(amount),
       date: new Date(date),
       description: description?.trim() || null,
+      details: details?.trim() || null,
       accountId,
       categoryId,
       userId: session.userId,

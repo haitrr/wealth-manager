@@ -107,7 +107,7 @@ async function add() {
   const categoryName = positional(2);
 
   if (!amountStr || !categoryName) {
-    console.error("Usage: wm add <amount> <category-name> [--desc TEXT] [--date YYYY-MM-DD] [--account NAME_OR_ID]");
+    console.error("Usage: wm add <amount> <category-name> [--desc TEXT] [--details TEXT] [--date YYYY-MM-DD] [--account NAME_OR_ID]");
     process.exit(1);
   }
 
@@ -154,11 +154,13 @@ async function add() {
 
   const date = flag("date") ? new Date(flag("date")!).toISOString() : new Date().toISOString();
   const description = flag("desc");
+  const details = flag("details");
 
   const { data } = await http.post("/api/transactions", {
     amount,
     date,
     description,
+    details,
     accountId,
     categoryId: cat.id,
   });
@@ -193,8 +195,9 @@ Commands:
     --account ID  Filter by account ID
     --category ID Filter by category ID
   add <amount> <category>               Create a transaction
-    --desc TEXT   Description
-    --date DATE   Date (YYYY-MM-DD, default today)
+    --desc TEXT     Description
+    --details TEXT  Item list or extra details (multiline supported)
+    --date DATE     Date (YYYY-MM-DD, default today)
     --account NAME_OR_ID  Account (default: default account)
   delete <id>                           Delete a transaction
   categories                            List categories

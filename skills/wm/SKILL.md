@@ -37,7 +37,11 @@ wm summary --year 2026 --month 2
 ### Add a transaction
 ```bash
 wm add <amount> "<category>" --desc "description" --date YYYY-MM-DD
+wm add <amount> "<category>" --desc "Grocery run" --details "Milk x2, Eggs, Bread"
 ```
+- `--desc` — short description/note
+- `--details` — longer details such as item lists or receipt info (optional)
+
 If the category name is unknown, run `wm categories` first to list options.
 
 ### Delete a transaction

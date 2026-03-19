@@ -67,6 +67,7 @@ model Transaction {
   amount      Float
   date        DateTime
   description String?
+  details     String?
   accountId   String
   account     Account             @relation(fields: [accountId], references: [id])
   categoryId  String
