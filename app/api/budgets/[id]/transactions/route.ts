@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { CategoryType } from "@prisma/client";
 import { prisma } from "@/app/lib/db";
 import { getSession } from "@/app/lib/auth";
-import { getPeriodBounds, getCategoryIdWithDescendants } from "../../budget-utils";
+import { getPeriodBounds, getCategoryFilter } from "../../budget-utils";
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await getSession(req);
@@ -13,21 +12,15 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   if (!budget) return NextResponse.json({ error: "Budget not found" }, { status: 404 });
 
   const { start, end } = getPeriodBounds(budget, new Date());
-
-  const categoryIds = budget.categoryId
-    ? await getCategoryIdWithDescendants(budget.categoryId, session.userId)
-    : null;
-
-  const baseWhere = {
-    userId: session.userId,
-    date: { gte: start, lte: end },
-    ...(budget.accountId ? { accountId: budget.accountId } : {}),
-  };
+  const categoryFilter = await getCategoryFilter(budget, session.userId);
 
   const transactions = await prisma.transaction.findMany({
-    where: categoryIds
-      ? { ...baseWhere, categoryId: { in: categoryIds } }
-      : { ...baseWhere, category: { is: { type: { in: ["expense", "payable"] as CategoryType[] } } } },
+    where: {
+      userId: session.userId,
+      date: { gte: start, lte: end },
+      ...(budget.accountId ? { accountId: budget.accountId } : {}),
+      ...categoryFilter,
+    },
     include: {
       account: { select: { id: true, name: true, currency: true } },
       category: { select: { id: true, name: true, type: true, icon: true } },

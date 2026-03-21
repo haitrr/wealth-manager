@@ -4,6 +4,8 @@ import { Currency } from "./accounts";
 
 export type BudgetPeriod = "monthly" | "yearly" | "custom";
 
+export type CategorySummary = { id: string; name: string; type: CategoryType; icon: string | null };
+
 export interface Budget {
   id: string;
   name: string;
@@ -14,8 +16,10 @@ export interface Budget {
   endDate: string | null;
   accountId: string | null;
   account: { id: string; name: string; currency: Currency } | null;
-  categoryId: string | null;
-  category: { id: string; name: string; type: CategoryType; icon: string | null } | null;
+  categoryIds: string[];
+  excludedCategoryIds: string[];
+  categories: CategorySummary[];
+  excludedCategories: CategorySummary[];
   userId: string;
   createdAt: string;
   updatedAt: string;
@@ -40,7 +44,8 @@ export interface BudgetPayload {
   startDate?: string;
   endDate?: string;
   accountId?: string;
-  categoryId?: string;
+  categoryIds?: string[];
+  excludedCategoryIds?: string[];
 }
 
 export async function getBudgets(): Promise<Budget[]> {

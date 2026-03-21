@@ -4,7 +4,6 @@ import Link from "next/link";
 import { Budget } from "@/lib/api/budgets";
 import { formatCurrency } from "@/lib/utils";
 import { CategoryIcon } from "@/components/transaction-categories/category-icon";
-import { AllCategoryIcon } from "./AllCategoryIcon";
 
 interface BudgetCardProps {
   budget: Budget;
@@ -16,6 +15,20 @@ const PERIOD_LABELS: Record<string, string> = {
   custom: "Custom",
 };
 
+function categoryLabel(budget: Budget): string {
+  if (budget.categoryIds.length > 0) {
+    const names = budget.categories.map((c) => c.name);
+    if (names.length <= 2) return names.join(", ");
+    return `${names.slice(0, 2).join(", ")} +${names.length - 2} more`;
+  }
+  if (budget.excludedCategoryIds.length > 0) {
+    const names = budget.excludedCategories.map((c) => c.name);
+    const label = names.length <= 2 ? names.join(", ") : `${names.slice(0, 2).join(", ")} +${names.length - 2} more`;
+    return `All except ${label}`;
+  }
+  return "";
+}
+
 export function BudgetCard({ budget }: BudgetCardProps) {
   const percent = Math.min(100, budget.percentUsed);
   const isOver = budget.spent > budget.amount;
@@ -24,19 +37,22 @@ export function BudgetCard({ budget }: BudgetCardProps) {
     ? Math.min(100, (budget.daysElapsed / budget.daysTotal) * 100)
     : 0;
 
+  const firstCategoryIcon = budget.categories[0]?.icon ?? null;
+  const catLabel = categoryLabel(budget);
+
   return (
     <Link
       href={`/budgets/${budget.id}`}
       className="block rounded-lg border p-4 space-y-3 hover:bg-muted/50 transition-colors"
     >
       <div className="flex items-center gap-3 min-w-0">
-        <CategoryIcon icon={budget.category?.icon} size={40} />
+        <CategoryIcon icon={firstCategoryIcon} size={40} />
         <div className="min-w-0">
           <p className="font-medium truncate">{budget.name}</p>
           <p className="text-xs text-muted-foreground">
             {PERIOD_LABELS[budget.period]}
             {budget.account ? ` · ${budget.account.name}` : ""}
-            {budget.category ? ` · ${budget.category.name}` : ""}
+            {catLabel ? ` · ${catLabel}` : ""}
           </p>
         </div>
       </div>

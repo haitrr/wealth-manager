@@ -57,7 +57,6 @@ model TransactionCategory {
   children     TransactionCategory[] @relation("CategoryChildren")
   user         User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
   transactions Transaction[]
-  budgets      Budget[]
   createdAt    DateTime              @default(now())
   updatedAt    DateTime              @updatedAt
 }
@@ -79,21 +78,21 @@ model Transaction {
 }
 
 model Budget {
-  id         String               @id @default(cuid())
-  name       String
-  amount     Float
-  currency   Currency             @default(USD)
-  period     String
-  startDate  DateTime
-  endDate    DateTime?
-  accountId  String?
-  account    Account?             @relation(fields: [accountId], references: [id])
-  categoryId String?
-  category   TransactionCategory? @relation(fields: [categoryId], references: [id])
-  userId     String
-  user       User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt  DateTime             @default(now())
-  updatedAt  DateTime             @updatedAt
+  id                  String    @id @default(cuid())
+  name                String
+  amount              Float
+  currency            Currency  @default(USD)
+  period              String
+  startDate           DateTime
+  endDate             DateTime?
+  accountId           String?
+  account             Account?  @relation(fields: [accountId], references: [id])
+  categoryIds         String[]  @default([])
+  excludedCategoryIds String[]  @default([])
+  userId              String
+  user                User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
 }
 
 model ApiKey {

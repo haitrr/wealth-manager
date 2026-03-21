@@ -13,7 +13,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { AmountInput } from "@/components/transactions/amount-input";
-import { CategorySelector } from "@/components/transactions/category-selector";
+import { BudgetCategorySelector, BudgetCategoryMode } from "@/components/budgets/budget-category-selector";
 import { Account, Currency } from "@/lib/api/accounts";
 import { TransactionCategory } from "@/lib/api/transaction-categories";
 import { Budget, BudgetPayload, BudgetPeriod } from "@/lib/api/budgets";
@@ -39,7 +39,15 @@ export function BudgetForm({ open, budget, accounts, categories, onClose, onSubm
   const [error, setError] = useState("");
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [period, setPeriod] = useState<BudgetPeriod>(budget?.period ?? "monthly");
-  const [selectedCategoryId, setSelectedCategoryId] = useState(budget?.categoryId ?? "");
+
+  const initialMode: BudgetCategoryMode =
+    budget?.excludedCategoryIds?.length ? "exclude" :
+    budget?.categoryIds?.length ? "include" : "all";
+  const initialIds =
+    budget?.excludedCategoryIds?.length ? budget.excludedCategoryIds :
+    budget?.categoryIds?.length ? budget.categoryIds : [];
+  const [categoryMode, setCategoryMode] = useState<BudgetCategoryMode>(initialMode);
+  const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>(initialIds);
 
   const today = new Date().toISOString().split("T")[0];
   const defaultAccount = accounts.find((a) => a.isDefault) ?? accounts[0];
@@ -54,7 +62,6 @@ export function BudgetForm({ open, budget, accounts, categories, onClose, onSubm
     const amount = parseFloat((form.elements.namedItem("amount") as HTMLInputElement).value.replace(/,/g, ""));
     const currency = (form.elements.namedItem("currency") as HTMLSelectElement).value as Currency;
     const accountId = (form.elements.namedItem("accountId") as HTMLSelectElement).value;
-    const categoryId = selectedCategoryId;
     const startDate = period === "custom"
       ? (form.elements.namedItem("startDate") as HTMLInputElement).value
       : undefined;
@@ -71,7 +78,8 @@ export function BudgetForm({ open, budget, accounts, categories, onClose, onSubm
         startDate,
         endDate,
         accountId: accountId || undefined,
-        categoryId: categoryId || undefined,
+        categoryIds: categoryMode === "include" && selectedCategoryIds.length ? selectedCategoryIds : undefined,
+        excludedCategoryIds: categoryMode === "exclude" && selectedCategoryIds.length ? selectedCategoryIds : undefined,
       });
       onClose();
     } catch (err: unknown) {
@@ -168,11 +176,12 @@ export function BudgetForm({ open, budget, accounts, categories, onClose, onSubm
               </select>
             </div>
 
-            <CategorySelector
+            <BudgetCategorySelector
               categories={categories}
-              selectedCategoryId={selectedCategoryId}
-              onCategoryChange={setSelectedCategoryId}
-              filterType="expense"
+              mode={categoryMode}
+              selectedIds={selectedCategoryIds}
+              onModeChange={setCategoryMode}
+              onSelectedIdsChange={setSelectedCategoryIds}
             />
 
             {error && <p className="text-sm text-destructive">{error}</p>}

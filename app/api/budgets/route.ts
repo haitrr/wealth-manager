@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { CategoryType } from "@prisma/client";
 import { prisma } from "@/app/lib/db";
 import { getSession } from "@/app/lib/auth";
-import { getPeriodBounds, computeProgress, convertCurrency, getCategoryIdWithDescendants } from "./budget-utils";
+import {
+  getPeriodBounds,
+  computeProgress,
+  convertCurrency,
+  getCategoryFilter,
+  resolveCategorySummaries,
+} from "./budget-utils";
 
 export async function GET(req: NextRequest) {
   const session = await getSession(req);
@@ -10,10 +15,7 @@ export async function GET(req: NextRequest) {
 
   const budgets = await prisma.budget.findMany({
     where: { userId: session.userId },
-    include: {
-      account: { select: { id: true, name: true, currency: true } },
-      category: { select: { id: true, name: true, type: true, icon: true } },
-    },
+    include: { account: { select: { id: true, name: true, currency: true } } },
     orderBy: { createdAt: "desc" },
   });
 
@@ -22,12 +24,8 @@ export async function GET(req: NextRequest) {
   const result = await Promise.all(
     budgets.map(async (budget) => {
       const { start, end } = getPeriodBounds(budget, now);
+      const categoryFilter = await getCategoryFilter(budget, session.userId);
 
-      const categoryFilter = budget.categoryId
-        ? { categoryId: { in: await getCategoryIdWithDescendants(budget.categoryId, session.userId) } }
-        : { category: { is: { type: { in: ["expense", "payable"] as CategoryType[] } } } };
-
-      // Fetch transactions with account info to get currency
       const transactions = await prisma.transaction.findMany({
         where: {
           userId: session.userId,
@@ -35,25 +33,21 @@ export async function GET(req: NextRequest) {
           ...(budget.accountId ? { accountId: budget.accountId } : {}),
           ...categoryFilter,
         },
-        include: {
-          account: { select: { currency: true } },
-        },
+        include: { account: { select: { currency: true } } },
       });
 
-      // Convert each transaction to budget currency and sum
       let spent = 0;
       for (const tx of transactions) {
-        const convertedAmount = await convertCurrency(
-          tx.amount,
-          tx.account.currency,
-          budget.currency,
-          session.userId
-        );
-        spent += convertedAmount;
+        spent += await convertCurrency(tx.amount, tx.account.currency, budget.currency, session.userId);
       }
 
+      const [categories, excludedCategories] = await Promise.all([
+        resolveCategorySummaries(budget.categoryIds),
+        resolveCategorySummaries(budget.excludedCategoryIds),
+      ]);
+
       const progress = computeProgress(budget, spent, now);
-      return { ...budget, ...progress };
+      return { ...budget, categories, excludedCategories, ...progress };
     })
   );
 
@@ -64,7 +58,8 @@ export async function POST(req: NextRequest) {
   const session = await getSession(req);
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { name, amount, currency, period, startDate, endDate, accountId, categoryId } = await req.json();
+  const { name, amount, currency, period, startDate, endDate, accountId, categoryIds, excludedCategoryIds } =
+    await req.json();
 
   if (!name?.trim()) return NextResponse.json({ error: "Name is required" }, { status: 400 });
   if (!amount || amount <= 0) return NextResponse.json({ error: "Amount must be positive" }, { status: 400 });
@@ -79,10 +74,9 @@ export async function POST(req: NextRequest) {
     const account = await prisma.account.findFirst({ where: { id: accountId, userId: session.userId } });
     if (!account) return NextResponse.json({ error: "Account not found" }, { status: 404 });
   }
-  if (categoryId) {
-    const category = await prisma.transactionCategory.findFirst({ where: { id: categoryId, userId: session.userId } });
-    if (!category) return NextResponse.json({ error: "Category not found" }, { status: 404 });
-  }
+
+  const resolvedCategoryIds: string[] = Array.isArray(categoryIds) ? categoryIds : [];
+  const resolvedExcludedIds: string[] = Array.isArray(excludedCategoryIds) ? excludedCategoryIds : [];
 
   const budget = await prisma.budget.create({
     data: {
@@ -93,23 +87,17 @@ export async function POST(req: NextRequest) {
       startDate: new Date(startDate ?? new Date()),
       endDate: period === "custom" ? new Date(endDate) : null,
       accountId: accountId || null,
-      categoryId: categoryId || null,
+      categoryIds: resolvedCategoryIds,
+      excludedCategoryIds: resolvedExcludedIds,
       userId: session.userId,
     },
-    include: {
-      account: { select: { id: true, name: true, currency: true } },
-      category: { select: { id: true, name: true, type: true, icon: true } },
-    },
+    include: { account: { select: { id: true, name: true, currency: true } } },
   });
 
   const now = new Date();
   const { start, end } = getPeriodBounds(budget, now);
+  const categoryFilter = await getCategoryFilter(budget, session.userId);
 
-  const categoryFilter = budget.categoryId
-    ? { categoryId: { in: await getCategoryIdWithDescendants(budget.categoryId, session.userId) } }
-    : { category: { is: { type: { in: ["expense", "payable"] as CategoryType[] } } } };
-
-  // Fetch transactions with account info to get currency
   const transactions = await prisma.transaction.findMany({
     where: {
       userId: session.userId,
@@ -117,24 +105,19 @@ export async function POST(req: NextRequest) {
       ...(budget.accountId ? { accountId: budget.accountId } : {}),
       ...categoryFilter,
     },
-    include: {
-      account: { select: { currency: true } },
-    },
+    include: { account: { select: { currency: true } } },
   });
 
-  // Convert each transaction to budget currency and sum
   let spent = 0;
   for (const tx of transactions) {
-    const convertedAmount = await convertCurrency(
-      tx.amount,
-      tx.account.currency,
-      budget.currency,
-      session.userId
-    );
-    spent += convertedAmount;
+    spent += await convertCurrency(tx.amount, tx.account.currency, budget.currency, session.userId);
   }
 
-  const progress = computeProgress(budget, spent, now);
+  const [categories, excludedCategories] = await Promise.all([
+    resolveCategorySummaries(budget.categoryIds),
+    resolveCategorySummaries(budget.excludedCategoryIds),
+  ]);
 
-  return NextResponse.json({ ...budget, ...progress }, { status: 201 });
+  const progress = computeProgress(budget, spent, now);
+  return NextResponse.json({ ...budget, categories, excludedCategories, ...progress }, { status: 201 });
 }

@@ -1,11 +1,14 @@
-import { Budget, Account, TransactionCategory, Currency } from "@prisma/client";
+import { Budget, Account, TransactionCategory, Currency, CategoryType } from "@prisma/client";
 import { prisma } from "@/app/lib/db";
 
 export type BudgetPeriod = "monthly" | "yearly" | "custom";
 
+export type CategorySummary = Pick<TransactionCategory, "id" | "name" | "type" | "icon">;
+
 export type BudgetWithRelations = Budget & {
-  account: Pick<Account, "id" | "name"> | null;
-  category: Pick<TransactionCategory, "id" | "name" | "type"> | null;
+  account: Pick<Account, "id" | "name" | "currency"> | null;
+  categories: CategorySummary[];
+  excludedCategories: CategorySummary[];
 };
 
 /**
@@ -18,43 +21,18 @@ export async function convertCurrency(
   toCurrency: Currency,
   userId: string
 ): Promise<number> {
-  // No conversion needed if currencies are the same
-  if (fromCurrency === toCurrency) {
-    return amount;
-  }
+  if (fromCurrency === toCurrency) return amount;
 
-  // Try to find a direct exchange rate
   const directRate = await prisma.exchangeRate.findUnique({
-    where: {
-      userId_fromCurrency_toCurrency: {
-        userId,
-        fromCurrency,
-        toCurrency,
-      },
-    },
+    where: { userId_fromCurrency_toCurrency: { userId, fromCurrency, toCurrency } },
   });
+  if (directRate) return amount * directRate.rate;
 
-  if (directRate) {
-    return amount * directRate.rate;
-  }
-
-  // Try to find an inverse exchange rate (e.g., if we need USD->VND but only have VND->USD)
   const inverseRate = await prisma.exchangeRate.findUnique({
-    where: {
-      userId_fromCurrency_toCurrency: {
-        userId,
-        fromCurrency: toCurrency,
-        toCurrency: fromCurrency,
-      },
-    },
+    where: { userId_fromCurrency_toCurrency: { userId, fromCurrency: toCurrency, toCurrency: fromCurrency } },
   });
+  if (inverseRate) return amount / inverseRate.rate;
 
-  if (inverseRate) {
-    return amount / inverseRate.rate;
-  }
-
-  // No exchange rate found, return original amount
-  // (you might want to log a warning here)
   return amount;
 }
 
@@ -77,6 +55,53 @@ export async function getCategoryIdWithDescendants(categoryId: string, userId: s
     }
   }
   return Array.from(ids);
+}
+
+/**
+ * Builds a Prisma transaction `where` filter for a budget's category configuration.
+ * - categoryIds: include only these categories (and their descendants)
+ * - excludedCategoryIds: all expense/payable except these (and their descendants)
+ * - neither: all expense/payable
+ */
+export async function getCategoryFilter(
+  budget: Pick<Budget, "categoryIds" | "excludedCategoryIds">,
+  userId: string
+) {
+  if (budget.categoryIds.length > 0) {
+    const allIds = new Set<string>();
+    for (const catId of budget.categoryIds) {
+      const descendants = await getCategoryIdWithDescendants(catId, userId);
+      descendants.forEach((id) => allIds.add(id));
+    }
+    return { categoryId: { in: Array.from(allIds) } };
+  }
+
+  if (budget.excludedCategoryIds.length > 0) {
+    const excludedIds = new Set<string>();
+    for (const catId of budget.excludedCategoryIds) {
+      const descendants = await getCategoryIdWithDescendants(catId, userId);
+      descendants.forEach((id) => excludedIds.add(id));
+    }
+    return {
+      AND: [
+        { category: { type: { in: ["expense", "payable"] as CategoryType[] } } },
+        { categoryId: { notIn: Array.from(excludedIds) } },
+      ],
+    };
+  }
+
+  return { category: { type: { in: ["expense", "payable"] as CategoryType[] } } };
+}
+
+/**
+ * Resolves category IDs to full category objects for display.
+ */
+export async function resolveCategorySummaries(ids: string[]): Promise<CategorySummary[]> {
+  if (ids.length === 0) return [];
+  return prisma.transactionCategory.findMany({
+    where: { id: { in: ids } },
+    select: { id: true, name: true, type: true, icon: true },
+  });
 }
 
 export function getPeriodBounds(budget: Budget, now: Date): { start: Date; end: Date } {

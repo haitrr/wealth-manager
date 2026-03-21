@@ -81,7 +81,11 @@ export default function BudgetDetailPage({ params }: { params: Promise<{ id: str
       <p className="text-sm text-muted-foreground mb-4">
         {PERIOD_LABELS[budget.period]}
         {budget.account ? ` · ${budget.account.name}` : " · All accounts"}
-        {budget.category ? ` · ${budget.category.name}` : " · All expense categories"}
+        {budget.categories.length > 0
+          ? ` · ${budget.categories.map((c) => c.name).join(", ")}`
+          : budget.excludedCategories.length > 0
+          ? ` · All except ${budget.excludedCategories.map((c) => c.name).join(", ")}`
+          : " · All expense categories"}
         <br />
         {periodStart} – {periodEnd}
       </p>

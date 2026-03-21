@@ -138,7 +138,7 @@ function createServer(userId: string) {
     async () => {
       const budgets = await prisma.budget.findMany({
         where: { userId },
-        include: { account: true, category: true },
+        include: { account: true },
         orderBy: { createdAt: "desc" },
       });
       return { content: [{ type: "text", text: JSON.stringify(budgets, null, 2) }] };

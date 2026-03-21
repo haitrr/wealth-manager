@@ -167,7 +167,7 @@ async function main() {
         currency: "VND",
         period: "monthly",
         startDate: monthStart,
-        categoryId: byName["Ăn uống"].id,
+        categoryIds: [byName["Ăn uống"].id],
         userId: user.id,
       },
       {
@@ -176,7 +176,7 @@ async function main() {
         currency: "VND",
         period: "monthly",
         startDate: monthStart,
-        categoryId: byName["Đi lại"].id,
+        categoryIds: [byName["Đi lại"].id],
         userId: user.id,
       },
       {
@@ -185,7 +185,7 @@ async function main() {
         currency: "VND",
         period: "monthly",
         startDate: monthStart,
-        categoryId: byName["Giải trí"].id,
+        categoryIds: [byName["Giải trí"].id],
         userId: user.id,
       },
       {
