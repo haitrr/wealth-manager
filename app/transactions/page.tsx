@@ -2,12 +2,11 @@
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Upload } from "lucide-react";
+import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TransactionRow } from "@/components/transactions/transaction-row";
 import { TransactionDetail } from "@/components/transactions/transaction-detail";
 import { TransactionForm } from "@/components/transactions/transaction-form";
-import { ImportDialog } from "@/components/transactions/import-dialog";
 import { TransactionSearch } from "@/components/transactions/transaction-search";
 import {
   TimeRangeSelector,
@@ -27,7 +26,6 @@ import { getTransactionCategories } from "@/lib/api/transaction-categories";
 export default function TransactionsPage() {
   const queryClient = useQueryClient();
   const [formOpen, setFormOpen] = useState(false);
-  const [importOpen, setImportOpen] = useState(false);
   const [viewingTransaction, setViewingTransaction] = useState<Transaction | null>(null);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const [timeRange, setTimeRange] = useState<TimeRange>("this-month");
@@ -114,14 +112,6 @@ export default function TransactionsPage() {
 
   return (
     <main className="max-w-lg mx-auto px-4 py-8">
-      <div className="flex items-center justify-between mb-4">
-        <h1 className="text-2xl font-semibold">Transactions</h1>
-        <Button variant="outline" size="sm" onClick={() => setImportOpen(true)}>
-          <Upload className="size-4 mr-1" />
-          Import
-        </Button>
-      </div>
-
       {!debouncedSearch && (
         <TimeRangeSelector value={timeRange} onChange={setTimeRange} />
       )}
@@ -167,8 +157,6 @@ export default function TransactionsPage() {
       >
         <Plus className="size-6" />
       </Button>
-
-      <ImportDialog open={importOpen} onClose={() => setImportOpen(false)} />
 
       <TransactionDetail
         open={!!viewingTransaction}

@@ -31,14 +31,6 @@ export default function BudgetsPage() {
 
   return (
     <main className="max-w-lg mx-auto px-4 py-8 pb-24">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-semibold">Budgets</h1>
-        <Button onClick={() => setFormOpen(true)} size="sm">
-          <Plus className="size-4 mr-1" />
-          Add
-        </Button>
-      </div>
-
       <Tabs value={period} onValueChange={(v) => setPeriod(v as BudgetPeriod)} className="mb-4">
         <TabsList className="w-full">
           <TabsTrigger value="monthly" className="flex-1">Monthly</TabsTrigger>
@@ -60,6 +52,16 @@ export default function BudgetsPage() {
           <BudgetCard key={budget.id} budget={budget} />
         ))}
       </div>
+
+      <Button
+        size="icon"
+        className="fixed right-6 size-14 rounded-full shadow-lg"
+        style={{ bottom: "calc(5rem + env(safe-area-inset-bottom))" }}
+        onClick={() => setFormOpen(true)}
+        aria-label="Add budget"
+      >
+        <Plus className="size-6" />
+      </Button>
 
       <BudgetForm
         open={formOpen}
