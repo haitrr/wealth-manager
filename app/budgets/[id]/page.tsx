@@ -8,6 +8,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { BudgetForm } from "@/components/budgets/budget-form";
 import { BudgetBurnDownChart } from "@/components/budgets/budget-burn-down-chart";
+import { BudgetCategoryPieChart } from "@/components/budgets/budget-category-pie-chart";
 import { TransactionRow } from "@/components/transactions/transaction-row";
 import { getBudget, updateBudget, deleteBudget, getBudgetTransactions, BudgetPayload } from "@/lib/api/budgets";
 import { getAccounts } from "@/lib/api/accounts";
@@ -131,6 +132,13 @@ export default function BudgetDetailPage({ params }: { params: Promise<{ id: str
         budgetAmount={budget.amount}
         currency={currency}
         transactions={transactions}
+      />
+
+      {/* Category Breakdown */}
+      <BudgetCategoryPieChart
+        transactions={transactions}
+        categories={categories}
+        currency={currency}
       />
 
       {/* Transactions */}
