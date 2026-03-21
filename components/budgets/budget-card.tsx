@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { Budget } from "@/lib/api/budgets";
 import { formatCurrency } from "@/lib/utils";
+import { CategoryIcon } from "@/components/transaction-categories/category-icon";
+import { AllCategoryIcon } from "./AllCategoryIcon";
 
 interface BudgetCardProps {
   budget: Budget;
@@ -27,13 +29,16 @@ export function BudgetCard({ budget }: BudgetCardProps) {
       href={`/budgets/${budget.id}`}
       className="block rounded-lg border p-4 space-y-3 hover:bg-muted/50 transition-colors"
     >
-      <div className="min-w-0">
-        <p className="font-medium truncate">{budget.name}</p>
-        <p className="text-xs text-muted-foreground">
-          {PERIOD_LABELS[budget.period]}
-          {budget.account ? ` · ${budget.account.name}` : ""}
-          {budget.category ? ` · ${budget.category.name}` : ""}
-        </p>
+      <div className="flex items-center gap-3 min-w-0">
+        <CategoryIcon icon={budget.category?.icon} size={40} />
+        <div className="min-w-0">
+          <p className="font-medium truncate">{budget.name}</p>
+          <p className="text-xs text-muted-foreground">
+            {PERIOD_LABELS[budget.period]}
+            {budget.account ? ` · ${budget.account.name}` : ""}
+            {budget.category ? ` · ${budget.category.name}` : ""}
+          </p>
+        </div>
       </div>
 
       {/* Progress bar */}

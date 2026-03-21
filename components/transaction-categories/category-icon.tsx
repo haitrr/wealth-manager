@@ -2,6 +2,7 @@
 
 import React from "react";
 import { cn } from "@/lib/utils";
+import { AllCategoryIcon } from "../budgets/AllCategoryIcon";
 
 type IconRender = (w: number, h: number) => React.ReactElement;
 
@@ -523,15 +524,6 @@ export function CategoryIcon({ icon, size = 20, className }: CategoryIconProps) 
 
   // Default placeholder
   return (
-    <span className={cn("shrink-0 inline-flex", className)}>
-      <svg width={size} height={size} viewBox="0 0 32 32" fill="none">
-        <rect x="2" y="2" width="28" height="28" rx="6" fill="#E0E0E0"/>
-        <circle cx="10" cy="10" r="2" fill="#AAAAAA"/>
-        <circle cx="22" cy="10" r="2" fill="#AAAAAA"/>
-        <circle cx="10" cy="22" r="2" fill="#AAAAAA"/>
-        <circle cx="22" cy="22" r="2" fill="#AAAAAA"/>
-        <circle cx="16" cy="16" r="2" fill="#AAAAAA"/>
-      </svg>
-    </span>
+    <AllCategoryIcon size={size} />
   );
 }

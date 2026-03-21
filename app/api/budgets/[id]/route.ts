@@ -9,7 +9,7 @@ async function getBudgetWithProgress(budgetId: string, userId: string) {
     where: { id: budgetId, userId },
     include: {
       account: { select: { id: true, name: true, currency: true } },
-      category: { select: { id: true, name: true, type: true } },
+      category: { select: { id: true, name: true, type: true, icon: true } },
     },
   });
   if (!budget) return null;

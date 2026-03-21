@@ -15,7 +15,7 @@ export interface Budget {
   accountId: string | null;
   account: { id: string; name: string; currency: Currency } | null;
   categoryId: string | null;
-  category: { id: string; name: string; type: CategoryType } | null;
+  category: { id: string; name: string; type: CategoryType; icon: string | null } | null;
   userId: string;
   createdAt: string;
   updatedAt: string;
