@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { Budget } from "@/lib/api/budgets";
+import { Budget, CategorySummary } from "@/lib/api/budgets";
 import { formatCurrency } from "@/lib/utils";
 import { CategoryIcon } from "@/components/transaction-categories/category-icon";
+import { AllCategoryIcon } from "@/components/budgets/AllCategoryIcon";
 
 interface BudgetCardProps {
   budget: Budget;
@@ -14,6 +15,25 @@ const PERIOD_LABELS: Record<string, string> = {
   yearly: "Yearly",
   custom: "Custom",
 };
+
+function BudgetIcon({ categories, size }: { categories: CategorySummary[]; size: number }) {
+  if (categories.length === 0) return <AllCategoryIcon size={size} />;
+  if (categories.length === 1) return <CategoryIcon icon={categories[0].icon} size={size} />;
+
+  // 2×2 grid of up to 4 icons
+  const slots = categories.slice(0, 4);
+  const half = size / 2;
+  return (
+    <div
+      className="grid grid-cols-2 shrink-0 overflow-hidden rounded-lg"
+      style={{ width: size, height: size, gap: 1 }}
+    >
+      {slots.map((c) => (
+        <CategoryIcon key={c.id} icon={c.icon} size={half - 1} />
+      ))}
+    </div>
+  );
+}
 
 function categoryLabel(budget: Budget): string {
   if (budget.categoryIds.length > 0) {
@@ -37,7 +57,6 @@ export function BudgetCard({ budget }: BudgetCardProps) {
     ? Math.min(100, (budget.daysElapsed / budget.daysTotal) * 100)
     : 0;
 
-  const firstCategoryIcon = budget.categories[0]?.icon ?? null;
   const catLabel = categoryLabel(budget);
 
   return (
@@ -46,7 +65,7 @@ export function BudgetCard({ budget }: BudgetCardProps) {
       className="block rounded-lg border p-4 space-y-3 hover:bg-muted/50 transition-colors"
     >
       <div className="flex items-center gap-3 min-w-0">
-        <CategoryIcon icon={firstCategoryIcon} size={40} />
+        <BudgetIcon categories={budget.categories} size={40} />
         <div className="min-w-0">
           <p className="font-medium truncate">{budget.name}</p>
           <p className="text-xs text-muted-foreground">
