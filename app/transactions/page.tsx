@@ -22,6 +22,7 @@ import {
 } from "@/lib/api/transactions";
 import { getAccounts } from "@/lib/api/accounts";
 import { getTransactionCategories } from "@/lib/api/transaction-categories";
+import { formatCurrency } from "@/lib/utils";
 
 export default function TransactionsPage() {
   const queryClient = useQueryClient();
@@ -131,9 +132,20 @@ export default function TransactionsPage() {
       )}
 
       <div className="space-y-6 mt-6">
-        {Object.entries(grouped).map(([day, txs]) => (
+        {Object.entries(grouped).map(([day, txs]) => {
+          const dayBalance = txs.reduce((sum, tx) => {
+            return sum + (tx.category.type === "income" ? tx.amount : -tx.amount);
+          }, 0);
+          const isPositive = dayBalance >= 0;
+          const currency = txs[0].account.currency;
+          return (
           <div key={day}>
-            <h2 className="text-sm font-medium text-muted-foreground mb-1">{day}</h2>
+            <div className="flex items-center justify-left mb-1 gap-4">
+              <h2 className="text-sm font-medium text-muted-foreground">{day}</h2>
+              <span className={`text-sm font-medium ${isPositive ? "text-green-500" : "text-red-500"}`}>
+                {isPositive ? "+" : "-"}{formatCurrency(Math.abs(dayBalance), currency)}
+              </span>
+            </div>
             <div className="rounded-lg border">
               {txs.map((tx) => (
                 <TransactionRow
@@ -144,7 +156,8 @@ export default function TransactionsPage() {
               ))}
             </div>
           </div>
-        ))}
+          );
+        })}
       </div>
 
       <Button
