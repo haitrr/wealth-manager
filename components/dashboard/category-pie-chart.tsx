@@ -35,18 +35,15 @@ function CustomLegend({
   currency: Currency;
 }) {
   return (
-    <div className="space-y-2 mt-4">
+    <div className="flex flex-col justify-center gap-1.5 flex-1 min-w-0">
       {chartData.map((entry, index) => (
-        <div key={entry.name} className="flex items-center gap-2 text-xs">
+        <div key={entry.name} className="flex items-center justify-between gap-1.5 text-xs min-w-0">
           <div
-            className="w-3 h-3 rounded-sm shrink-0"
+            className="w-2 h-2 rounded-sm shrink-0"
             style={{ backgroundColor: COLORS[index % COLORS.length] }}
           />
-          <span className="flex-1 truncate">{entry.name}</span>
-          <span className="font-medium whitespace-nowrap">{entry.percentage}%</span>
-          <span className="text-muted-foreground whitespace-nowrap">
-            {formatCurrency(entry.value, currency)}
-          </span>
+          <span className="truncate flex-1">{entry.name}</span>
+          <span className="text-muted-foreground whitespace-nowrap shrink-0">{entry.percentage}%</span>
         </div>
       ))}
     </div>
@@ -56,9 +53,9 @@ function CustomLegend({
 export function CategoryPieChart({ title, data, currency }: CategoryPieChartProps) {
   if (data.length === 0) {
     return (
-      <div className="rounded-lg border p-4">
-        <h3 className="text-sm font-medium mb-3">{title}</h3>
-        <p className="text-sm text-muted-foreground">No data for this month yet.</p>
+      <div className="rounded-lg border p-3">
+        <h3 className="text-sm font-medium mb-1">{title}</h3>
+        <p className="text-xs text-muted-foreground">No data for this period.</p>
       </div>
     );
   }
@@ -88,35 +85,37 @@ export function CategoryPieChart({ title, data, currency }: CategoryPieChartProp
   }, {} as Record<string, { label: string; color: string }>);
 
   return (
-    <div className="rounded-lg border p-4">
-      <h3 className="text-sm font-medium mb-3">{title}</h3>
-      <ChartContainer config={chartConfig} className="h-50 w-full">
-        <PieChart>
-          <ChartTooltip
-            content={
-              <ChartTooltipContent
-                formatter={(value, name) => [`${formatCurrency(Number(value), currency)} `, name]}
-                hideLabel
-              />
-            }
-          />
-          <Pie
-            data={chartData}
-            dataKey="value"
-            nameKey="name"
-            cx="50%"
-            cy="50%"
-            innerRadius={50}
-            outerRadius={80}
-            paddingAngle={2}
-          >
-            {chartData.map((entry, index) => (
-              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-            ))}
-          </Pie>
-        </PieChart>
-      </ChartContainer>
-      <CustomLegend chartData={chartData} currency={currency} />
+    <div className="rounded-lg border p-3">
+      <h3 className="text-xs font-medium text-muted-foreground mb-2">{title}</h3>
+      <div className="flex items-center gap-6">
+        <ChartContainer config={chartConfig} className="h-28 w-28 shrink-0">
+          <PieChart>
+            <ChartTooltip
+              content={
+                <ChartTooltipContent
+                  formatter={(value, name) => [`${formatCurrency(Number(value), currency)} `, name]}
+                  hideLabel
+                />
+              }
+            />
+            <Pie
+              data={chartData}
+              dataKey="value"
+              nameKey="name"
+              cx="50%"
+              cy="50%"
+              innerRadius={30}
+              outerRadius={52}
+              paddingAngle={2}
+            >
+              {chartData.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+              ))}
+            </Pie>
+          </PieChart>
+        </ChartContainer>
+        <CustomLegend chartData={chartData} currency={currency} />
+      </div>
     </div>
   );
 }

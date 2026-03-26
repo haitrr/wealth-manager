@@ -3,11 +3,12 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { ArrowDownRight, ArrowUpRight, Plus, Wallet } from "lucide-react";
+import { Plus } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { BalanceTrendChart } from "@/components/dashboard/balance-trend-chart";
 import { CategoryPieChart } from "@/components/dashboard/category-pie-chart";
+import { BudgetOverview } from "@/components/dashboard/budget-overview";
 import { TransactionForm } from "@/components/transactions/transaction-form";
 import { createTransaction } from "@/lib/api/transactions";
 import { getAccounts } from "@/lib/api/accounts";
@@ -157,54 +158,30 @@ export default function Home() {
       {summary && (
         <div className="space-y-2">
           <Card>
-            <CardContent className="flex items-center gap-3 p-3">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 shrink-0">
-                <Wallet className="size-4 text-primary" />
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Net Balance</p>
-                <p
-                  className={`text-base font-semibold ${
-                    summary.netBalance >= 0
-                      ? "text-green-600 dark:text-green-400"
-                      : "text-red-600 dark:text-red-400"
-                  }`}
-                >
+            <CardContent className="grid grid-cols-3 divide-x p-0">
+              <div className="flex flex-col items-center py-2 px-1">
+                <p className="text-[10px] text-muted-foreground">Net</p>
+                <p className={`text-sm font-semibold ${summary.netBalance >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}>
                   {formatCurrency(summary.netBalance, currency)}
+                </p>
+              </div>
+              <div className="flex flex-col items-center py-2 px-1">
+                <p className="text-[10px] text-muted-foreground">Income</p>
+                <p className="text-sm font-semibold text-green-600 dark:text-green-400">
+                  {formatCurrency(summary.totalIncome, currency)}
+                </p>
+              </div>
+              <div className="flex flex-col items-center py-2 px-1">
+                <p className="text-[10px] text-muted-foreground">Expenses</p>
+                <p className="text-sm font-semibold text-red-600 dark:text-red-400">
+                  {formatCurrency(summary.totalExpenses, currency)}
                 </p>
               </div>
             </CardContent>
           </Card>
 
-          <div className="grid grid-cols-2 gap-2">
-            <Card>
-              <CardContent className="flex items-center gap-2 p-3">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-500/10 shrink-0">
-                  <ArrowUpRight className="size-4 text-green-600 dark:text-green-400" />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Income</p>
-                  <p className="text-sm font-semibold text-green-600 dark:text-green-400">
-                    {formatCurrency(summary.totalIncome, currency)}
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="flex items-center gap-2 p-3">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-red-500/10 shrink-0">
-                  <ArrowDownRight className="size-4 text-red-600 dark:text-red-400" />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Expenses</p>
-                  <p className="text-sm font-semibold text-red-600 dark:text-red-400">
-                    {formatCurrency(summary.totalExpenses, currency)}
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+          {/* Budget Overview */}
+          <BudgetOverview />
 
           {/* Balance Trend Chart */}
           <BalanceTrendChart dailyData={summary.dailyData} currency={currency} />
