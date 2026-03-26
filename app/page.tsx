@@ -15,6 +15,7 @@ import { getAccounts } from "@/lib/api/accounts";
 import { getTransactionCategories } from "@/lib/api/transaction-categories";
 import { getExchangeRates } from "@/lib/api/exchange-rates";
 import { formatCurrency } from "@/lib/utils";
+import { Currency } from "@/lib/api/accounts";
 import api from "@/lib/axios";
 
 interface DailyData {
@@ -83,6 +84,35 @@ async function getMonthlySummary(range: TimeRange): Promise<MonthlySummary> {
   return data;
 }
 
+function SummaryStats({ netBalance, totalIncome, totalExpenses, currency }: {
+  netBalance: number; totalIncome: number; totalExpenses: number; currency: Currency;
+}) {
+  return (
+    <Card>
+      <CardContent className="grid grid-cols-3 divide-x p-0">
+        <div className="flex flex-col items-center py-2 px-1">
+          <p className="text-[10px] text-muted-foreground">Net</p>
+          <p className={`text-sm font-semibold ${netBalance >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}>
+            {formatCurrency(netBalance, currency)}
+          </p>
+        </div>
+        <div className="flex flex-col items-center py-2 px-1">
+          <p className="text-[10px] text-muted-foreground">Income</p>
+          <p className="text-sm font-semibold text-green-600 dark:text-green-400">
+            {formatCurrency(totalIncome, currency)}
+          </p>
+        </div>
+        <div className="flex flex-col items-center py-2 px-1">
+          <p className="text-[10px] text-muted-foreground">Expenses</p>
+          <p className="text-sm font-semibold text-red-600 dark:text-red-400">
+            {formatCurrency(totalExpenses, currency)}
+          </p>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 export default function Home() {
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -127,8 +157,9 @@ export default function Home() {
   }, 0);
 
   return (
-    <main className="max-w-lg mx-auto px-4 py-4">
-<div className="mb-2 rounded-xl bg-linear-to-br from-indigo-950 to-violet-950 px-4 py-3 text-white">
+    <main className="max-w-5xl mx-auto px-4 py-4">
+      {/* Full-width header */}
+      <div className="mb-2 rounded-xl bg-linear-to-br from-indigo-950 to-violet-950 px-4 py-3 text-white">
         <p className="text-xs opacity-70">Total Balance</p>
         <p className="text-2xl font-bold tracking-tight">
           {accounts.length > 0 ? formatCurrency(totalBalance, currency) : "—"}
@@ -157,37 +188,27 @@ export default function Home() {
 
       {summary && (
         <div className="space-y-2">
-          <Card>
-            <CardContent className="grid grid-cols-3 divide-x p-0">
-              <div className="flex flex-col items-center py-2 px-1">
-                <p className="text-[10px] text-muted-foreground">Net</p>
-                <p className={`text-sm font-semibold ${summary.netBalance >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}>
-                  {formatCurrency(summary.netBalance, currency)}
-                </p>
-              </div>
-              <div className="flex flex-col items-center py-2 px-1">
-                <p className="text-[10px] text-muted-foreground">Income</p>
-                <p className="text-sm font-semibold text-green-600 dark:text-green-400">
-                  {formatCurrency(summary.totalIncome, currency)}
-                </p>
-              </div>
-              <div className="flex flex-col items-center py-2 px-1">
-                <p className="text-[10px] text-muted-foreground">Expenses</p>
-                <p className="text-sm font-semibold text-red-600 dark:text-red-400">
-                  {formatCurrency(summary.totalExpenses, currency)}
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+          {/* Top: two columns */}
+          <div className="md:flex md:gap-4 space-y-2 md:space-y-0">
+            {/* Left */}
+            <div className="space-y-2 md:flex-3 min-w-0">
+              <SummaryStats
+                netBalance={summary.netBalance}
+                totalIncome={summary.totalIncome}
+                totalExpenses={summary.totalExpenses}
+                currency={currency}
+              />
+              <BalanceTrendChart dailyData={summary.dailyData} currency={currency} />
+            </div>
 
-          {/* Budget Overview */}
-          <BudgetOverview />
+            {/* Right */}
+            <div className="md:w-72 md:shrink-0">
+              <BudgetOverview />
+            </div>
+          </div>
 
-          {/* Balance Trend Chart */}
-          <BalanceTrendChart dailyData={summary.dailyData} currency={currency} />
-
-          {/* Category Pie Charts */}
-          <div className="grid grid-cols-1 gap-3">
+          {/* Bottom: pie charts side by side */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
             <CategoryPieChart
               title="Expenses by Category"
               data={summary.expensesByCategory}
