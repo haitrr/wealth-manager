@@ -210,23 +210,25 @@ export function TransactionForm({
 
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v) { setConfirmDelete(false); onClose(); } }}>
-      <DialogContent className="w-[95vw] max-w-lg">
+      <DialogContent className="inset-0 translate-x-0 translate-y-0 max-w-full w-full h-dvh rounded-none md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:max-w-lg md:w-[95vw] md:h-auto md:max-h-[90dvh] md:rounded-xl flex flex-col">
         <DialogHeader>
           <DialogTitle>{transaction ? "Edit Transaction" : "Add Transaction"}</DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit}>
-          <TransactionFields
-            key={transaction?.id ?? "new"}
-            transaction={transaction}
-            accounts={accounts}
-            categories={categories}
-            defaultDate={defaultDate}
-            defaultAccountId={defaultAccount?.id ?? ""}
-            error={error}
-            selectedCategoryId={selectedCategoryId}
-            onCategoryChange={setSelectedCategoryId}
-          />
+        <form onSubmit={handleSubmit} className="flex-1 flex flex-col min-h-0">
+          <div className="overflow-y-auto flex-1">
+            <TransactionFields
+              key={transaction?.id ?? "new"}
+              transaction={transaction}
+              accounts={accounts}
+              categories={categories}
+              defaultDate={defaultDate}
+              defaultAccountId={defaultAccount?.id ?? ""}
+              error={error}
+              selectedCategoryId={selectedCategoryId}
+              onCategoryChange={setSelectedCategoryId}
+            />
+          </div>
           <div className="flex items-center justify-between pt-4 gap-2">
             <div>
               {transaction && onDelete && (
