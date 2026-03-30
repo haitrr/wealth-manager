@@ -11,9 +11,15 @@ const prisma = new PrismaClient({ adapter });
 async function main() {
   // Clean up existing seed data
   await prisma.budget.deleteMany({ where: { user: { email: "test@example.com" } } });
+  await prisma.loanPayment.deleteMany({ where: { user: { email: "test@example.com" } } });
+  await prisma.loanScheduleEntry.deleteMany({ where: { loan: { user: { email: "test@example.com" } } } });
+  await prisma.loanRatePeriod.deleteMany({ where: { loan: { user: { email: "test@example.com" } } } });
+  await prisma.loan.deleteMany({ where: { user: { email: "test@example.com" } } });
   await prisma.transaction.deleteMany({ where: { user: { email: "test@example.com" } } });
   await prisma.transactionCategory.deleteMany({ where: { user: { email: "test@example.com" } } });
-  await prisma.account.deleteMany({ where: { user: { email: "test@example.com" } } });  await prisma.exchangeRate.deleteMany({ where: { user: { email: "test@example.com" } } });  await prisma.user.deleteMany({ where: { email: "test@example.com" } });
+  await prisma.account.deleteMany({ where: { user: { email: "test@example.com" } } });
+  await prisma.exchangeRate.deleteMany({ where: { user: { email: "test@example.com" } } });
+  await prisma.user.deleteMany({ where: { email: "test@example.com" } });
 
   const password = await bcrypt.hash("password123", 10);
   const user = await prisma.user.create({

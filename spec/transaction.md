@@ -1,3 +1,5 @@
 - user can create a transaction with amount, account, date, description, and category.
 - user can view a list of transactions, sorted by date.
 - in the home page, user can see a summary of their transactions, including total income, total expenses, and net balance for the current month.
+- loan payments create linked transactions so account balances stay aligned with debt and loan activity.
+- loan-linked transactions are recorded in the loan currency and can represent repayment, disbursement, or adjustment cash flows.

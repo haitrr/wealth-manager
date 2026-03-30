@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { BalanceTrendChart } from "@/components/dashboard/balance-trend-chart";
 import { CategoryPieChart } from "@/components/dashboard/category-pie-chart";
 import { BudgetOverview } from "@/components/dashboard/budget-overview";
+import { LoanOverview } from "@/components/dashboard/loan-overview";
 import { TransactionForm } from "@/components/transactions/transaction-form";
 import { createTransaction } from "@/lib/api/transactions";
 import { getAccounts } from "@/lib/api/accounts";
@@ -207,7 +208,8 @@ export default function Home() {
             </div>
 
             {/* Right */}
-            <div className="md:w-72 md:shrink-0">
+            <div className="md:w-72 md:shrink-0 space-y-2">
+              <LoanOverview currency={currency} exchangeRates={exchangeRates} />
               <BudgetOverview />
             </div>
           </div>

@@ -1,3 +1,4 @@
 - user can register with email and password.
 - user can login with email and password.
 - user can logout.
+- after registration, the user can manage accounts, transactions, budgets, categories, exchange rates, api keys, and loans from the app.

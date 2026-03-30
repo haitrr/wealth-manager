@@ -2,3 +2,4 @@
 - each transaction category has a name and a type (income or expense or payable (borrowed) or receivable (lent)).
 - when user registered, there are some default categories created for them, such as Salary (income), Food (expense), etc.
 - in the settings page, user can manage their transaction categories, including creating new categories, editing existing categories, and deleting categories that are not used by any transactions.
+- the system provisions dedicated loan categories automatically when loan cash flow transactions are created.

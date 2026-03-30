@@ -18,6 +18,8 @@ model User {
   budgets              Budget[]
   exchangeRates        ExchangeRate[]
   apiKeys              ApiKey[]
+  loans                Loan[]
+  loanPayments         LoanPayment[]
 }
 
 enum Currency {
@@ -35,8 +37,55 @@ model Account {
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   transactions Transaction[]
   budgets      Budget[]
+  loans        Loan[]
+  loanPayments LoanPayment[]
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
+}
+
+enum LoanDirection {
+  borrowed
+  lent
+}
+
+enum LoanProductType {
+  installment
+  bullet
+}
+
+enum LoanInstallmentStrategy {
+  equal_principal
+  annuity
+  bullet
+}
+
+enum RepaymentFrequency {
+  monthly
+  quarterly
+  yearly
+}
+
+enum LoanStatus {
+  draft
+  active
+  closed
+}
+
+enum LoanRatePeriodType {
+  fixed
+  floating
+}
+
+enum LoanPaymentKind {
+  scheduled
+  prepayment
+  adjustment
+}
+
+enum LoanScheduleStatus {
+  pending
+  partially_paid
+  paid
 }
 
 enum CategoryType {
@@ -73,8 +122,105 @@ model Transaction {
   category    TransactionCategory @relation(fields: [categoryId], references: [id])
   userId      String
   user        User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  loanPayment LoanPayment?
   createdAt   DateTime            @default(now())
   updatedAt   DateTime            @updatedAt
+}
+
+model Loan {
+  id                  String                  @id @default(cuid())
+  name                String
+  direction           LoanDirection
+  productType         LoanProductType
+  installmentStrategy LoanInstallmentStrategy
+  principalAmount     Float
+  remainingPrincipal  Float
+  currency            Currency               @default(USD)
+  termMonths          Int
+  repaymentFrequency  RepaymentFrequency     @default(monthly)
+  startDate           DateTime
+  firstPaymentDate    DateTime
+  counterpartyName    String?
+  notes               String?
+  status              LoanStatus             @default(active)
+  accountId           String
+  account             Account                @relation(fields: [accountId], references: [id])
+  userId              String
+  user                User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ratePeriods         LoanRatePeriod[]
+  payments            LoanPayment[]
+  scheduleEntries     LoanScheduleEntry[]
+  createdAt           DateTime               @default(now())
+  updatedAt           DateTime               @updatedAt
+
+  @@index([userId, status])
+  @@index([accountId])
+}
+
+model LoanRatePeriod {
+  id                     String             @id @default(cuid())
+  loanId                 String
+  loan                   Loan               @relation(fields: [loanId], references: [id], onDelete: Cascade)
+  periodType             LoanRatePeriodType
+  annualRate             Float
+  startDate              DateTime
+  endDate                DateTime?
+  repricingIntervalMonths Int?
+  sequence               Int
+  scheduleEntries        LoanScheduleEntry[]
+  createdAt              DateTime           @default(now())
+  updatedAt              DateTime           @updatedAt
+
+  @@unique([loanId, sequence])
+  @@index([loanId, startDate])
+}
+
+model LoanScheduleEntry {
+  id                String             @id @default(cuid())
+  loanId            String
+  loan              Loan               @relation(fields: [loanId], references: [id], onDelete: Cascade)
+  ratePeriodId      String?
+  ratePeriod        LoanRatePeriod?    @relation(fields: [ratePeriodId], references: [id], onDelete: SetNull)
+  installmentIndex  Int
+  dueDate           DateTime
+  openingPrincipal  Float
+  scheduledPrincipal Float
+  scheduledInterest Float
+  scheduledTotal    Float
+  closingPrincipal  Float
+  appliedAnnualRate Float
+  status            LoanScheduleStatus @default(pending)
+  paidPrincipal     Float              @default(0)
+  paidInterest      Float              @default(0)
+  paidTotal         Float              @default(0)
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+
+  @@unique([loanId, installmentIndex])
+  @@index([loanId, dueDate])
+}
+
+model LoanPayment {
+  id              String          @id @default(cuid())
+  loanId          String
+  loan            Loan            @relation(fields: [loanId], references: [id], onDelete: Cascade)
+  accountId       String
+  account         Account         @relation(fields: [accountId], references: [id])
+  transactionId   String?         @unique
+  transaction     Transaction?    @relation(fields: [transactionId], references: [id], onDelete: SetNull)
+  paymentDate     DateTime
+  paymentKind     LoanPaymentKind @default(scheduled)
+  totalAmount     Float
+  principalAmount Float
+  interestAmount  Float
+  note            String?
+  userId          String
+  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  @@index([loanId, paymentDate])
+  @@index([userId])
 }
 
 model Budget {
