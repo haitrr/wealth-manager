@@ -29,18 +29,29 @@ export function BudgetOverview() {
         {top5.map((budget) => {
           const percent = Math.min(100, budget.percentUsed);
           const isOver = budget.spent > budget.amount;
+          const expectedPercent = budget.daysTotal > 0
+            ? Math.min(100, (budget.daysElapsed / budget.daysTotal) * 100)
+            : 0;
+          const periodLabel = budget.period === "monthly" ? "Monthly" : budget.period === "yearly" ? "Yearly" : "Custom";
           return (
             <Link key={budget.id} href={`/budgets/${budget.id}`} className="block space-y-1">
               <div className="flex items-center justify-between text-xs">
                 <span className="truncate flex-1 font-medium">{budget.name}</span>
-                <span className={`ml-2 shrink-0 ${isOver ? "text-destructive" : "text-muted-foreground"}`}>
+                <span className="ml-2 shrink-0 text-[10px] text-muted-foreground">{periodLabel}</span>
+                <span className={`ml-1.5 shrink-0 ${isOver ? "text-destructive" : "text-muted-foreground"}`}>
                   {Math.round(budget.percentUsed)}%
                 </span>
               </div>
-              <div className="relative h-1.5 rounded-full bg-muted overflow-hidden">
+              <div className="relative h-1.5">
+                <div className="h-full rounded-full bg-muted overflow-hidden">
+                  <div
+                    className={`h-full rounded-full transition-all ${isOver ? "bg-destructive" : "bg-primary"}`}
+                    style={{ width: `${percent}%` }}
+                  />
+                </div>
                 <div
-                  className={`h-full rounded-full transition-all ${isOver ? "bg-destructive" : "bg-primary"}`}
-                  style={{ width: `${percent}%` }}
+                  className="absolute top-1/2 -translate-y-1/2 h-3 w-0.5 rounded-full bg-foreground/60"
+                  style={{ left: `${expectedPercent}%` }}
                 />
               </div>
               <div className="flex justify-between text-[10px] text-muted-foreground">
