@@ -11,7 +11,7 @@ import { LoanForm } from "@/components/loans/loan-form";
 import { LoanPaymentForm } from "@/components/loans/loan-payment-form";
 import { LoanRepricingForm } from "@/components/loans/loan-repricing-form";
 import { getAccounts } from "@/lib/api/accounts";
-import { createLoanPayment, deleteLoan, getLoan, repriceLoan, updateLoan } from "@/lib/api/loans";
+import { createLoanPayment, deleteLoan, getLoan, LoanPayment, repriceLoan, updateLoan, updateLoanPayment } from "@/lib/api/loans";
 import { formatCurrency } from "@/lib/utils";
 
 export default function LoanDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -21,6 +21,7 @@ export default function LoanDetailPage({ params }: { params: Promise<{ id: strin
   const [editOpen, setEditOpen] = useState(false);
   const [paymentOpen, setPaymentOpen] = useState(false);
   const [repricingOpen, setRepricingOpen] = useState(false);
+  const [editingPayment, setEditingPayment] = useState<LoanPayment | null>(null);
 
   const { data: loan, isLoading } = useQuery({
     queryKey: ["loans", id],
@@ -43,6 +44,11 @@ export default function LoanDetailPage({ params }: { params: Promise<{ id: strin
   const deleteMutation = useMutation({ mutationFn: () => deleteLoan(id), onSuccess: invalidate });
   const paymentMutation = useMutation({
     mutationFn: (payload: Parameters<typeof createLoanPayment>[1]) => createLoanPayment(id, payload),
+    onSuccess: invalidate,
+  });
+  const updatePaymentMutation = useMutation({
+    mutationFn: ({ paymentId, payload }: { paymentId: string; payload: Parameters<typeof updateLoanPayment>[2] }) =>
+      updateLoanPayment(id, paymentId, payload),
     onSuccess: invalidate,
   });
   const repricingMutation = useMutation({
@@ -71,7 +77,7 @@ export default function LoanDetailPage({ params }: { params: Promise<{ id: strin
   return (
     <main className="max-w-lg mx-auto px-4 py-8 pb-24">
       <div className="flex items-center gap-3 mb-6">
-        <Link href="/settings/loans" className="text-muted-foreground hover:text-foreground">
+        <Link href="/loans" className="text-muted-foreground hover:text-foreground">
           <ArrowLeft className="size-5" />
         </Link>
         <div className="flex-1 min-w-0">
@@ -106,7 +112,13 @@ export default function LoanDetailPage({ params }: { params: Promise<{ id: strin
         </div>
 
         <div className="grid grid-cols-2 gap-2">
-          <Button onClick={() => setPaymentOpen(true)} disabled={loan.status === "closed"}>
+          <Button
+            onClick={() => {
+              setEditingPayment(null);
+              setPaymentOpen(true);
+            }}
+            disabled={loan.status === "closed"}
+          >
             <Coins className="size-4 mr-1" />
             Record Payment
           </Button>
@@ -150,7 +162,22 @@ export default function LoanDetailPage({ params }: { params: Promise<{ id: strin
                       {new Date(payment.paymentDate).toLocaleDateString("en-US")}
                     </p>
                   </div>
-                  <p className="text-sm font-medium">{formatCurrency(payment.totalAmount, loan.currency)}</p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-medium">{formatCurrency(payment.totalAmount, loan.currency)}</p>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="size-8"
+                      onClick={(event) => {
+                        event.preventDefault();
+                        setEditingPayment(payment);
+                        setPaymentOpen(true);
+                      }}
+                    >
+                      <Pencil className="size-4" />
+                    </Button>
+                  </div>
                 </div>
                 <div className="grid grid-cols-2 gap-2 mt-2 text-sm">
                   <div>
@@ -219,16 +246,25 @@ export default function LoanDetailPage({ params }: { params: Promise<{ id: strin
         }}
         onDelete={async () => {
           await deleteMutation.mutateAsync();
-          router.push("/settings/loans");
+          router.push("/loans");
         }}
       />
 
       <LoanPaymentForm
         open={paymentOpen}
         loan={loan}
+        payment={editingPayment}
         accounts={accounts.filter((account) => account.currency === loan.currency)}
-        onClose={() => setPaymentOpen(false)}
+        onClose={() => {
+          setPaymentOpen(false);
+          setEditingPayment(null);
+        }}
         onSubmit={async (payload) => {
+          if (editingPayment) {
+            await updatePaymentMutation.mutateAsync({ paymentId: editingPayment.id, payload });
+            return;
+          }
+
           await paymentMutation.mutateAsync(payload);
         }}
       />

@@ -54,6 +54,7 @@ export interface LoanPayment {
   totalAmount: number;
   principalAmount: number;
   interestAmount: number;
+  prepaymentStrategy: PrepaymentStrategy | null;
   note: string | null;
   userId: string;
   createdAt: string;
@@ -167,6 +168,11 @@ export async function deleteLoan(id: string): Promise<void> {
 
 export async function createLoanPayment(id: string, payload: LoanPaymentPayload): Promise<Loan> {
   const { data } = await api.post<Loan>(`/loans/${id}/payments`, payload);
+  return data;
+}
+
+export async function updateLoanPayment(id: string, paymentId: string, payload: LoanPaymentPayload): Promise<Loan> {
+  const { data } = await api.put<Loan>(`/loans/${id}/payments/${paymentId}`, payload);
   return data;
 }
 

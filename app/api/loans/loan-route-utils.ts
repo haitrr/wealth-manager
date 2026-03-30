@@ -5,6 +5,7 @@ import {
   LoanPaymentKind,
   LoanProductType,
   LoanStatus,
+  PrepaymentStrategy,
   Prisma,
   RepaymentFrequency,
 } from "@prisma/client";
@@ -91,8 +92,6 @@ export interface LoanRepricingPayload {
   annualRate: number;
   repricingIntervalMonths?: number | null;
 }
-
-export type PrepaymentStrategy = "reduce_payment" | "shorten_term";
 
 export function parseLoanPayload(payload: LoanPayload) {
   const name = payload.name?.trim();
@@ -224,7 +223,7 @@ export function parseLoanPaymentPayload(payload: LoanPaymentPayload) {
     principalAmount,
     interestAmount,
     note: payload.note?.trim() || null,
-    prepaymentStrategy,
+    prepaymentStrategy: paymentKind === "prepayment" ? prepaymentStrategy : null,
   };
 }
 
@@ -313,6 +312,35 @@ export async function ensureLoanTransactionCategory(
       icon: null,
     },
   });
+}
+
+export async function getOwnedLoanPayment(loanId: string, paymentId: string, userId: string) {
+  return prisma.loanPayment.findFirst({
+    where: { id: paymentId, loanId, userId },
+  });
+}
+
+export function buildLoanPaymentTransactionData(
+  loan: Pick<LoanWithRelations, "name" | "direction">,
+  payload: ReturnType<typeof parseLoanPaymentPayload>,
+  categoryId: string,
+  userId: string
+) {
+  const paymentLabel = payload.paymentKind === "prepayment" ? "prepayment" : "payment";
+  const strategyDetails =
+    payload.paymentKind === "prepayment" && payload.prepaymentStrategy
+      ? `; strategy ${payload.prepaymentStrategy}`
+      : "";
+
+  return {
+    amount: payload.totalAmount,
+    date: payload.paymentDate,
+    description: payload.note || `${loan.name} ${paymentLabel}`,
+    details: `Loan ${payload.paymentKind}; principal ${payload.principalAmount.toFixed(2)}, interest ${payload.interestAmount.toFixed(2)}${strategyDetails}`,
+    accountId: payload.accountId,
+    categoryId,
+    userId,
+  };
 }
 
 export async function regenerateScheduleFrom(
@@ -505,6 +533,111 @@ export async function settleScheduleWithPayment(
     remainingUnallocatedPrincipal: remainingPrincipal,
     remainingUnallocatedInterest: remainingInterest,
   };
+}
+
+export async function rebuildLoanDerivedState(tx: LoanTransactionClient, loanId: string) {
+  const baseLoan = await tx.loan.findUniqueOrThrow({
+    where: { id: loanId },
+    include: LOAN_INCLUDE,
+  });
+
+  const baselineSchedule = generateLoanSchedule(
+    getLoanComputationInput(baseLoan, {
+      principalAmount: baseLoan.principalAmount,
+      remainingPrincipal: baseLoan.principalAmount,
+    }),
+    getRatePeriodInputs(baseLoan)
+  );
+
+  await tx.loanScheduleEntry.deleteMany({ where: { loanId } });
+  await tx.loanScheduleEntry.createMany({
+    data: buildScheduleCreateManyInput(loanId, baselineSchedule, baseLoan.ratePeriods),
+  });
+
+  await tx.loan.update({
+    where: { id: loanId },
+    data: {
+      remainingPrincipal: baseLoan.principalAmount,
+      status: baseLoan.status === "draft" ? "draft" : "active",
+    },
+  });
+
+  const orderedPayments = [...baseLoan.payments].sort((left, right) => {
+    const dateDiff = left.paymentDate.getTime() - right.paymentDate.getTime();
+    if (dateDiff !== 0) return dateDiff;
+    return left.createdAt.getTime() - right.createdAt.getTime();
+  });
+
+  for (const payment of orderedPayments) {
+    if (payment.account.currency !== baseLoan.currency) {
+      throw new Error("Loan and payment account must use the same currency");
+    }
+
+    const currentLoan = await tx.loan.findUniqueOrThrow({
+      where: { id: loanId },
+      include: LOAN_INCLUDE,
+    });
+
+    if (payment.principalAmount > currentLoan.remainingPrincipal + 0.01) {
+      throw new Error("Principal payment exceeds remaining principal");
+    }
+
+    const paymentResult = await settleScheduleWithPayment(
+      tx,
+      currentLoan,
+      payment.principalAmount,
+      payment.interestAmount,
+      payment.paymentDate
+    );
+
+    if (paymentResult.remainingUnallocatedInterest > 0.01) {
+      throw new Error("Interest amount exceeds unpaid scheduled interest");
+    }
+
+    const nextRemainingPrincipal = Math.max(
+      0,
+      Number((currentLoan.remainingPrincipal - payment.principalAmount).toFixed(2))
+    );
+
+    await tx.loan.update({
+      where: { id: loanId },
+      data: {
+        remainingPrincipal: nextRemainingPrincipal,
+        status: nextRemainingPrincipal <= 0.01 ? "closed" : "active",
+      },
+    });
+
+    const refreshedLoan = await tx.loan.findUniqueOrThrow({
+      where: { id: loanId },
+      include: LOAN_INCLUDE,
+    });
+
+    const shouldRegenerate =
+      payment.paymentKind !== "scheduled" || paymentResult.remainingUnallocatedPrincipal > 0.01;
+    const firstOpenEntry = refreshedLoan.scheduleEntries.find((entry) => entry.status !== "paid") ?? null;
+
+    if (nextRemainingPrincipal <= 0.01) {
+      if (firstOpenEntry) {
+        await tx.loanScheduleEntry.deleteMany({
+          where: { loanId, installmentIndex: { gte: firstOpenEntry.installmentIndex } },
+        });
+      }
+    } else if (shouldRegenerate && firstOpenEntry) {
+      if (
+        payment.paymentKind === "prepayment" &&
+        (payment.prepaymentStrategy ?? "reduce_payment") === "shorten_term"
+      ) {
+        await shortenLoanTermFrom(tx, refreshedLoan, firstOpenEntry.installmentIndex, nextRemainingPrincipal);
+      } else {
+        await regenerateScheduleFrom(tx, refreshedLoan, firstOpenEntry.installmentIndex, nextRemainingPrincipal);
+      }
+    }
+  }
+
+  return tx.loan.findUniqueOrThrow({
+    where: { id: loanId },
+    include: LOAN_INCLUDE,
+  });
 }
 
 export function buildScheduleCreateManyInput(

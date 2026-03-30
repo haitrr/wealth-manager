@@ -58,7 +58,7 @@ export function LoanOverview({ currency, exchangeRates }: { currency: Currency; 
       <CardContent className="p-3 space-y-3">
         <div className="flex items-center justify-between">
           <p className="text-xs font-medium text-muted-foreground">Loans</p>
-          <Link href="/settings/loans" className="text-xs text-primary">View all</Link>
+          <Link href="/loans" className="text-xs text-primary">View all</Link>
         </div>
 
         <div className="grid grid-cols-2 gap-2 text-xs">
@@ -80,7 +80,7 @@ export function LoanOverview({ currency, exchangeRates }: { currency: Currency; 
           {topLoans.map(({ loan, displayRemainingPrincipal }) => {
             const progress = Math.max(0, Math.min(100, loan.summary.progressPercent));
             return (
-              <Link key={loan.id} href={`/settings/loans/${loan.id}`} className="block space-y-1.5">
+              <Link key={loan.id} href={`/loans/${loan.id}`} className="block space-y-1.5">
                 <div className="flex items-center justify-between gap-2 text-xs">
                   <span className="truncate flex-1 font-medium">{loan.name}</span>
                   <span className="text-muted-foreground shrink-0">{loan.summary.currentAnnualRate.toFixed(2)}%</span>

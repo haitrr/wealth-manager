@@ -2,14 +2,13 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ChevronRight, CreditCard, Tag, User, DollarSign, Upload, HandCoins } from "lucide-react";
+import { ChevronRight, CreditCard, Tag, User, DollarSign, Upload } from "lucide-react";
 import { ImportDialog } from "@/components/transactions/import-dialog";
 
 const SETTINGS_ITEMS = [
   { href: "/settings/account", label: "User", description: "Manage password and logout", icon: User },
   { href: "/settings/accounts", label: "Accounts", description: "Manage your bank accounts", icon: CreditCard },
   { href: "/settings/categories", label: "Categories", description: "Manage transaction categories", icon: Tag },
-  { href: "/settings/loans", label: "Loans", description: "Manage loans and repayment schedules", icon: HandCoins },
   { href: "/settings/exchange-rates", label: "Currency", description: "Manage exchange rates", icon: DollarSign },
 ];
 

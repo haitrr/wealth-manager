@@ -6,30 +6,33 @@ import {
   ensureLoanTransactionCategory,
   ensureOwnedAccount,
   getOwnedLoan,
+  getOwnedLoanPayment,
   parseLoanPaymentPayload,
   rebuildLoanDerivedState,
   serializeLoan,
-} from "../../loan-route-utils";
+} from "../../../loan-route-utils";
 
-export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function PUT(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string; paymentId: string }> }
+) {
   const session = await getSession(req);
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   try {
-    const { id } = await params;
+    const { id, paymentId } = await params;
     const loan = await getOwnedLoan(id, session.userId);
     if (!loan) return NextResponse.json({ error: "Loan not found" }, { status: 404 });
-    if (loan.status === "closed") {
-      return NextResponse.json({ error: "Closed loans cannot receive payments" }, { status: 400 });
+
+    const existingPayment = await getOwnedLoanPayment(id, paymentId, session.userId);
+    if (!existingPayment) {
+      return NextResponse.json({ error: "Payment not found" }, { status: 404 });
     }
 
     const payload = parseLoanPaymentPayload(await req.json());
     const account = await ensureOwnedAccount(payload.accountId, session.userId);
     if (account.currency !== loan.currency) {
       return NextResponse.json({ error: "Loan and payment account must use the same currency" }, { status: 400 });
-    }
-    if (payload.principalAmount > loan.remainingPrincipal + 0.01) {
-      return NextResponse.json({ error: "Principal payment exceeds remaining principal" }, { status: 400 });
     }
     if (
       payload.paymentKind === "prepayment" &&
@@ -44,15 +47,25 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
     const updatedLoan = await prisma.$transaction(async (tx) => {
       const category = await ensureLoanTransactionCategory(tx, session.userId, loan.direction);
-      const transaction = await tx.transaction.create({
-        data: buildLoanPaymentTransactionData(loan, payload, category.id, session.userId),
-      });
+      const transactionData = buildLoanPaymentTransactionData(loan, payload, category.id, session.userId);
 
-      await tx.loanPayment.create({
+      if (existingPayment.transactionId) {
+        await tx.transaction.update({
+          where: { id: existingPayment.transactionId },
+          data: transactionData,
+        });
+      } else {
+        const transaction = await tx.transaction.create({ data: transactionData });
+        await tx.loanPayment.update({
+          where: { id: existingPayment.id },
+          data: { transactionId: transaction.id },
+        });
+      }
+
+      await tx.loanPayment.update({
+        where: { id: existingPayment.id },
         data: {
-          loanId: loan.id,
           accountId: payload.accountId,
-          transactionId: transaction.id,
           paymentDate: payload.paymentDate,
           paymentKind: payload.paymentKind,
           totalAmount: payload.totalAmount,
@@ -60,7 +73,6 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
           interestAmount: payload.interestAmount,
           prepaymentStrategy: payload.prepaymentStrategy,
           note: payload.note,
-          userId: session.userId,
         },
       });
 
@@ -69,7 +81,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
     return NextResponse.json(serializeLoan(updatedLoan));
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Unable to record payment";
+    const message = error instanceof Error ? error.message : "Unable to update payment";
     return NextResponse.json({ error: message }, { status: 400 });
   }
 }

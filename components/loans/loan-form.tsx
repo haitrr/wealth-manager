@@ -23,6 +23,7 @@ import {
 interface LoanFormProps {
   open: boolean;
   loan?: Loan | null;
+  defaultDirection?: LoanDirection;
   accounts: Account[];
   onClose: () => void;
   onSubmit: (payload: LoanPayload) => Promise<void>;
@@ -124,11 +125,11 @@ function makeInitialRatePeriods(loan?: Loan | null): EditableRatePeriod[] {
   }));
 }
 
-export function LoanForm({ open, loan, accounts, onClose, onSubmit, onDelete }: LoanFormProps) {
+export function LoanForm({ open, loan, defaultDirection, accounts, onClose, onSubmit, onDelete }: LoanFormProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [confirmDelete, setConfirmDelete] = useState(false);
-  const [direction, setDirection] = useState<LoanDirection>(loan?.direction ?? "borrowed");
+  const [direction, setDirection] = useState<LoanDirection>(loan?.direction ?? defaultDirection ?? "borrowed");
   const [productType, setProductType] = useState<LoanProductType>(loan?.productType ?? "installment");
   const [installmentStrategy, setInstallmentStrategy] = useState<LoanInstallmentStrategy>(
     loan?.installmentStrategy ?? "equal_principal"
@@ -139,19 +140,20 @@ export function LoanForm({ open, loan, accounts, onClose, onSubmit, onDelete }: 
   const [ratePeriods, setRatePeriods] = useState<EditableRatePeriod[]>(makeInitialRatePeriods(loan));
 
   const defaultAccount = useMemo(() => accounts.find((account) => account.isDefault) ?? accounts[0], [accounts]);
+  const directionLabel = DIRECTION_OPTIONS.find((option) => option.value === direction)?.label ?? "Borrowed";
 
   useEffect(() => {
     if (!open) return;
     setError("");
     setConfirmDelete(false);
-    setDirection(loan?.direction ?? "borrowed");
+    setDirection(loan?.direction ?? defaultDirection ?? "borrowed");
     setProductType(loan?.productType ?? "installment");
     setInstallmentStrategy(loan?.installmentStrategy ?? "equal_principal");
     setCurrency(loan?.currency ?? defaultAccount?.currency ?? "VND");
     setRepaymentFrequency(loan?.repaymentFrequency ?? "monthly");
     setStatus(loan?.status ?? "active");
     setRatePeriods(makeInitialRatePeriods(loan));
-  }, [open, loan, defaultAccount?.currency]);
+  }, [open, loan, defaultDirection, defaultAccount?.currency]);
 
   useEffect(() => {
     if (productType === "bullet") {
@@ -236,7 +238,7 @@ export function LoanForm({ open, loan, accounts, onClose, onSubmit, onDelete }: 
     <Dialog open={open} onOpenChange={(nextOpen) => !nextOpen && onClose()}>
       <DialogContent className="w-[95vw] max-w-lg max-h-[90dvh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{loan ? "Edit Loan" : "Add Loan"}</DialogTitle>
+          <DialogTitle>{loan ? "Edit Loan" : `Add ${directionLabel} Loan`}</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4 py-2">
@@ -245,17 +247,30 @@ export function LoanForm({ open, loan, accounts, onClose, onSubmit, onDelete }: 
             <Input id="name" name="name" placeholder="e.g. Home loan" defaultValue={loan?.name ?? ""} required />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-2">
-              <Label htmlFor="direction">Direction</Label>
-              <NativeSelect
-                id="direction"
-                name="direction"
-                value={direction}
-                onChange={(value) => setDirection(value as LoanDirection)}
-                options={DIRECTION_OPTIONS}
-              />
+          {loan ? (
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label htmlFor="direction">Direction</Label>
+                <NativeSelect
+                  id="direction"
+                  name="direction"
+                  value={direction}
+                  onChange={(value) => setDirection(value as LoanDirection)}
+                  options={DIRECTION_OPTIONS}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="status">Status</Label>
+                <NativeSelect
+                  id="status"
+                  name="status"
+                  value={status}
+                  onChange={(value) => setStatus(value as LoanStatus)}
+                  options={STATUS_OPTIONS}
+                />
+              </div>
             </div>
+          ) : (
             <div className="space-y-2">
               <Label htmlFor="status">Status</Label>
               <NativeSelect
@@ -266,7 +281,7 @@ export function LoanForm({ open, loan, accounts, onClose, onSubmit, onDelete }: 
                 options={STATUS_OPTIONS}
               />
             </div>
-          </div>
+          )}
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
@@ -427,7 +442,7 @@ export function LoanForm({ open, loan, accounts, onClose, onSubmit, onDelete }: 
                     Cancel
                   </Button>
                   <Button type="submit" disabled={loading}>
-                    {loading ? "Saving…" : loan ? "Save Changes" : "Create Loan"}
+                    {loading ? "Saving…" : loan ? "Save Changes" : `Create ${directionLabel} Loan`}
                   </Button>
                 </>
               )}

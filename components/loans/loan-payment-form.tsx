@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AmountInput } from "@/components/transactions/amount-input";
 import { Account } from "@/lib/api/accounts";
-import { Loan, LoanPaymentKind, LoanPaymentPayload, PrepaymentStrategy } from "@/lib/api/loans";
+import { Loan, LoanPayment, LoanPaymentKind, LoanPaymentPayload, PrepaymentStrategy } from "@/lib/api/loans";
 
 const PAYMENT_KIND_OPTIONS: Array<{ value: LoanPaymentKind; label: string }> = [
   { value: "scheduled", label: "Scheduled payment" },
@@ -23,6 +23,7 @@ const PREPAYMENT_STRATEGY_OPTIONS: Array<{ value: PrepaymentStrategy; label: str
 interface LoanPaymentFormProps {
   open: boolean;
   loan: Loan;
+  payment?: LoanPayment | null;
   accounts: Account[];
   onClose: () => void;
   onSubmit: (payload: LoanPaymentPayload) => Promise<void>;
@@ -42,11 +43,11 @@ function formatDisplayAmount(amount: number, currency: Loan["currency"]) {
   });
 }
 
-export function LoanPaymentForm({ open, loan, accounts, onClose, onSubmit }: LoanPaymentFormProps) {
+export function LoanPaymentForm({ open, loan, payment, accounts, onClose, onSubmit }: LoanPaymentFormProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [paymentKind, setPaymentKind] = useState<LoanPaymentKind>("scheduled");
-  const [prepaymentStrategy, setPrepaymentStrategy] = useState<PrepaymentStrategy>("reduce_payment");
+  const [paymentKind, setPaymentKind] = useState<LoanPaymentKind>(payment?.paymentKind ?? "scheduled");
+  const [prepaymentStrategy, setPrepaymentStrategy] = useState<PrepaymentStrategy>(payment?.prepaymentStrategy ?? "reduce_payment");
   const [principalRaw, setPrincipalRaw] = useState("");
   const [interestRaw, setInterestRaw] = useState("");
 
@@ -76,16 +77,24 @@ export function LoanPaymentForm({ open, loan, accounts, onClose, onSubmit }: Loa
 
   useEffect(() => {
     if (!open) return;
+    setError("");
+    if (payment) {
+      setPaymentKind(payment.paymentKind);
+      setPrepaymentStrategy(payment.prepaymentStrategy ?? "reduce_payment");
+      setPrincipalRaw(String(payment.principalAmount));
+      setInterestRaw(String(payment.interestAmount));
+      return;
+    }
+
     setPaymentKind("scheduled");
     setPrepaymentStrategy("reduce_payment");
-    setError("");
     applySuggestion("scheduled");
-  }, [open, loan.id, nextEntry?.id]);
+  }, [open, loan.id, nextEntry?.id, payment]);
 
   useEffect(() => {
-    if (!open) return;
+    if (!open || payment) return;
     applySuggestion(paymentKind);
-  }, [open, paymentKind]);
+  }, [open, payment, paymentKind]);
 
   const totalAmount = parseRawAmount(principalRaw) + parseRawAmount(interestRaw);
 
@@ -120,7 +129,7 @@ export function LoanPaymentForm({ open, loan, accounts, onClose, onSubmit }: Loa
     <Dialog open={open} onOpenChange={(nextOpen) => !nextOpen && onClose()}>
       <DialogContent className="w-[95vw] max-w-lg">
         <DialogHeader>
-          <DialogTitle>Record Payment</DialogTitle>
+          <DialogTitle>{payment ? "Edit Payment" : "Record Payment"}</DialogTitle>
         </DialogHeader>
 
         <form key={`${loan.id}-${open ? "open" : "closed"}`} onSubmit={handleSubmit} className="space-y-4 py-2">
@@ -163,7 +172,13 @@ export function LoanPaymentForm({ open, loan, accounts, onClose, onSubmit }: Loa
                 id="paymentDate"
                 name="paymentDate"
                 type="date"
-                defaultValue={nextEntry ? new Date(nextEntry.dueDate).toISOString().split("T")[0] : new Date().toISOString().split("T")[0]}
+                defaultValue={
+                  payment
+                    ? new Date(payment.paymentDate).toISOString().split("T")[0]
+                    : nextEntry
+                    ? new Date(nextEntry.dueDate).toISOString().split("T")[0]
+                    : new Date().toISOString().split("T")[0]
+                }
                 required
               />
             </div>
@@ -172,7 +187,7 @@ export function LoanPaymentForm({ open, loan, accounts, onClose, onSubmit }: Loa
               <select
                 id="accountId"
                 name="accountId"
-                defaultValue={loan.accountId}
+                defaultValue={payment?.accountId ?? loan.accountId}
                 className="h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-[16px] md:text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                 required
               >
@@ -194,8 +209,8 @@ export function LoanPaymentForm({ open, loan, accounts, onClose, onSubmit }: Loa
               : paymentKind === "prepayment"
               ? prepaymentStrategy === "shorten_term"
                 ? "Suggested as a full principal payoff with zero interest. Future installments will keep similar payment amounts and the schedule will end earlier."
-                : "Suggested as a full principal payoff with zero interest. Future installments will be recalculated across the remaining term."
-              : "Suggested as principal-only adjustment. Edit principal and interest as needed."}
+                  : "Suggested as a full principal payoff with zero interest. Future installments will be recalculated across the remaining term."
+                : "Suggested as principal-only adjustment. Edit principal and interest as needed."}
           </div>
 
           <div className="grid grid-cols-2 gap-3">
@@ -227,6 +242,7 @@ export function LoanPaymentForm({ open, loan, accounts, onClose, onSubmit }: Loa
               id="note"
               name="note"
               rows={3}
+              defaultValue={payment?.note ?? ""}
               className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-[16px] md:text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring resize-none"
               placeholder="Optional memo for this payment"
             />
@@ -236,7 +252,7 @@ export function LoanPaymentForm({ open, loan, accounts, onClose, onSubmit }: Loa
 
           <div className="flex justify-end gap-2 pt-2">
             <Button type="button" variant="outline" onClick={onClose} disabled={loading}>Cancel</Button>
-            <Button type="submit" disabled={loading}>{loading ? "Saving…" : "Record Payment"}</Button>
+            <Button type="submit" disabled={loading}>{loading ? "Saving…" : payment ? "Save Payment" : "Record Payment"}</Button>
           </div>
         </form>
       </DialogContent>

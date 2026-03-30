@@ -7,7 +7,7 @@ import { ArrowRight, CalendarDays, Percent, Plus, WalletCards } from "lucide-rea
 import { Button } from "@/components/ui/button";
 import { LoanForm } from "@/components/loans/loan-form";
 import { getAccounts } from "@/lib/api/accounts";
-import { createLoan, deleteLoan, getLoans, Loan, updateLoan } from "@/lib/api/loans";
+import { createLoan, deleteLoan, getLoans, Loan, LoanDirection, updateLoan } from "@/lib/api/loans";
 import { formatCurrency } from "@/lib/utils";
 
 const DIRECTION_LABELS = {
@@ -30,6 +30,7 @@ export default function LoansSettingsPage() {
   const queryClient = useQueryClient();
   const [formOpen, setFormOpen] = useState(false);
   const [editingLoan, setEditingLoan] = useState<Loan | null>(null);
+  const [createDirection, setCreateDirection] = useState<LoanDirection>("borrowed");
 
   const { data: loans = [], isLoading, error } = useQuery({
     queryKey: ["loans"],
@@ -54,24 +55,31 @@ export default function LoansSettingsPage() {
   const activeLoans = loans.filter((loan) => loan.status !== "closed");
   const closedLoans = loans.filter((loan) => loan.status === "closed");
 
-  function openAdd() {
+  function openAdd(direction: LoanDirection) {
     setEditingLoan(null);
+    setCreateDirection(direction);
     setFormOpen(true);
   }
 
   return (
     <main className="max-w-lg mx-auto px-4 py-8 pb-24">
-      <div className="mb-6 flex items-start justify-between gap-4">
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="space-y-2">
           <h1 className="text-2xl font-semibold">Loans</h1>
           <p className="text-sm text-muted-foreground">
             Create and manage Vietnamese reducing-balance loans, bullet loans, and rate periods.
           </p>
         </div>
-        <Button onClick={openAdd} size="sm" disabled={accounts.length === 0}>
-          <Plus className="size-4 mr-1" />
-          Add Loan
-        </Button>
+        <div className="grid w-full grid-cols-2 gap-2 sm:w-auto">
+          <Button onClick={() => openAdd("borrowed")} size="sm" disabled={accounts.length === 0}>
+            <Plus className="size-4 mr-1" />
+            Add Borrowed
+          </Button>
+          <Button onClick={() => openAdd("lent")} size="sm" variant="outline" disabled={accounts.length === 0}>
+            <Plus className="size-4 mr-1" />
+            Add Lent
+          </Button>
+        </div>
       </div>
 
       {accounts.length === 0 && (
@@ -112,7 +120,7 @@ export default function LoansSettingsPage() {
         {loans.map((loan) => (
           <Link
             key={loan.id}
-            href={`/settings/loans/${loan.id}`}
+            href={`/loans/${loan.id}`}
             className="block rounded-lg border p-4 transition-colors hover:bg-accent"
           >
             <div className="flex items-start justify-between gap-3">
@@ -168,6 +176,7 @@ export default function LoansSettingsPage() {
       <LoanForm
         open={formOpen}
         loan={editingLoan}
+        defaultDirection={editingLoan ? undefined : createDirection}
         accounts={accounts}
         onClose={() => setFormOpen(false)}
         onSubmit={async (payload) => {

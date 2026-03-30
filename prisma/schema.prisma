@@ -82,6 +82,11 @@ enum LoanPaymentKind {
   adjustment
 }
 
+enum PrepaymentStrategy {
+  reduce_payment
+  shorten_term
+}
+
 enum LoanScheduleStatus {
   pending
   partially_paid
@@ -213,6 +218,7 @@ model LoanPayment {
   totalAmount     Float
   principalAmount Float
   interestAmount  Float
+  prepaymentStrategy PrepaymentStrategy?
   note            String?
   userId          String
   user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
