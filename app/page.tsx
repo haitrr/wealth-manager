@@ -40,12 +40,13 @@ interface MonthlySummary {
   expensesByCategory: CategoryData[];
 }
 
-type TimeRange = "this_month" | "last_month" | "this_year";
+type TimeRange = "this_month" | "last_month" | "this_year" | "last_year";
 
 const TIME_RANGE_OPTIONS: { label: string; value: TimeRange }[] = [
   { label: "This Month", value: "this_month" },
   { label: "Last Month", value: "last_month" },
   { label: "This Year", value: "this_year" },
+  { label: "Last Year", value: "last_year" },
 ];
 
 function getDateRange(range: TimeRange): { startDate: string; endDate: string } {
@@ -57,6 +58,10 @@ function getDateRange(range: TimeRange): { startDate: string; endDate: string } 
     case "last_month":
       start = new Date(now.getFullYear(), now.getMonth() - 1, 1);
       end = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
+      break;
+    case "last_year":
+      start = new Date(now.getFullYear() - 1, 0, 1);
+      end = new Date(now.getFullYear() - 1, 11, 31, 23, 59, 59, 999);
       break;
     case "this_year":
       start = new Date(now.getFullYear(), 0, 1);
