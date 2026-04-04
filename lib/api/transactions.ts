@@ -2,6 +2,8 @@ import api from "@/lib/axios";
 import { CategoryType } from "./transaction-categories";
 import { Currency } from "./accounts";
 
+export type LoanPaymentRole = "principal" | "interest" | "prepayFee";
+
 export interface Transaction {
   id: string;
   amount: number;
@@ -15,6 +17,9 @@ export interface Transaction {
   userId: string;
   createdAt: string;
   updatedAt: string;
+  loanPaymentPrincipal: { id: string; loanId: string; loan: { id: string; name: string } } | null;
+  loanPaymentInterest: { id: string; loanId: string; loan: { id: string; name: string } } | null;
+  loanPaymentPrepayFee: { id: string; loanId: string; loan: { id: string; name: string } } | null;
 }
 
 export async function getTransactions(params?: {

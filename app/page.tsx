@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { BalanceTrendChart } from "@/components/dashboard/balance-trend-chart";
 import { CategoryPieChart } from "@/components/dashboard/category-pie-chart";
 import { BudgetOverview } from "@/components/dashboard/budget-overview";
+import { LoanOverview } from "@/components/dashboard/loan-overview";
 import { TransactionForm } from "@/components/transactions/transaction-form";
 import { createTransaction } from "@/lib/api/transactions";
 import { getAccounts } from "@/lib/api/accounts";
@@ -40,12 +41,13 @@ interface MonthlySummary {
   expensesByCategory: CategoryData[];
 }
 
-type TimeRange = "this_month" | "last_month" | "this_year";
+type TimeRange = "this_month" | "last_month" | "this_year" | "last_year";
 
 const TIME_RANGE_OPTIONS: { label: string; value: TimeRange }[] = [
   { label: "This Month", value: "this_month" },
   { label: "Last Month", value: "last_month" },
   { label: "This Year", value: "this_year" },
+  { label: "Last Year", value: "last_year" },
 ];
 
 function getDateRange(range: TimeRange): { startDate: string; endDate: string } {
@@ -57,6 +59,10 @@ function getDateRange(range: TimeRange): { startDate: string; endDate: string } 
     case "last_month":
       start = new Date(now.getFullYear(), now.getMonth() - 1, 1);
       end = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
+      break;
+    case "last_year":
+      start = new Date(now.getFullYear() - 1, 0, 1);
+      end = new Date(now.getFullYear() - 1, 11, 31, 23, 59, 59, 999);
       break;
     case "this_year":
       start = new Date(now.getFullYear(), 0, 1);
@@ -202,7 +208,8 @@ export default function Home() {
             </div>
 
             {/* Right */}
-            <div className="md:w-72 md:shrink-0">
+            <div className="md:w-72 md:shrink-0 space-y-2">
+              <LoanOverview currency={currency} exchangeRates={exchangeRates} />
               <BudgetOverview />
             </div>
           </div>

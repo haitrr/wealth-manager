@@ -1,7 +1,8 @@
 "use client";
 
-import { Pencil, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { ExternalLink, Pencil, X } from "lucide-react";
+import Link from "next/link";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -44,6 +45,14 @@ export function TransactionDetail({
 
   const type = transaction.category.type;
   const formattedAmount = formatCurrency(Math.abs(transaction.amount), transaction.account.currency);
+
+  const loanPaymentInfo = transaction.loanPaymentPrincipal
+    ? { loan: transaction.loanPaymentPrincipal.loan, role: "Principal" }
+    : transaction.loanPaymentInterest
+    ? { loan: transaction.loanPaymentInterest.loan, role: "Interest" }
+    : transaction.loanPaymentPrepayFee
+    ? { loan: transaction.loanPaymentPrepayFee.loan, role: "Prepay Fee" }
+    : null;
   const formattedDate = new Intl.DateTimeFormat("en-US", {
     weekday: "long",
     month: "long",
@@ -76,6 +85,14 @@ export function TransactionDetail({
           </div>
 
           <div className="space-y-3 text-sm">
+            {loanPaymentInfo && (
+              <div className="flex items-center gap-2">
+                <span className="rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 px-3 py-0.5 text-xs font-medium">
+                  Loan Payment · {loanPaymentInfo.role}
+                </span>
+                <span className="text-muted-foreground text-xs">{loanPaymentInfo.loan.name}</span>
+              </div>
+            )}
             <Row label="Date" value={formattedDate} />
             <Row label="Account" value={transaction.account.name} />
             {transaction.details && (
@@ -92,10 +109,20 @@ export function TransactionDetail({
             <X className="size-4 mr-2" />
             Close
           </Button>
-          <Button className="flex-1 h-10 text-base" onClick={() => onEdit(transaction)}>
-            <Pencil className="size-4 mr-2" />
-            Edit
-          </Button>
+          {loanPaymentInfo ? (
+            <Link
+              href={`/loans/${loanPaymentInfo.loan.id}`}
+              className={buttonVariants({ className: "flex-1 h-10 text-base" })}
+            >
+              <ExternalLink className="size-4 mr-2" />
+              View Loan
+            </Link>
+          ) : (
+            <Button className="flex-1 h-10 text-base" onClick={() => onEdit(transaction)}>
+              <Pencil className="size-4 mr-2" />
+              Edit
+            </Button>
+          )}
         </div>
       </DialogContent>
     </Dialog>

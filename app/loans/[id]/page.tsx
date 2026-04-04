@@ -1,0 +1,1 @@
+export { default } from "@/app/settings/loans/[id]/page";

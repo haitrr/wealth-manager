@@ -1,0 +1,13 @@
+- user can manage loans and private debts from Settings.
+- a loan can be either borrowed or lent.
+- a loan stores principal, currency, account, counterparty, start date, first due date, repayment frequency, and optional maturity date.
+- a loan supports installment and bullet products.
+- installment loans support equal principal and annuity repayment styles.
+- a loan supports fixed-rate periods and floating-rate periods.
+- floating-rate periods can be repriced manually with an effective date and repricing cadence.
+- the app generates a repayment schedule with principal, interest, total due, opening principal, and closing principal for each installment.
+- user can record regular payments, prepayments, fees, and adjustments against a loan.
+- prepayments support reducing future payments or shortening the remaining term.
+- each loan payment creates a linked transaction so account balances stay correct.
+- the loan detail page shows current balance, rate periods, payment history, payoff projection, and upcoming schedule.
+- the home page shows an overview of active borrowed and lent balances.

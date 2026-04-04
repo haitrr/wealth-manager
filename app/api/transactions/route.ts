@@ -50,6 +50,9 @@ export async function GET(req: NextRequest) {
     include: {
       account: { select: { id: true, name: true, currency: true } },
       category: { select: { id: true, name: true, type: true, icon: true } },
+      loanPaymentPrincipal: { select: { id: true, loanId: true, loan: { select: { id: true, name: true } } } },
+      loanPaymentInterest: { select: { id: true, loanId: true, loan: { select: { id: true, name: true } } } },
+      loanPaymentPrepayFee: { select: { id: true, loanId: true, loan: { select: { id: true, name: true } } } },
     },
     orderBy: [{ date: "desc" }, { createdAt: "desc" }],
   });
@@ -97,6 +100,9 @@ export async function POST(req: NextRequest) {
     include: {
       account: { select: { id: true, name: true, currency: true } },
       category: { select: { id: true, name: true, type: true, icon: true } },
+      loanPaymentPrincipal: { select: { id: true, loanId: true, loan: { select: { id: true, name: true } } } },
+      loanPaymentInterest: { select: { id: true, loanId: true, loan: { select: { id: true, name: true } } } },
+      loanPaymentPrepayFee: { select: { id: true, loanId: true, loan: { select: { id: true, name: true } } } },
     },
   });
 

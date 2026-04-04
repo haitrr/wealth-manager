@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 
-export type TimeRange = "this-month" | "last-month" | "this-year";
+export type TimeRange = "this-month" | "last-month" | "this-year" | "last-year";
 
 interface TimeRangeSelectorProps {
   value: TimeRange;
@@ -13,6 +13,7 @@ const RANGES: { label: string; value: TimeRange }[] = [
   { label: "This month", value: "this-month" },
   { label: "Last month", value: "last-month" },
   { label: "This year", value: "this-year" },
+  { label: "Last year", value: "last-year" },
 ];
 
 export function getDateRange(range: TimeRange): { startDate: string; endDate: string } {
@@ -34,6 +35,11 @@ export function getDateRange(range: TimeRange): { startDate: string; endDate: st
     case "this-year": {
       const start = new Date(year, 0, 1);
       const end = new Date(year, 11, 31, 23, 59, 59, 999);
+      return { startDate: start.toISOString(), endDate: end.toISOString() };
+    }
+    case "last-year": {
+      const start = new Date(year - 1, 0, 1);
+      const end = new Date(year - 1, 11, 31, 23, 59, 59, 999);
       return { startDate: start.toISOString(), endDate: end.toISOString() };
     }
   }

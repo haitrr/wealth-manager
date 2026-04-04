@@ -168,7 +168,7 @@ export function TransactionForm({
 
   useEffect(() => {
     setSelectedCategoryId(transaction?.categoryId ?? "");
-  }, [transaction?.id]);
+  }, [transaction?.id, transaction?.categoryId]);
 
   const defaultAccount = accounts.find((a) => a.isDefault) ?? accounts[0];
 

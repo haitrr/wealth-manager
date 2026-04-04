@@ -18,6 +18,8 @@ model User {
   budgets              Budget[]
   exchangeRates        ExchangeRate[]
   apiKeys              ApiKey[]
+  loans                Loan[]
+  loanPayments         LoanPayment[]
 }
 
 enum Currency {
@@ -35,8 +37,20 @@ model Account {
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   transactions Transaction[]
   budgets      Budget[]
+  loans        Loan[]
+  loanPayments LoanPayment[]
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
+}
+
+enum LoanDirection {
+  borrowed
+  lent
+}
+
+enum LoanStatus {
+  active
+  closed
 }
 
 enum CategoryType {
@@ -62,19 +76,67 @@ model TransactionCategory {
 }
 
 model Transaction {
-  id          String              @id @default(cuid())
-  amount      Float
-  date        DateTime
-  description String?
-  details     String?
-  accountId   String
-  account     Account             @relation(fields: [accountId], references: [id])
-  categoryId  String
-  category    TransactionCategory @relation(fields: [categoryId], references: [id])
-  userId      String
-  user        User                @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt   DateTime            @default(now())
-  updatedAt   DateTime            @updatedAt
+  id                   String              @id @default(cuid())
+  amount               Float
+  date                 DateTime
+  description          String?
+  details              String?
+  accountId            String
+  account              Account             @relation(fields: [accountId], references: [id])
+  categoryId           String
+  category             TransactionCategory @relation(fields: [categoryId], references: [id])
+  userId               String
+  user                 User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  loanPaymentPrincipal LoanPayment?        @relation("LoanPrincipalTransaction")
+  loanPaymentInterest  LoanPayment?        @relation("LoanInterestTransaction")
+  loanPaymentPrepayFee LoanPayment?        @relation("LoanPrepayFeeTransaction")
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+}
+
+model Loan {
+  id               String        @id @default(cuid())
+  name             String
+  direction        LoanDirection
+  principalAmount  Float
+  currency         Currency      @default(USD)
+  startDate        DateTime
+  counterpartyName String?
+  notes            String?
+  status           LoanStatus    @default(active)
+  accountId        String
+  account          Account       @relation(fields: [accountId], references: [id])
+  userId           String
+  user             User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  payments         LoanPayment[]
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  @@index([userId, status])
+  @@index([accountId])
+}
+
+model LoanPayment {
+  id                     String       @id @default(cuid())
+  loanId                 String
+  loan                   Loan         @relation(fields: [loanId], references: [id], onDelete: Cascade)
+  accountId              String
+  account                Account      @relation(fields: [accountId], references: [id])
+  paymentDate            DateTime
+  principalTransactionId String?      @unique
+  principalTransaction   Transaction? @relation("LoanPrincipalTransaction", fields: [principalTransactionId], references: [id], onDelete: SetNull)
+  interestTransactionId  String?      @unique
+  interestTransaction    Transaction? @relation("LoanInterestTransaction", fields: [interestTransactionId], references: [id], onDelete: SetNull)
+  prepayFeeTransactionId String?      @unique
+  prepayFeeTransaction   Transaction? @relation("LoanPrepayFeeTransaction", fields: [prepayFeeTransactionId], references: [id], onDelete: SetNull)
+  note                   String?
+  userId                 String
+  user                   User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt              DateTime     @default(now())
+  updatedAt              DateTime     @updatedAt
+
+  @@index([loanId, paymentDate])
+  @@index([userId])
 }
 
 model Budget {

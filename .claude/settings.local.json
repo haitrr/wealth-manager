@@ -18,7 +18,16 @@
       "Bash(npx tsc:*)",
       "WebFetch(domain:docs.openclaw.ai)",
       "WebSearch",
-      "Bash(find /Users/haitran/code/wealth-manager -path */node_modules -prune -o -path */.next -prune -o -type f \\\\\\(-name *.md -o -name *skill* -o -name *mcp* \\\\\\) -print)"
+      "Bash(find /Users/haitran/code/wealth-manager -path */node_modules -prune -o -path */.next -prune -o -type f \\\\\\(-name *.md -o -name *skill* -o -name *mcp* \\\\\\) -print)",
+      "Bash(npx prisma:*)",
+      "Bash(psql \"postgres://postgres:postgres@localhost:54523/wm\" -c \"SELECT column_name FROM information_schema.columns WHERE table_name = 'LoanPayment' ORDER BY ordinal_position;\")",
+      "Bash(psql \"postgres://postgres:postgres@localhost:54523/wm\" -c \"SELECT column_name FROM information_schema.columns WHERE table_name = 'Loan' ORDER BY ordinal_position;\")",
+      "Bash(psql \"postgres://postgres:postgres@localhost:54523/wm\" -c \"SELECT typname, enumlabel FROM pg_enum JOIN pg_type ON pg_enum.enumtypid = pg_type.oid WHERE typname LIKE 'Loan%' OR typname LIKE 'Repayment%' OR typname LIKE 'Prepayment%' ORDER BY typname, enumlabel;\")",
+      "Bash(psql \"postgres://postgres:postgres@localhost:54523/wm\" -c \"SELECT conname, contype FROM pg_constraint WHERE conrelid = 'public.\\\\\"LoanPayment\\\\\"'::regclass ORDER BY conname;\")",
+      "Bash(PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION=\"yes\" npx prisma migrate reset --force)",
+      "Bash(bun ./prisma/seed.ts)",
+      "Bash(npx tsx:*)",
+      "Bash(PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION=\"yes\" pnpm exec prisma migrate reset --force)"
     ]
   }
 }

@@ -17,6 +17,7 @@ const eslintConfig = defineConfig([
     ".next/**",
     "out/**",
     "build/**",
+    "mcp-server/dist/**",
     "next-env.d.ts",
     // Plain CJS Node.js launcher — require() is intentional
     "bin/wm.js",

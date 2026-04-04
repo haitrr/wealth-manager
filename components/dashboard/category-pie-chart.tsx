@@ -29,10 +29,8 @@ const COLORS = [
 
 function CustomLegend({
   chartData,
-  currency,
 }: {
   chartData: Array<{ name: string; value: number; percentage: string }>;
-  currency: Currency;
 }) {
   return (
     <div className="flex flex-col justify-center gap-1.5 flex-1 min-w-0">
@@ -114,7 +112,7 @@ export function CategoryPieChart({ title, data, currency }: CategoryPieChartProp
             </Pie>
           </PieChart>
         </ChartContainer>
-        <CustomLegend chartData={chartData} currency={currency} />
+        <CustomLegend chartData={chartData} />
       </div>
     </div>
   );
