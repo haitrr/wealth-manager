@@ -2,6 +2,9 @@
 ALTER TABLE "Loan" ADD COLUMN "initialTransactionId" TEXT;
 ALTER TABLE "Loan" DROP COLUMN "principalAmount";
 
+ALTER TABLE "UserSettings" ADD COLUMN "loanBorrowedInitialCategoryId" TEXT;
+ALTER TABLE "UserSettings" ADD COLUMN "loanLentInitialCategoryId" TEXT;
+
 -- CreateIndex
 CREATE UNIQUE INDEX "Loan_initialTransactionId_key" ON "Loan"("initialTransactionId");
 
