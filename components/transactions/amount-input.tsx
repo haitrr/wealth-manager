@@ -91,6 +91,11 @@ export function AmountInput({
         value={formatDisplay(raw)}
         onFocus={() => setOpen(true)}
         onClick={() => setOpen(true)}
+        onKeyDown={(e) => {
+          if (e.key >= "0" && e.key <= "9") handleKey(e.key);
+          else if (e.key === "Backspace") handleKey("⌫");
+          else if (e.key === ".") handleKey(".");
+        }}
         required={required}
         className={cn(
           "h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-[16px] md:text-sm shadow-sm transition-shadow",
