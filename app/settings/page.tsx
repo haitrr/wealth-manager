@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ChevronRight, CreditCard, Tag, User, DollarSign, Upload } from "lucide-react";
+import { ChevronRight, CreditCard, Tag, User, DollarSign, Upload, Landmark } from "lucide-react";
 import { ImportDialog } from "@/components/transactions/import-dialog";
 
 const SETTINGS_ITEMS = [
@@ -10,6 +10,7 @@ const SETTINGS_ITEMS = [
   { href: "/settings/accounts", label: "Accounts", description: "Manage your bank accounts", icon: CreditCard },
   { href: "/settings/categories", label: "Categories", description: "Manage transaction categories", icon: Tag },
   { href: "/settings/exchange-rates", label: "Currency", description: "Manage exchange rates", icon: DollarSign },
+  { href: "/settings/loan-categories", label: "Loan Defaults", description: "Default categories for loan payments", icon: Landmark },
 ];
 
 export default function SettingsPage() {

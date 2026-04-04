@@ -40,6 +40,18 @@ export async function PUT(
       return NextResponse.json({ error: "Principal payment exceeds remaining principal" }, { status: 400 });
     }
 
+    const userSettings = await prisma.userSettings.findUnique({ where: { userId: session.userId } });
+    const isBorrowed = loan.direction === "borrowed";
+    const globalPrincipalCategoryId = isBorrowed
+      ? userSettings?.loanBorrowedPrincipalCategoryId
+      : userSettings?.loanLentPrincipalCategoryId;
+    const globalInterestCategoryId = isBorrowed
+      ? userSettings?.loanBorrowedInterestCategoryId
+      : userSettings?.loanLentInterestCategoryId;
+    const globalPrepayFeeCategoryId = isBorrowed
+      ? userSettings?.loanBorrowedPrepayFeeCategoryId
+      : userSettings?.loanLentPrepayFeeCategoryId;
+
     const updatedLoan = await prisma.$transaction(async (tx) => {
       // Delete old transactions
       if (existingPayment.principalTransactionId) {
@@ -63,7 +75,7 @@ export async function PUT(
       let prepayFeeTransactionId: string | null = null;
 
       if (payload.principalAmount > 0) {
-        const category = await ensureLoanTransactionCategory(tx, session.userId, loan.direction, "principal");
+        const category = await ensureLoanTransactionCategory(tx, session.userId, loan.direction, "principal", null, globalPrincipalCategoryId);
         const txn = await tx.transaction.create({
           data: {
             amount: payload.principalAmount,
@@ -78,7 +90,7 @@ export async function PUT(
       }
 
       if (payload.interestAmount > 0) {
-        const category = await ensureLoanTransactionCategory(tx, session.userId, loan.direction, "interest");
+        const category = await ensureLoanTransactionCategory(tx, session.userId, loan.direction, "interest", null, globalInterestCategoryId);
         const txn = await tx.transaction.create({
           data: {
             amount: payload.interestAmount,
@@ -93,7 +105,7 @@ export async function PUT(
       }
 
       if (payload.prepayFeeAmount > 0) {
-        const category = await ensureLoanTransactionCategory(tx, session.userId, loan.direction, "prepay_fee");
+        const category = await ensureLoanTransactionCategory(tx, session.userId, loan.direction, "prepay_fee", null, globalPrepayFeeCategoryId);
         const txn = await tx.transaction.create({
           data: {
             amount: payload.prepayFeeAmount,

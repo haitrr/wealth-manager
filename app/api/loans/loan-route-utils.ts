@@ -129,11 +129,17 @@ export async function ensureLoanTransactionCategory(
   userId: string,
   direction: LoanDirection,
   type: "principal" | "interest" | "prepay_fee" = "principal",
-  categoryId?: string | null
+  categoryId?: string | null,
+  globalCategoryId?: string | null
 ) {
   if (categoryId) {
     const configured = await tx.transactionCategory.findFirst({ where: { id: categoryId, userId } });
     if (configured) return configured;
+  }
+
+  if (globalCategoryId) {
+    const global = await tx.transactionCategory.findFirst({ where: { id: globalCategoryId, userId } });
+    if (global) return global;
   }
 
   const configs = {

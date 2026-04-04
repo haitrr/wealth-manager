@@ -20,6 +20,21 @@ model User {
   apiKeys              ApiKey[]
   loans                Loan[]
   loanPayments         LoanPayment[]
+  settings             UserSettings?
+}
+
+model UserSettings {
+  id                              String   @id @default(cuid())
+  userId                          String   @unique
+  user                            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  loanBorrowedPrincipalCategoryId String?
+  loanBorrowedInterestCategoryId  String?
+  loanBorrowedPrepayFeeCategoryId String?
+  loanLentPrincipalCategoryId     String?
+  loanLentInterestCategoryId      String?
+  loanLentPrepayFeeCategoryId     String?
+  createdAt                       DateTime @default(now())
+  updatedAt                       DateTime @updatedAt
 }
 
 enum Currency {

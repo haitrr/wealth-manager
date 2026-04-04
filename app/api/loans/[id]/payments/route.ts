@@ -34,13 +34,25 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       return NextResponse.json({ error: "Principal payment exceeds remaining principal" }, { status: 400 });
     }
 
+    const userSettings = await prisma.userSettings.findUnique({ where: { userId: session.userId } });
+    const isBorrowed = loan.direction === "borrowed";
+    const globalPrincipalCategoryId = isBorrowed
+      ? userSettings?.loanBorrowedPrincipalCategoryId
+      : userSettings?.loanLentPrincipalCategoryId;
+    const globalInterestCategoryId = isBorrowed
+      ? userSettings?.loanBorrowedInterestCategoryId
+      : userSettings?.loanLentInterestCategoryId;
+    const globalPrepayFeeCategoryId = isBorrowed
+      ? userSettings?.loanBorrowedPrepayFeeCategoryId
+      : userSettings?.loanLentPrepayFeeCategoryId;
+
     const updatedLoan = await prisma.$transaction(async (tx) => {
       let principalTransactionId: string | null = null;
       let interestTransactionId: string | null = null;
       let prepayFeeTransactionId: string | null = null;
 
       if (payload.principalAmount > 0) {
-        const category = await ensureLoanTransactionCategory(tx, session.userId, loan.direction, "principal", loan.principalCategoryId);
+        const category = await ensureLoanTransactionCategory(tx, session.userId, loan.direction, "principal", loan.principalCategory?.id ?? null, globalPrincipalCategoryId);
         const txn = await tx.transaction.create({
           data: {
             amount: payload.principalAmount,
@@ -55,7 +67,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       }
 
       if (payload.interestAmount > 0) {
-        const category = await ensureLoanTransactionCategory(tx, session.userId, loan.direction, "interest", loan.interestCategoryId);
+        const category = await ensureLoanTransactionCategory(tx, session.userId, loan.direction, "interest", loan.interestCategory?.id ?? null, globalInterestCategoryId);
         const txn = await tx.transaction.create({
           data: {
             amount: payload.interestAmount,
@@ -70,7 +82,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       }
 
       if (payload.prepayFeeAmount > 0) {
-        const category = await ensureLoanTransactionCategory(tx, session.userId, loan.direction, "prepay_fee", loan.prepayFeeCategoryId);
+        const category = await ensureLoanTransactionCategory(tx, session.userId, loan.direction, "prepay_fee", loan.prepayFeeCategory?.id ?? null, globalPrepayFeeCategoryId);
         const txn = await tx.transaction.create({
           data: {
             amount: payload.prepayFeeAmount,
