@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { ChevronDown, Delete } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -30,6 +31,7 @@ interface AmountInputProps {
 function normalizeRaw(value: number | string | undefined) {
   return value != null && value !== "" ? String(value).replace(/,/g, "") : "";
 }
+
 
 export function AmountInput({
   defaultValue,
@@ -76,6 +78,7 @@ export function AmountInput({
     return () => document.removeEventListener("pointerdown", handlePointerDown);
   }, []);
 
+
   return (
     <div ref={containerRef}>
       <input
@@ -96,8 +99,9 @@ export function AmountInput({
         )}
       />
 
-      {open && (
-        <div className="fixed bottom-0 left-0 right-0 z-200 border-t bg-background pb-safe">
+      {open && createPortal(
+        <div className="fixed bottom-0 left-0 right-0 z-200 border-t bg-background pb-safe flex flex-col items-center">
+          <div className="w-full max-w-sm">
           <div className="flex justify-end">
             <button
               type="button"
@@ -129,7 +133,9 @@ export function AmountInput({
               </button>
             ))}
           </div>
-        </div>
+          </div>
+        </div>,
+        document.body
       )}
     </div>
   );
