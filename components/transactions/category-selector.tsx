@@ -25,6 +25,8 @@ interface CategorySelectorProps {
   onCategoryChange: (id: string) => void;
   /** When provided, only shows this type without tabs */
   filterType?: CategoryType;
+  label?: string;
+  placeholder?: string;
 }
 
 function CategoryList({
@@ -241,13 +243,15 @@ export function CategorySelector({
   selectedCategoryId,
   onCategoryChange,
   filterType,
+  label = "Category",
+  placeholder = "Select a category…",
 }: CategorySelectorProps) {
   const selectedCategory = categories.find((c) => c.id === selectedCategoryId);
   const [searchOpen, setSearchOpen] = useState(false);
 
   return (
     <div className="space-y-2">
-      <Label>Category</Label>
+      {label && <Label>{label}</Label>}
       <button
         type="button"
         onClick={() => setSearchOpen(true)}
@@ -259,7 +263,7 @@ export function CategorySelector({
             <span>{selectedCategory.name}</span>
           </>
         ) : (
-          <span className="text-muted-foreground">Select a category…</span>
+          <span className="text-muted-foreground">{placeholder}</span>
         )}
         <Search className="size-4 ml-auto text-muted-foreground" />
       </button>

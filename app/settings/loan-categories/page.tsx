@@ -4,36 +4,9 @@ import { useRef, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { getTransactionCategories } from "@/lib/api/transaction-categories";
+import { getTransactionCategories, TransactionCategory } from "@/lib/api/transaction-categories";
 import { getSettings, updateSettings, UserSettings, UserSettingsPayload } from "@/lib/api/settings";
-import { TransactionCategory } from "@/lib/api/transaction-categories";
-
-function CategorySelect({
-  id,
-  value,
-  onChange,
-  categories,
-}: {
-  id: string;
-  value: string;
-  onChange: (v: string) => void;
-  categories: TransactionCategory[];
-}) {
-  return (
-    <select
-      id={id}
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      className="h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-[16px] md:text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-    >
-      <option value="">Auto (use default)</option>
-      {categories.map((c) => (
-        <option key={c.id} value={c.id}>{c.name}</option>
-      ))}
-    </select>
-  );
-}
+import { CategorySelector } from "@/components/transactions/category-selector";
 
 function LoanCategoriesForm({
   settings,
@@ -65,9 +38,6 @@ function LoanCategoriesForm({
     },
   });
 
-  const expenseCategories = categories.filter((c) => c.type === "expense");
-  const incomeCategories = categories.filter((c) => c.type === "income");
-
   function set(key: keyof UserSettingsPayload, value: string) {
     setForm((prev) => ({ ...prev, [key]: value || null }));
   }
@@ -83,64 +53,58 @@ function LoanCategoriesForm({
 
       <div className="space-y-4 rounded-lg border p-4">
         <p className="text-sm font-medium">Borrowed loans</p>
-        <div className="space-y-2">
-          <Label htmlFor="borrowed-principal" className="text-xs">Principal repayment</Label>
-          <CategorySelect
-            id="borrowed-principal"
-            value={form.loanBorrowedPrincipalCategoryId ?? ""}
-            onChange={(v) => set("loanBorrowedPrincipalCategoryId", v)}
-            categories={expenseCategories}
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="borrowed-interest" className="text-xs">Interest</Label>
-          <CategorySelect
-            id="borrowed-interest"
-            value={form.loanBorrowedInterestCategoryId ?? ""}
-            onChange={(v) => set("loanBorrowedInterestCategoryId", v)}
-            categories={expenseCategories}
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="borrowed-prepay" className="text-xs">Prepay fee</Label>
-          <CategorySelect
-            id="borrowed-prepay"
-            value={form.loanBorrowedPrepayFeeCategoryId ?? ""}
-            onChange={(v) => set("loanBorrowedPrepayFeeCategoryId", v)}
-            categories={expenseCategories}
-          />
-        </div>
+        <CategorySelector
+          categories={categories}
+          selectedCategoryId={form.loanBorrowedPrincipalCategoryId ?? ""}
+          onCategoryChange={(v) => set("loanBorrowedPrincipalCategoryId", v)}
+          filterType="expense"
+          label="Principal repayment"
+          placeholder="Auto (use default)"
+        />
+        <CategorySelector
+          categories={categories}
+          selectedCategoryId={form.loanBorrowedInterestCategoryId ?? ""}
+          onCategoryChange={(v) => set("loanBorrowedInterestCategoryId", v)}
+          filterType="expense"
+          label="Interest"
+          placeholder="Auto (use default)"
+        />
+        <CategorySelector
+          categories={categories}
+          selectedCategoryId={form.loanBorrowedPrepayFeeCategoryId ?? ""}
+          onCategoryChange={(v) => set("loanBorrowedPrepayFeeCategoryId", v)}
+          filterType="expense"
+          label="Prepay fee"
+          placeholder="Auto (use default)"
+        />
       </div>
 
       <div className="space-y-4 rounded-lg border p-4">
         <p className="text-sm font-medium">Lent loans</p>
-        <div className="space-y-2">
-          <Label htmlFor="lent-principal" className="text-xs">Principal collection</Label>
-          <CategorySelect
-            id="lent-principal"
-            value={form.loanLentPrincipalCategoryId ?? ""}
-            onChange={(v) => set("loanLentPrincipalCategoryId", v)}
-            categories={incomeCategories}
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="lent-interest" className="text-xs">Interest</Label>
-          <CategorySelect
-            id="lent-interest"
-            value={form.loanLentInterestCategoryId ?? ""}
-            onChange={(v) => set("loanLentInterestCategoryId", v)}
-            categories={incomeCategories}
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="lent-prepay" className="text-xs">Prepay fee</Label>
-          <CategorySelect
-            id="lent-prepay"
-            value={form.loanLentPrepayFeeCategoryId ?? ""}
-            onChange={(v) => set("loanLentPrepayFeeCategoryId", v)}
-            categories={expenseCategories}
-          />
-        </div>
+        <CategorySelector
+          categories={categories}
+          selectedCategoryId={form.loanLentPrincipalCategoryId ?? ""}
+          onCategoryChange={(v) => set("loanLentPrincipalCategoryId", v)}
+          filterType="income"
+          label="Principal collection"
+          placeholder="Auto (use default)"
+        />
+        <CategorySelector
+          categories={categories}
+          selectedCategoryId={form.loanLentInterestCategoryId ?? ""}
+          onCategoryChange={(v) => set("loanLentInterestCategoryId", v)}
+          filterType="income"
+          label="Interest"
+          placeholder="Auto (use default)"
+        />
+        <CategorySelector
+          categories={categories}
+          selectedCategoryId={form.loanLentPrepayFeeCategoryId ?? ""}
+          onCategoryChange={(v) => set("loanLentPrepayFeeCategoryId", v)}
+          filterType="expense"
+          label="Prepay fee"
+          placeholder="Auto (use default)"
+        />
       </div>
 
       {mutation.isError && (
