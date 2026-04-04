@@ -1,6 +1,6 @@
 import api from "@/lib/axios";
 
-export type CategoryType = "income" | "expense" | "payable" | "receivable";
+export type CategoryType = "income" | "expense";
 
 export interface TransactionCategory {
   id: string;

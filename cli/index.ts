@@ -204,7 +204,7 @@ Commands:
     --account NAME_OR_ID  Account (default: default account)
   delete <id>                           Delete a transaction
   categories                            List categories
-    --type TYPE   Filter: income|expense|payable|receivable
+    --type TYPE   Filter: income|expense
   budgets                               List budgets
   summary                               Monthly financial summary
     --year YEAR   Year (default: current)

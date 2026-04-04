@@ -9,15 +9,11 @@ import { CategoryIcon } from "./category-icon";
 const TYPE_COLORS: Record<CategoryType, string> = {
   income: "bg-green-500/10 text-green-600 dark:text-green-400",
   expense: "bg-red-500/10 text-red-600 dark:text-red-400",
-  payable: "bg-amber-500/10 text-amber-600 dark:text-amber-400",
-  receivable: "bg-blue-500/10 text-blue-600 dark:text-blue-400",
 };
 
 const TYPE_LABELS: Record<CategoryType, string> = {
   income: "Income",
   expense: "Expense",
-  payable: "Payable",
-  receivable: "Receivable",
 };
 
 interface CategoryCardProps {

@@ -56,8 +56,6 @@ enum LoanStatus {
 enum CategoryType {
   income
   expense
-  payable
-  receivable
 }
 
 model TransactionCategory {

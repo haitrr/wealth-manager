@@ -17,8 +17,6 @@ import { CategoryIcon } from "@/components/transaction-categories/category-icon"
 const TAB_TYPES: { value: CategoryType; label: string }[] = [
   { value: "expense", label: "Expense" },
   { value: "income", label: "Income" },
-  { value: "payable", label: "Payable" },
-  { value: "receivable", label: "Receivable" },
 ];
 
 interface CategorySelectorProps {

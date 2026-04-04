@@ -95,7 +95,7 @@ function buildServer(userId: string) {
     {
       description: "List all transaction categories",
       inputSchema: {
-        type: z.enum(["income", "expense", "payable", "receivable"]).optional().describe("Filter by type"),
+        type: z.enum(["income", "expense"]).optional().describe("Filter by type"),
       },
     },
     async ({ type }) => {

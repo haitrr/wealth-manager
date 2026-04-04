@@ -25,11 +25,9 @@ import { IconPicker } from "./icon-picker";
 const CATEGORY_TYPE_LABELS: Record<CategoryType, string> = {
   income: "Income",
   expense: "Expense",
-  payable: "Payable (Borrowed)",
-  receivable: "Receivable (Lent)",
 };
 
-const TYPE_ORDER: CategoryType[] = ["expense", "income", "payable", "receivable"];
+const TYPE_ORDER: CategoryType[] = ["expense", "income"];
 
 // --- Picker dropdown content ---
 

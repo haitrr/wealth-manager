@@ -17,12 +17,10 @@ import {
   deleteTransactionCategory,
 } from "@/lib/api/transaction-categories";
 
-const typeOrder = ["expense", "income", "payable", "receivable"];
+const typeOrder = ["expense", "income"];
 const typeLabels: Record<string, string> = {
   income: "Income",
   expense: "Expense",
-  payable: "Payable (Borrowed)",
-  receivable: "Receivable (Lent)",
 };
 
 export default function CategoriesSettingsPage() {

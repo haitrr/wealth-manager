@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
     }
     resolvedType = parent.type;
   } else {
-    if (!["income", "expense", "payable", "receivable"].includes(type)) {
+    if (!["income", "expense"].includes(type)) {
       return NextResponse.json({ error: "Invalid type" }, { status: 400 });
     }
   }

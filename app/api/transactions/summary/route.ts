@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
 
   for (const tx of transactions) {
     const dateKey = tx.date.toISOString().split("T")[0];
-    const isIncome = tx.category.type === "income" || tx.category.type === "receivable";
+    const isIncome = tx.category.type === "income";
 
     if (!txByDate.has(dateKey)) {
       txByDate.set(dateKey, { income: 0, expenses: 0 });

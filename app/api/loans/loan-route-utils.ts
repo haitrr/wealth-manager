@@ -138,8 +138,8 @@ export async function ensureLoanTransactionCategory(
 
   const configs = {
     principal: direction === "borrowed"
-      ? { name: "Loan Repayment", type: "payable" as const }
-      : { name: "Loan Collection", type: "receivable" as const },
+      ? { name: "Loan Repayment", type: "expense" as const }
+      : { name: "Loan Collection", type: "income" as const },
     interest: { name: "Loan Interest", type: direction === "borrowed" ? "expense" as const : "income" as const },
     prepay_fee: { name: "Loan Prepay Fee", type: "expense" as const },
   };

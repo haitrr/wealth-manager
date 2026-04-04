@@ -60,8 +60,8 @@ export async function getCategoryIdWithDescendants(categoryId: string, userId: s
 /**
  * Builds a Prisma transaction `where` filter for a budget's category configuration.
  * - categoryIds: include only these categories (and their descendants)
- * - excludedCategoryIds: all expense/payable except these (and their descendants)
- * - neither: all expense/payable
+ * - excludedCategoryIds: all expense categories except these (and their descendants)
+ * - neither: all expense categories
  */
 export async function getCategoryFilter(
   budget: Pick<Budget, "categoryIds" | "excludedCategoryIds">,
@@ -84,13 +84,13 @@ export async function getCategoryFilter(
     }
     return {
       AND: [
-        { category: { type: { in: ["expense", "payable"] as CategoryType[] } } },
+        { category: { type: "expense" as CategoryType } },
         { categoryId: { notIn: Array.from(excludedIds) } },
       ],
     };
   }
 
-  return { category: { type: { in: ["expense", "payable"] as CategoryType[] } } };
+  return { category: { type: "expense" as CategoryType } };
 }
 
 /**

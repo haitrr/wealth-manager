@@ -118,7 +118,7 @@ function createServer(userId: string) {
       description: "List all transaction categories",
       inputSchema: {
         type: z
-          .enum(["income", "expense", "payable", "receivable"])
+          .enum(["income", "expense"])
           .optional()
           .describe("Filter by type"),
       },

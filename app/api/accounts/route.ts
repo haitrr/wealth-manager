@@ -18,7 +18,7 @@ export async function GET(req: NextRequest) {
 
   const result = accounts.map(({ transactions, ...account }) => {
     const balance = transactions.reduce((sum, tx) => {
-      const isIncome = tx.category.type === "income" || tx.category.type === "receivable";
+      const isIncome = tx.category.type === "income";
       return sum + (isIncome ? tx.amount : -tx.amount);
     }, 0);
     return { ...account, balance };

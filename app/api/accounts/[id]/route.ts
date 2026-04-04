@@ -34,7 +34,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 
   const { transactions, ...rest } = updated;
   const balance = transactions.reduce((sum: number, tx: { amount: number; category: { type: string } }) => {
-    const isIncome = tx.category.type === "income" || tx.category.type === "receivable";
+    const isIncome = tx.category.type === "income";
     return sum + (isIncome ? tx.amount : -tx.amount);
   }, 0);
 

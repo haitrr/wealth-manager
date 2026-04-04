@@ -37,8 +37,8 @@ export async function POST(req: NextRequest) {
       { name: "Bills & Utilities", type: "expense", userId: user.id },
       { name: "Health", type: "expense", userId: user.id },
       { name: "Entertainment", type: "expense", userId: user.id },
-      { name: "Borrowed Money", type: "payable", userId: user.id },
-      { name: "Lent Money", type: "receivable", userId: user.id },
+      { name: "Borrowed Money", type: "expense", userId: user.id },
+      { name: "Lent Money", type: "income", userId: user.id },
     ],
   });
 

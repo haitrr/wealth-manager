@@ -82,7 +82,7 @@ export function LoanForm({ open, loan, defaultDirection, accounts, categories = 
   const defaultAccount = useMemo(() => accounts.find((a) => a.isDefault) ?? accounts[0], [accounts]);
   const directionLabel = DIRECTION_OPTIONS.find((o) => o.value === direction)?.label ?? "Borrowed";
 
-  const principalCategoryType = direction === "borrowed" ? "payable" : "receivable";
+  const principalCategoryType = direction === "borrowed" ? "expense" : "income";
   const interestCategoryType = direction === "borrowed" ? "expense" : "income";
   const principalCategories = useMemo(() => categories.filter((c) => c.type === principalCategoryType), [categories, principalCategoryType]);
   const interestCategories = useMemo(() => categories.filter((c) => c.type === interestCategoryType), [categories, interestCategoryType]);

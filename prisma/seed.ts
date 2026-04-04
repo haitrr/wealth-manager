@@ -42,8 +42,8 @@ async function main() {
       { name: "Điện nước", type: "expense", userId: user.id },
       { name: "Giải trí", type: "expense", userId: user.id },
       { name: "Thuê nhà", type: "expense", userId: user.id },
-      { name: "Thẻ tín dụng", type: "payable", userId: user.id },
-      { name: "Cho vay", type: "receivable", userId: user.id },
+      { name: "Thẻ tín dụng", type: "expense", userId: user.id },
+      { name: "Cho vay", type: "income", userId: user.id },
     ],
   });
 
@@ -107,7 +107,7 @@ async function main() {
 
   // Loan Repayment & Prepay Fee categories
   const repayCategory = await prisma.transactionCategory.create({
-    data: { name: "Loan Repayment", type: "payable", userId: user.id },
+    data: { name: "Loan Repayment", type: "expense", userId: user.id },
   });
   const prepayFeeCategory = await prisma.transactionCategory.create({
     data: { name: "Loan Prepay Fee", type: "expense", userId: user.id },

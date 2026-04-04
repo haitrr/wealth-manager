@@ -17,15 +17,11 @@ import { formatCurrency } from "@/lib/utils";
 const TYPE_COLORS: Record<CategoryType, string> = {
   income: "text-green-600 dark:text-green-400",
   expense: "text-red-600 dark:text-red-400",
-  payable: "text-amber-600 dark:text-amber-400",
-  receivable: "text-blue-600 dark:text-blue-400",
 };
 
 const TYPE_SIGN: Record<CategoryType, string> = {
   income: "+",
   expense: "-",
-  payable: "-",
-  receivable: "+",
 };
 
 interface TransactionDetailProps {
