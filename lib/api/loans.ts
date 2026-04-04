@@ -77,6 +77,7 @@ export interface LoanPayload {
   notes?: string;
   status?: LoanStatus;
   accountId: string;
+  initialCategoryId?: string | null;
   principalCategoryId?: string | null;
   interestCategoryId?: string | null;
   prepayFeeCategoryId?: string | null;

@@ -34,6 +34,7 @@ export interface LoanPayload {
   notes?: string;
   status?: string;
   accountId: string;
+  initialCategoryId?: string | null;
   principalCategoryId?: string | null;
   interestCategoryId?: string | null;
   prepayFeeCategoryId?: string | null;
@@ -76,6 +77,7 @@ export function parseLoanPayload(payload: LoanPayload) {
     notes: payload.notes?.trim() || null,
     status,
     accountId: payload.accountId,
+    initialCategoryId: payload.initialCategoryId || null,
     principalCategoryId: payload.principalCategoryId || null,
     interestCategoryId: payload.interestCategoryId || null,
     prepayFeeCategoryId: payload.prepayFeeCategoryId || null,
@@ -128,8 +130,20 @@ export async function ensureOwnedAccount(accountId: string, userId: string) {
 export async function ensureLoanInitialCategory(
   tx: LoanTransactionClient,
   userId: string,
-  direction: LoanDirection
+  direction: LoanDirection,
+  categoryId?: string | null,
+  globalCategoryId?: string | null
 ) {
+  if (categoryId) {
+    const configured = await tx.transactionCategory.findFirst({ where: { id: categoryId, userId } });
+    if (configured) return configured;
+  }
+
+  if (globalCategoryId) {
+    const global = await tx.transactionCategory.findFirst({ where: { id: globalCategoryId, userId } });
+    if (global) return global;
+  }
+
   // Borrowed: income (received loan money, balance increases)
   // Lent: expense (gave money out, balance decreases)
   const config = direction === "borrowed"

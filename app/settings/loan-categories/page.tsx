@@ -20,9 +20,11 @@ function LoanCategoriesForm({
   const savedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [form, setForm] = useState<UserSettingsPayload>({
+    loanBorrowedInitialCategoryId: settings.loanBorrowedInitialCategoryId,
     loanBorrowedPrincipalCategoryId: settings.loanBorrowedPrincipalCategoryId,
     loanBorrowedInterestCategoryId: settings.loanBorrowedInterestCategoryId,
     loanBorrowedPrepayFeeCategoryId: settings.loanBorrowedPrepayFeeCategoryId,
+    loanLentInitialCategoryId: settings.loanLentInitialCategoryId,
     loanLentPrincipalCategoryId: settings.loanLentPrincipalCategoryId,
     loanLentInterestCategoryId: settings.loanLentInterestCategoryId,
     loanLentPrepayFeeCategoryId: settings.loanLentPrepayFeeCategoryId,
@@ -55,6 +57,14 @@ function LoanCategoriesForm({
         <p className="text-sm font-medium">Borrowed loans</p>
         <CategorySelector
           categories={categories}
+          selectedCategoryId={form.loanBorrowedInitialCategoryId ?? ""}
+          onCategoryChange={(v) => set("loanBorrowedInitialCategoryId", v)}
+          filterType="income"
+          label="Initial disbursement"
+          placeholder="Auto (use default)"
+        />
+        <CategorySelector
+          categories={categories}
           selectedCategoryId={form.loanBorrowedPrincipalCategoryId ?? ""}
           onCategoryChange={(v) => set("loanBorrowedPrincipalCategoryId", v)}
           filterType="expense"
@@ -81,6 +91,14 @@ function LoanCategoriesForm({
 
       <div className="space-y-4 rounded-lg border p-4">
         <p className="text-sm font-medium">Lent loans</p>
+        <CategorySelector
+          categories={categories}
+          selectedCategoryId={form.loanLentInitialCategoryId ?? ""}
+          onCategoryChange={(v) => set("loanLentInitialCategoryId", v)}
+          filterType="expense"
+          label="Initial disbursement"
+          placeholder="Auto (use default)"
+        />
         <CategorySelector
           categories={categories}
           selectedCategoryId={form.loanLentPrincipalCategoryId ?? ""}

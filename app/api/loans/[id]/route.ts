@@ -31,7 +31,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     if (!existing) return NextResponse.json({ error: "Loan not found" }, { status: 404 });
 
     const parsed = parseLoanPayload(await req.json());
-    const { principalAmount, ...loanData } = parsed;
+    const { principalAmount, initialCategoryId, ...loanData } = parsed;
 
     const account = await ensureOwnedAccount(loanData.accountId, session.userId);
     if (account.currency !== loanData.currency) {
@@ -45,7 +45,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
           data: { amount: principalAmount, date: loanData.startDate },
         });
       } else {
-        const category = await ensureLoanInitialCategory(tx, session.userId, loanData.direction);
+        const category = await ensureLoanInitialCategory(tx, session.userId, loanData.direction, initialCategoryId);
         const initialTx = await tx.transaction.create({
           data: {
             amount: principalAmount,

@@ -76,6 +76,7 @@ export function LoanForm({ open, loan, defaultDirection, accounts, categories = 
   const [direction, setDirection] = useState<LoanDirection>(loan?.direction ?? defaultDirection ?? "borrowed");
   const [currency, setCurrency] = useState<Currency>(loan?.currency ?? accounts.find((a) => a.isDefault)?.currency ?? "VND");
   const [status, setStatus] = useState<LoanStatus>(loan?.status ?? "active");
+  const [initialCategoryId, setInitialCategoryId] = useState<string>("");
   const [principalCategoryId, setPrincipalCategoryId] = useState<string>(loan?.principalCategoryId ?? "");
   const [interestCategoryId, setInterestCategoryId] = useState<string>(loan?.interestCategoryId ?? "");
   const [prepayFeeCategoryId, setPrepayFeeCategoryId] = useState<string>(loan?.prepayFeeCategoryId ?? "");
@@ -93,6 +94,7 @@ export function LoanForm({ open, loan, defaultDirection, accounts, categories = 
     setDirection(loan?.direction ?? defaultDirection ?? "borrowed");
     setCurrency(loan?.currency ?? defaultAccount?.currency ?? "VND");
     setStatus(loan?.status ?? "active");
+    setInitialCategoryId("");
     setPrincipalCategoryId(loan?.principalCategoryId ?? "");
     setInterestCategoryId(loan?.interestCategoryId ?? "");
     setPrepayFeeCategoryId(loan?.prepayFeeCategoryId ?? "");
@@ -118,6 +120,7 @@ export function LoanForm({ open, loan, defaultDirection, accounts, categories = 
       notes: (form.elements.namedItem("notes") as HTMLTextAreaElement).value || undefined,
       status,
       accountId: (form.elements.namedItem("accountId") as HTMLSelectElement).value,
+      initialCategoryId: initialCategoryId || null,
       principalCategoryId: principalCategoryId || null,
       interestCategoryId: interestCategoryId || null,
       prepayFeeCategoryId: prepayFeeCategoryId || null,
@@ -220,6 +223,16 @@ export function LoanForm({ open, loan, defaultDirection, accounts, categories = 
           {categories.length > 0 && (
             <div className="space-y-3 rounded-lg border p-3">
               <p className="text-xs font-medium text-muted-foreground">Transaction categories (optional)</p>
+              {!loan && (
+                <CategorySelector
+                  categories={categories}
+                  selectedCategoryId={initialCategoryId}
+                  onCategoryChange={setInitialCategoryId}
+                  filterType={direction === "borrowed" ? "income" : "expense"}
+                  label="Initial disbursement"
+                  placeholder="Auto"
+                />
+              )}
               <CategorySelector
                 categories={categories}
                 selectedCategoryId={principalCategoryId}

@@ -28,15 +28,20 @@ export async function POST(req: NextRequest) {
 
   try {
     const parsed = parseLoanPayload(await req.json());
-    const { principalAmount, ...loanData } = parsed;
+    const { principalAmount, initialCategoryId, ...loanData } = parsed;
 
     const account = await ensureOwnedAccount(loanData.accountId, session.userId);
     if (account.currency !== loanData.currency) {
       throw new Error("Loan and account must use the same currency");
     }
 
+    const userSettings = await prisma.userSettings.findUnique({ where: { userId: session.userId } });
+    const globalInitialCategoryId = loanData.direction === "borrowed"
+      ? userSettings?.loanBorrowedInitialCategoryId
+      : userSettings?.loanLentInitialCategoryId;
+
     const loan = await prisma.$transaction(async (tx) => {
-      const category = await ensureLoanInitialCategory(tx, session.userId, loanData.direction);
+      const category = await ensureLoanInitialCategory(tx, session.userId, loanData.direction, initialCategoryId, globalInitialCategoryId);
       const initialTx = await tx.transaction.create({
         data: {
           amount: principalAmount,

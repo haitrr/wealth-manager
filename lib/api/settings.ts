@@ -3,9 +3,11 @@ import api from "@/lib/axios";
 export interface UserSettings {
   id: string;
   userId: string;
+  loanBorrowedInitialCategoryId: string | null;
   loanBorrowedPrincipalCategoryId: string | null;
   loanBorrowedInterestCategoryId: string | null;
   loanBorrowedPrepayFeeCategoryId: string | null;
+  loanLentInitialCategoryId: string | null;
   loanLentPrincipalCategoryId: string | null;
   loanLentInterestCategoryId: string | null;
   loanLentPrepayFeeCategoryId: string | null;
@@ -15,9 +17,11 @@ export interface UserSettings {
 
 export type UserSettingsPayload = Partial<Pick<
   UserSettings,
+  | "loanBorrowedInitialCategoryId"
   | "loanBorrowedPrincipalCategoryId"
   | "loanBorrowedInterestCategoryId"
   | "loanBorrowedPrepayFeeCategoryId"
+  | "loanLentInitialCategoryId"
   | "loanLentPrincipalCategoryId"
   | "loanLentInterestCategoryId"
   | "loanLentPrepayFeeCategoryId"

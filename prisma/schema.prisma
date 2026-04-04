@@ -27,9 +27,11 @@ model UserSettings {
   id                              String   @id @default(cuid())
   userId                          String   @unique
   user                            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  loanBorrowedInitialCategoryId   String?
   loanBorrowedPrincipalCategoryId String?
   loanBorrowedInterestCategoryId  String?
   loanBorrowedPrepayFeeCategoryId String?
+  loanLentInitialCategoryId       String?
   loanLentPrincipalCategoryId     String?
   loanLentInterestCategoryId      String?
   loanLentPrepayFeeCategoryId     String?
