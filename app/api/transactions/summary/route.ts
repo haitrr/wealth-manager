@@ -85,8 +85,8 @@ export async function GET(request: NextRequest) {
         income: dayData.income,
         expenses: dayData.expenses,
       });
-    } else if (dailyData.length > 0) {
-      // Include days with no transactions to show flat line
+    } else {
+      // Include all days (including before first transaction) to show balance from 0
       dailyData.push({
         date: dateKey,
         balance: cumulativeBalance,

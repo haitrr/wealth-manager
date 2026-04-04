@@ -31,10 +31,13 @@ export function BalanceTrendChart({ dailyData, currency }: BalanceTrendChartProp
     return new Date(ts).toLocaleDateString("en-US", { month: "short", day: "numeric" });
   };
 
-  const chartData = dailyData.map((d) => ({
+  const mapped = dailyData.map((d) => ({
     date: new Date(d.date + "T00:00:00").getTime(),
     balance: d.balance,
   }));
+
+  const DAY_MS = 86400000;
+  const chartData = [{ date: mapped[0].date - DAY_MS, balance: 0 }, ...mapped];
 
   const hasNegative = dailyData.some((d) => d.balance < 0);
 
