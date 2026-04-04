@@ -10,6 +10,7 @@ import { AmountInput } from "@/components/transactions/amount-input";
 import { Account, Currency } from "@/lib/api/accounts";
 import { Loan, LoanDirection, LoanPayload, LoanStatus } from "@/lib/api/loans";
 import { TransactionCategory } from "@/lib/api/transaction-categories";
+import { CategorySelector } from "@/components/transactions/category-selector";
 
 interface LoanFormProps {
   open: boolean;
@@ -84,9 +85,6 @@ export function LoanForm({ open, loan, defaultDirection, accounts, categories = 
 
   const principalCategoryType = direction === "borrowed" ? "expense" : "income";
   const interestCategoryType = direction === "borrowed" ? "expense" : "income";
-  const principalCategories = useMemo(() => categories.filter((c) => c.type === principalCategoryType), [categories, principalCategoryType]);
-  const interestCategories = useMemo(() => categories.filter((c) => c.type === interestCategoryType), [categories, interestCategoryType]);
-  const prepayFeeCategories = useMemo(() => categories.filter((c) => c.type === "expense"), [categories]);
 
   useEffect(() => {
     if (!open) return;
@@ -222,45 +220,30 @@ export function LoanForm({ open, loan, defaultDirection, accounts, categories = 
           {categories.length > 0 && (
             <div className="space-y-3 rounded-lg border p-3">
               <p className="text-xs font-medium text-muted-foreground">Transaction categories (optional)</p>
-              <div className="space-y-2">
-                <Label htmlFor="principalCategory" className="text-xs">Principal</Label>
-                <NativeSelect
-                  id="principalCategory"
-                  name="principalCategory"
-                  value={principalCategoryId}
-                  onChange={setPrincipalCategoryId}
-                  options={[
-                    { value: "", label: "Auto" },
-                    ...principalCategories.map((c) => ({ value: c.id, label: c.name })),
-                  ]}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="interestCategory" className="text-xs">Interest</Label>
-                <NativeSelect
-                  id="interestCategory"
-                  name="interestCategory"
-                  value={interestCategoryId}
-                  onChange={setInterestCategoryId}
-                  options={[
-                    { value: "", label: "Auto" },
-                    ...interestCategories.map((c) => ({ value: c.id, label: c.name })),
-                  ]}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="prepayFeeCategory" className="text-xs">Prepay fee</Label>
-                <NativeSelect
-                  id="prepayFeeCategory"
-                  name="prepayFeeCategory"
-                  value={prepayFeeCategoryId}
-                  onChange={setPrepayFeeCategoryId}
-                  options={[
-                    { value: "", label: "Auto" },
-                    ...prepayFeeCategories.map((c) => ({ value: c.id, label: c.name })),
-                  ]}
-                />
-              </div>
+              <CategorySelector
+                categories={categories}
+                selectedCategoryId={principalCategoryId}
+                onCategoryChange={setPrincipalCategoryId}
+                filterType={principalCategoryType}
+                label="Principal"
+                placeholder="Auto"
+              />
+              <CategorySelector
+                categories={categories}
+                selectedCategoryId={interestCategoryId}
+                onCategoryChange={setInterestCategoryId}
+                filterType={interestCategoryType}
+                label="Interest"
+                placeholder="Auto"
+              />
+              <CategorySelector
+                categories={categories}
+                selectedCategoryId={prepayFeeCategoryId}
+                onCategoryChange={setPrepayFeeCategoryId}
+                filterType="expense"
+                label="Prepay fee"
+                placeholder="Auto"
+              />
             </div>
           )}
 
