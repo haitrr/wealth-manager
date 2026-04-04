@@ -30,16 +30,27 @@ export default function TransactionsPage() {
   const [viewingTransaction, setViewingTransaction] = useState<Transaction | null>(null);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const [timeRange, setTimeRange] = useState<TimeRange>("this-month");
+  const [customRange, setCustomRange] = useState({ startDate: "", endDate: "" });
   const [debouncedSearch, setDebouncedSearch] = useState("");
 
-  const dateRange = getDateRange(timeRange);
+  const dateRange =
+    timeRange === "custom"
+      ? { startDate: customRange.startDate, endDate: customRange.endDate }
+      : getDateRange(timeRange);
+
+  const customRangeReady =
+    timeRange !== "custom" || (!!customRange.startDate && !!customRange.endDate);
 
   const { data: transactions = [], isLoading } = useQuery({
-    queryKey: ["transactions", debouncedSearch ? { search: debouncedSearch } : { timeRange }],
+    queryKey: [
+      "transactions",
+      debouncedSearch ? { search: debouncedSearch } : { dateRange },
+    ],
     queryFn: () =>
       debouncedSearch
         ? getTransactions({ search: debouncedSearch })
         : getTransactions(dateRange),
+    enabled: debouncedSearch ? true : customRangeReady,
   });
   const { data: accounts = [] } = useQuery({
     queryKey: ["accounts"],
@@ -114,7 +125,12 @@ export default function TransactionsPage() {
   return (
     <main className="max-w-lg mx-auto px-4 py-8">
       {!debouncedSearch && (
-        <TimeRangeSelector value={timeRange} onChange={setTimeRange} />
+        <TimeRangeSelector
+          value={timeRange}
+          onChange={setTimeRange}
+          customRange={customRange}
+          onCustomRangeChange={setCustomRange}
+        />
       )}
 
       <TransactionSearch onSearch={setDebouncedSearch} />

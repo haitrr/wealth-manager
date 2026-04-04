@@ -1,12 +1,20 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
-export type TimeRange = "this-month" | "last-month" | "this-year" | "last-year";
+export type TimeRange = "this-month" | "last-month" | "this-year" | "last-year" | "custom";
+
+export interface CustomDateRange {
+  startDate: string;
+  endDate: string;
+}
 
 interface TimeRangeSelectorProps {
   value: TimeRange;
   onChange: (range: TimeRange) => void;
+  customRange: CustomDateRange;
+  onCustomRangeChange: (range: CustomDateRange) => void;
 }
 
 const RANGES: { label: string; value: TimeRange }[] = [
@@ -14,9 +22,10 @@ const RANGES: { label: string; value: TimeRange }[] = [
   { label: "Last month", value: "last-month" },
   { label: "This year", value: "this-year" },
   { label: "Last year", value: "last-year" },
+  { label: "Custom", value: "custom" },
 ];
 
-export function getDateRange(range: TimeRange): { startDate: string; endDate: string } {
+export function getDateRange(range: Exclude<TimeRange, "custom">): CustomDateRange {
   const now = new Date();
   const year = now.getFullYear();
   const month = now.getMonth();
@@ -45,20 +54,49 @@ export function getDateRange(range: TimeRange): { startDate: string; endDate: st
   }
 }
 
-export function TimeRangeSelector({ value, onChange }: TimeRangeSelectorProps) {
+export function TimeRangeSelector({
+  value,
+  onChange,
+  customRange,
+  onCustomRangeChange,
+}: TimeRangeSelectorProps) {
   return (
-    <div className="flex gap-1 flex-wrap">
-      {RANGES.map((r) => (
-        <Button
-          key={r.value}
-          variant={value === r.value ? "default" : "outline"}
-          size="sm"
-          className="text-xs h-7 px-2"
-          onClick={() => onChange(r.value)}
-        >
-          {r.label}
-        </Button>
-      ))}
+    <div className="flex flex-col gap-2">
+      <div className="flex gap-1 flex-wrap">
+        {RANGES.map((r) => (
+          <Button
+            key={r.value}
+            variant={value === r.value ? "default" : "outline"}
+            size="sm"
+            className="text-xs h-7 px-2"
+            onClick={() => onChange(r.value)}
+          >
+            {r.label}
+          </Button>
+        ))}
+      </div>
+
+      {value === "custom" && (
+        <div className="flex gap-2 items-center">
+          <Input
+            type="date"
+            className="h-7 text-xs px-2"
+            value={customRange.startDate}
+            onChange={(e) =>
+              onCustomRangeChange({ ...customRange, startDate: e.target.value })
+            }
+          />
+          <span className="text-xs text-muted-foreground shrink-0">to</span>
+          <Input
+            type="date"
+            className="h-7 text-xs px-2"
+            value={customRange.endDate}
+            onChange={(e) =>
+              onCustomRangeChange({ ...customRange, endDate: e.target.value })
+            }
+          />
+        </div>
+      )}
     </div>
   );
 }
