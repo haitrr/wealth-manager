@@ -9,6 +9,7 @@ import {
   LOAN_INCLUDE,
   parseLoanPayload,
   serializeLoan,
+  syncLoanOriginationTransaction,
 } from "../loan-route-utils";
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -38,14 +39,26 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     }
 
     const payload = parseLoanPayload(await req.json());
-    await ensureOwnedAccount(payload.data.accountId, session.userId);
+    const account = await ensureOwnedAccount(payload.data.accountId, session.userId);
+    if (account.currency !== payload.data.currency) {
+      throw new Error("Loan and account must use the same currency");
+    }
 
     const schedule = generateLoanSchedule(payload.computationInput, payload.ratePeriods);
 
     const updatedLoan = await prisma.$transaction(async (tx) => {
+      const originationTransactionId = await syncLoanOriginationTransaction(tx, {
+        existingTransactionId: existing.originationTransactionId,
+        loan: payload.data,
+        userId: session.userId,
+      });
+
       await tx.loan.update({
         where: { id },
-        data: payload.data,
+        data: {
+          ...payload.data,
+          originationTransactionId,
+        },
       });
 
       await tx.loanScheduleEntry.deleteMany({ where: { loanId: id } });
@@ -95,6 +108,12 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
     );
   }
 
-  await prisma.loan.delete({ where: { id } });
+  await prisma.$transaction(async (tx) => {
+    if (loan.originationTransactionId) {
+      await tx.transaction.delete({ where: { id: loan.originationTransactionId } });
+    }
+    await tx.loan.delete({ where: { id } });
+  });
+
   return NextResponse.json({ success: true });
 }

@@ -8,6 +8,7 @@ import {
   LOAN_INCLUDE,
   parseLoanPayload,
   serializeLoan,
+  syncLoanOriginationTransaction,
 } from "./loan-route-utils";
 
 export async function GET(req: NextRequest) {
@@ -29,7 +30,10 @@ export async function POST(req: NextRequest) {
 
   try {
     const payload = parseLoanPayload(await req.json());
-    await ensureOwnedAccount(payload.data.accountId, session.userId);
+    const account = await ensureOwnedAccount(payload.data.accountId, session.userId);
+    if (account.currency !== payload.data.currency) {
+      throw new Error("Loan and account must use the same currency");
+    }
 
     const schedule = generateLoanSchedule(payload.computationInput, payload.ratePeriods);
 
@@ -40,6 +44,18 @@ export async function POST(req: NextRequest) {
           userId: session.userId,
         },
       });
+
+      const originationTransactionId = await syncLoanOriginationTransaction(tx, {
+        loan,
+        userId: session.userId,
+      });
+
+      if (originationTransactionId) {
+        await tx.loan.update({
+          where: { id: loan.id },
+          data: { originationTransactionId },
+        });
+      }
 
       const createdRatePeriods = await tx.loanRatePeriod.createManyAndReturn({
         data: payload.ratePeriods.map((period) => ({

@@ -43,6 +43,8 @@ export default function LoansSettingsPage() {
 
   const invalidate = () => {
     queryClient.invalidateQueries({ queryKey: ["loans"] });
+    queryClient.invalidateQueries({ queryKey: ["accounts"] });
+    queryClient.invalidateQueries({ queryKey: ["transactions"] });
   };
 
   const createMutation = useMutation({ mutationFn: createLoan, onSuccess: invalidate });

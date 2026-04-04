@@ -3,7 +3,13 @@ import { prisma } from "@/app/lib/db";
 import { getSession } from "@/app/lib/auth";
 
 async function getOwnedTransaction(transactionId: string, userId: string) {
-  return prisma.transaction.findFirst({ where: { id: transactionId, userId } });
+  return prisma.transaction.findFirst({
+    where: { id: transactionId, userId },
+    include: {
+      loanPayment: { select: { id: true, loanId: true } },
+      originatedLoan: { select: { id: true } },
+    },
+  });
 }
 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -13,6 +19,12 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   const { id } = await params;
   const transaction = await getOwnedTransaction(id, session.userId);
   if (!transaction) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  if (transaction.loanPayment || transaction.originatedLoan) {
+    return NextResponse.json(
+      { error: "Loan-linked transactions must be updated from the loan screen" },
+      { status: 400 }
+    );
+  }
 
   const { amount, date, description, details, accountId, categoryId } = await req.json();
 
@@ -63,6 +75,12 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
   const { id } = await params;
   const transaction = await getOwnedTransaction(id, session.userId);
   if (!transaction) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  if (transaction.loanPayment || transaction.originatedLoan) {
+    return NextResponse.json(
+      { error: "Loan-linked transactions must be deleted from the loan screen" },
+      { status: 400 }
+    );
+  }
 
   await prisma.transaction.delete({ where: { id } });
   return NextResponse.json({ success: true });

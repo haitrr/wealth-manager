@@ -35,6 +35,8 @@ export default function LoanDetailPage({ params }: { params: Promise<{ id: strin
   const invalidate = () => {
     queryClient.invalidateQueries({ queryKey: ["loans"] });
     queryClient.invalidateQueries({ queryKey: ["loans", id] });
+    queryClient.invalidateQueries({ queryKey: ["accounts"] });
+    queryClient.invalidateQueries({ queryKey: ["transactions"] });
   };
 
   const updateMutation = useMutation({

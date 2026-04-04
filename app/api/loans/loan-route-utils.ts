@@ -21,6 +21,17 @@ import {
 
 const LOAN_INCLUDE = {
   account: { select: { id: true, name: true, currency: true } },
+  originationTransaction: {
+    select: {
+      id: true,
+      amount: true,
+      date: true,
+      description: true,
+      details: true,
+      accountId: true,
+      categoryId: true,
+    },
+  },
   ratePeriods: { orderBy: [{ sequence: "asc" }] },
   scheduleEntries: { orderBy: [{ installmentIndex: "asc" }] },
   payments: {
@@ -49,6 +60,17 @@ const LOAN_PAYMENT_KINDS = new Set<LoanPaymentKind>(["scheduled", "prepayment", 
 
 export type LoanWithRelations = Prisma.LoanGetPayload<{ include: typeof LOAN_INCLUDE }>;
 export type LoanTransactionClient = Prisma.TransactionClient;
+
+type LoanTransactionPurpose = "origination" | "payment";
+
+type LoanOriginationTransactionSource = {
+  name: string;
+  direction: LoanDirection;
+  principalAmount: number;
+  startDate: Date;
+  accountId: string;
+  status: LoanStatus;
+};
 
 export interface LoanRatePeriodPayload {
   periodType: string;
@@ -294,24 +316,84 @@ export function getLoanComputationInput(
 export async function ensureLoanTransactionCategory(
   tx: LoanTransactionClient,
   userId: string,
-  direction: LoanDirection
+  direction: LoanDirection,
+  purpose: LoanTransactionPurpose = "payment"
 ) {
-  const name = direction === "borrowed" ? "Loan Repayment" : "Loan Collection";
-  const type = direction === "borrowed" ? "payable" : "receivable";
+  const categoryConfig = purpose === "payment"
+    ? direction === "borrowed"
+      ? { name: "Loan Repayment", type: "payable" as const }
+      : { name: "Loan Collection", type: "receivable" as const }
+    : direction === "borrowed"
+      ? { name: "Borrowed Funds", type: "receivable" as const }
+      : { name: "Loan Disbursement", type: "payable" as const };
 
   const existing = await tx.transactionCategory.findFirst({
-    where: { userId, name, type },
+    where: { userId, name: categoryConfig.name, type: categoryConfig.type },
   });
   if (existing) return existing;
 
   return tx.transactionCategory.create({
     data: {
-      name,
-      type,
+      name: categoryConfig.name,
+      type: categoryConfig.type,
       userId,
       icon: null,
     },
   });
+}
+
+export function shouldPersistLoanOriginationTransaction(status: LoanStatus) {
+  return status !== "draft";
+}
+
+export function buildLoanOriginationTransactionData(
+  loan: LoanOriginationTransactionSource,
+  categoryId: string,
+  userId: string
+) {
+  const directionDetails = loan.direction === "borrowed" ? "borrowed funds received" : "funds lent out";
+
+  return {
+    amount: loan.principalAmount,
+    date: loan.startDate,
+    description: `${loan.name} disbursement`,
+    details: `Loan disbursement; ${directionDetails}; principal ${loan.principalAmount.toFixed(2)}`,
+    accountId: loan.accountId,
+    categoryId,
+    userId,
+  };
+}
+
+export async function syncLoanOriginationTransaction(
+  tx: LoanTransactionClient,
+  params: {
+    existingTransactionId?: string | null;
+    loan: LoanOriginationTransactionSource;
+    userId: string;
+  }
+) {
+  const { existingTransactionId = null, loan, userId } = params;
+
+  if (!shouldPersistLoanOriginationTransaction(loan.status)) {
+    if (existingTransactionId) {
+      await tx.transaction.delete({ where: { id: existingTransactionId } });
+    }
+    return null;
+  }
+
+  const category = await ensureLoanTransactionCategory(tx, userId, loan.direction, "origination");
+  const transactionData = buildLoanOriginationTransactionData(loan, category.id, userId);
+
+  if (existingTransactionId) {
+    await tx.transaction.update({
+      where: { id: existingTransactionId },
+      data: transactionData,
+    });
+    return existingTransactionId;
+  }
+
+  const transaction = await tx.transaction.create({ data: transactionData });
+  return transaction.id;
 }
 
 export async function getOwnedLoanPayment(loanId: string, paymentId: string, userId: string) {

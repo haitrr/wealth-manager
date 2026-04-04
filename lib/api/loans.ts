@@ -90,6 +90,16 @@ export interface Loan {
   status: LoanStatus;
   accountId: string;
   account: { id: string; name: string; currency: Currency };
+  originationTransactionId: string | null;
+  originationTransaction: {
+    id: string;
+    amount: number;
+    date: string;
+    description: string | null;
+    details: string | null;
+    accountId: string;
+    categoryId: string;
+  } | null;
   userId: string;
   ratePeriods: LoanRatePeriod[];
   scheduleEntries: LoanScheduleEntry[];
