@@ -10,6 +10,7 @@ import { LoanForm } from "@/components/loans/loan-form";
 import { LoanPaymentForm } from "@/components/loans/loan-payment-form";
 import { getAccounts } from "@/lib/api/accounts";
 import { createLoanPayment, deleteLoan, deleteLoanPayment, getLoan, LoanPayment, updateLoan, updateLoanPayment } from "@/lib/api/loans";
+import { LoanStats } from "@/components/loans/loan-stats";
 import { formatCurrency } from "@/lib/utils";
 
 export default function LoanDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -132,7 +133,9 @@ export default function LoanDetailPage({ params }: { params: Promise<{ id: strin
         </Button>
       </div>
 
-      <section>
+      {loan.payments.length > 0 && <LoanStats loan={loan} />}
+
+      <section className="mt-6">
         <h2 className="text-sm font-medium text-muted-foreground mb-2">Payments</h2>
         {loan.payments.length === 0 ? (
           <p className="text-sm text-muted-foreground">No payments recorded yet.</p>
