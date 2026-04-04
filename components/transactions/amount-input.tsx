@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Delete } from "lucide-react";
+import { ChevronDown, Delete } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const KEYS = [
@@ -98,6 +98,18 @@ export function AmountInput({
 
       {open && (
         <div className="fixed bottom-0 left-0 right-0 z-200 border-t bg-background pb-safe">
+          <div className="flex justify-end">
+            <button
+              type="button"
+              onPointerDown={(e) => {
+                e.preventDefault();
+                setOpen(false);
+              }}
+              className="flex h-12 w-16 items-center justify-center text-muted-foreground active:text-foreground"
+            >
+              <ChevronDown className="size-6" />
+            </button>
+          </div>
           <div className="grid grid-cols-3 gap-px bg-border">
             {KEYS.flat().map((key) => (
               <button
