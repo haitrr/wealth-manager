@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useInfiniteQuery, useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TransactionRow } from "@/components/transactions/transaction-row";
@@ -24,6 +24,8 @@ import { getAccounts } from "@/lib/api/accounts";
 import { getTransactionCategories } from "@/lib/api/transaction-categories";
 import { formatCurrency } from "@/lib/utils";
 
+const PAGE_SIZE = 30;
+
 export default function TransactionsPage() {
   const queryClient = useQueryClient();
   const [formOpen, setFormOpen] = useState(false);
@@ -35,23 +37,28 @@ export default function TransactionsPage() {
 
   const dateRange =
     timeRange === "custom"
-      ? { startDate: customRange.startDate, endDate: customRange.endDate }
+      ? { startDate: customRange.startDate || undefined, endDate: customRange.endDate || undefined }
       : getDateRange(timeRange);
 
-  const customRangeReady =
-    timeRange !== "custom" || (!!customRange.startDate && !!customRange.endDate);
+  const queryParams = debouncedSearch
+    ? { search: debouncedSearch }
+    : dateRange;
 
-  const { data: transactions = [], isLoading } = useQuery({
-    queryKey: [
-      "transactions",
-      debouncedSearch ? { search: debouncedSearch } : { dateRange },
-    ],
-    queryFn: () =>
-      debouncedSearch
-        ? getTransactions({ search: debouncedSearch })
-        : getTransactions(dateRange),
-    enabled: debouncedSearch ? true : customRangeReady,
+  const {
+    data,
+    isLoading,
+    isFetchingNextPage,
+    hasNextPage,
+    fetchNextPage,
+  } = useInfiniteQuery({
+    queryKey: ["transactions", queryParams],
+    queryFn: ({ pageParam = 0 }) =>
+      getTransactions({ ...queryParams, limit: PAGE_SIZE, offset: pageParam }),
+    getNextPageParam: (lastPage, pages) =>
+      lastPage.hasMore ? pages.length * PAGE_SIZE : undefined,
+    initialPageParam: 0,
   });
+
   const { data: accounts = [] } = useQuery({
     queryKey: ["accounts"],
     queryFn: getAccounts,
@@ -68,7 +75,7 @@ export default function TransactionsPage() {
   const updateMutation = useMutation({
     mutationFn: ({
       id,
-      ...data
+      ...payload
     }: {
       id: string;
       amount: number;
@@ -76,7 +83,7 @@ export default function TransactionsPage() {
       description?: string;
       accountId: string;
       categoryId: string;
-    }) => updateTransaction(id, data),
+    }) => updateTransaction(id, payload),
     onSuccess: invalidate,
   });
 
@@ -95,7 +102,7 @@ export default function TransactionsPage() {
     setFormOpen(true);
   }
 
-  async function handleSubmit(data: {
+  async function handleSubmit(payload: {
     amount: number;
     date: string;
     description?: string;
@@ -103,11 +110,13 @@ export default function TransactionsPage() {
     categoryId: string;
   }) {
     if (editingTransaction) {
-      await updateMutation.mutateAsync({ id: editingTransaction.id, ...data });
+      await updateMutation.mutateAsync({ id: editingTransaction.id, ...payload });
     } else {
-      await createMutation.mutateAsync(data);
+      await createMutation.mutateAsync(payload);
     }
   }
+
+  const transactions = data?.pages.flatMap((p) => p.data) ?? [];
 
   // Group transactions by day
   const grouped = transactions.reduce<Record<string, Transaction[]>>((acc, tx) => {
@@ -155,26 +164,39 @@ export default function TransactionsPage() {
           const isPositive = dayBalance >= 0;
           const currency = txs[0].account.currency;
           return (
-          <div key={day}>
-            <div className="flex items-center justify-left mb-1 gap-4">
-              <h2 className="text-sm font-medium text-muted-foreground">{day}</h2>
-              <span className={`text-sm font-medium ${isPositive ? "text-green-500" : "text-red-500"}`}>
-                {isPositive ? "+" : "-"}{formatCurrency(Math.abs(dayBalance), currency)}
-              </span>
+            <div key={day}>
+              <div className="flex items-center justify-left mb-1 gap-4">
+                <h2 className="text-sm font-medium text-muted-foreground">{day}</h2>
+                <span className={`text-sm font-medium ${isPositive ? "text-green-500" : "text-red-500"}`}>
+                  {isPositive ? "+" : "-"}{formatCurrency(Math.abs(dayBalance), currency)}
+                </span>
+              </div>
+              <div className="rounded-lg border">
+                {txs.map((tx) => (
+                  <TransactionRow
+                    key={tx.id}
+                    transaction={tx}
+                    onEdit={openView}
+                  />
+                ))}
+              </div>
             </div>
-            <div className="rounded-lg border">
-              {txs.map((tx) => (
-                <TransactionRow
-                  key={tx.id}
-                  transaction={tx}
-                  onEdit={openView}
-                />
-              ))}
-            </div>
-          </div>
           );
         })}
       </div>
+
+      {hasNextPage && (
+        <div className="flex justify-center mt-6">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => fetchNextPage()}
+            disabled={isFetchingNextPage}
+          >
+            {isFetchingNextPage ? "Loading…" : "Load more"}
+          </Button>
+        </div>
+      )}
 
       <Button
         size="icon"

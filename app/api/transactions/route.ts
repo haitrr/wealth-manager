@@ -10,10 +10,12 @@ export async function GET(req: NextRequest) {
   const startDate = searchParams.get("startDate");
   const endDate = searchParams.get("endDate");
   const search = searchParams.get("search")?.trim();
+  const limit = Math.min(parseInt(searchParams.get("limit") ?? "30"), 100);
+  const offset = parseInt(searchParams.get("offset") ?? "0");
 
   if (search) {
     const pattern = `%${search}%`;
-    const transactions = await prisma.$queryRaw<unknown[]>`
+    const rows = await prisma.$queryRaw<unknown[]>`
       SELECT
         t.id, t.amount, t.date, t.description, t.details,
         t."accountId", t."categoryId", t."userId", t."createdAt", t."updatedAt",
@@ -31,11 +33,13 @@ export async function GET(req: NextRequest) {
           OR TO_CHAR(t.date AT TIME ZONE 'UTC', 'FMDD FMMonth Mon YYYY') ILIKE ${pattern}
         )
       ORDER BY t.date DESC, t."createdAt" DESC
+      LIMIT ${limit + 1} OFFSET ${offset}
     `;
-    return NextResponse.json(transactions);
+    const hasMore = rows.length > limit;
+    return NextResponse.json({ data: hasMore ? rows.slice(0, limit) : rows, hasMore });
   }
 
-  const transactions = await prisma.transaction.findMany({
+  const rows = await prisma.transaction.findMany({
     where: {
       userId: session.userId,
       ...(startDate || endDate
@@ -55,9 +59,12 @@ export async function GET(req: NextRequest) {
       loanPaymentPrepayFee: { select: { id: true, loanId: true, loan: { select: { id: true, name: true } } } },
     },
     orderBy: [{ date: "desc" }, { createdAt: "desc" }],
+    take: limit + 1,
+    skip: offset,
   });
 
-  return NextResponse.json(transactions);
+  const hasMore = rows.length > limit;
+  return NextResponse.json({ data: hasMore ? rows.slice(0, limit) : rows, hasMore });
 }
 
 export async function POST(req: NextRequest) {

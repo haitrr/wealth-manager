@@ -57,27 +57,106 @@ async function main() {
     ],
   });
 
-  const now = new Date("2026-03-14");
-  const d = (daysAgo: number) => new Date(now.getTime() - daysAgo * 86400000);
+  const today = new Date();
+  const monthDate = (monthOffset: number, day: number) => {
+    const targetMonth = new Date(today.getFullYear(), today.getMonth() + monthOffset, 1);
+    const lastDayOfMonth = new Date(
+      targetMonth.getFullYear(),
+      targetMonth.getMonth() + 1,
+      0,
+    ).getDate();
+
+    return new Date(
+      targetMonth.getFullYear(),
+      targetMonth.getMonth(),
+      Math.min(day, lastDayOfMonth),
+    );
+  };
+  const monthNumber = (monthOffset: number) => monthDate(monthOffset, 1).getMonth() + 1;
 
   await prisma.transaction.createMany({
     data: [
-      { amount: 18000000, date: d(13), description: "Lương tháng 3", accountId: checking.id, categoryId: byName["Lương"].id, userId: user.id },
-      { amount: 8000000, date: d(10), description: "Dự án thiết kế website", accountId: checking.id, categoryId: byName["Freelance"].id, userId: user.id },
-      { amount: 6000000, date: d(9), description: "Tiền thuê nhà tháng 3", accountId: checking.id, categoryId: byName["Thuê nhà"].id, userId: user.id },
-      { amount: 650000, date: d(8), description: "Tiền điện nước", accountId: checking.id, categoryId: byName["Điện nước"].id, userId: user.id },
-      { amount: 1200000, date: d(7), description: "Mua thực phẩm", accountId: checking.id, categoryId: byName["Ăn uống"].id, userId: user.id },
-      { amount: 450000, date: d(6), description: "Grab đi làm", accountId: checking.id, categoryId: byName["Đi lại"].id, userId: user.id },
-      { amount: 180000, date: d(5), description: "Netflix & Spotify", accountId: checking.id, categoryId: byName["Giải trí"].id, userId: user.id },
-      { amount: 850000, date: d(4), description: "Ăn tối nhà hàng", accountId: checking.id, categoryId: byName["Ăn uống"].id, userId: user.id },
-      { amount: 3000000, date: d(3), description: "Thanh toán thẻ tín dụng", accountId: checking.id, categoryId: byName["Thẻ tín dụng"].id, userId: user.id },
-      { amount: 2000000, date: d(2), description: "Bạn trả nợ", accountId: savings.id, categoryId: byName["Cho vay"].id, userId: user.id },
-      { amount: 120000, date: d(1), description: "Cà phê & ăn vặt", accountId: checking.id, categoryId: byName["Ăn uống"].id, userId: user.id },
-      { amount: 80000, date: d(0), description: "Vé xe buýt tháng", accountId: checking.id, categoryId: byName["Đi lại"].id, userId: user.id },
+      // Current month
+      { amount: 18000000, date: monthDate(0, 1), description: `Lương tháng ${monthNumber(0)}`, accountId: checking.id, categoryId: byName["Lương"].id, userId: user.id },
+      { amount: 6000000, date: monthDate(0, 1), description: `Tiền thuê nhà tháng ${monthNumber(0)}`, accountId: checking.id, categoryId: byName["Thuê nhà"].id, userId: user.id },
+      { amount: 85000, date: monthDate(0, 1), description: "Cà phê sáng", accountId: checking.id, categoryId: byName["Ăn uống"].id, userId: user.id },
+      { amount: 350000, date: monthDate(0, 2), description: "Grab đi làm", accountId: checking.id, categoryId: byName["Đi lại"].id, userId: user.id },
+      { amount: 220000, date: monthDate(0, 2), description: "Bún bò gia đình", accountId: checking.id, categoryId: byName["Ăn uống"].id, userId: user.id },
+      { amount: 5000000, date: monthDate(0, 2), description: "Dự án app mobile", accountId: checking.id, categoryId: byName["Freelance"].id, userId: user.id },
+      { amount: 670000, date: monthDate(0, 3), description: "Siêu thị Vinmart", accountId: checking.id, categoryId: byName["Ăn uống"].id, userId: user.id },
+      { amount: 180000, date: monthDate(0, 3), description: "Xăng xe", accountId: checking.id, categoryId: byName["Đi lại"].id, userId: user.id },
+      { amount: 300000, date: monthDate(0, 3), description: "Cinema CGV", accountId: checking.id, categoryId: byName["Giải trí"].id, userId: user.id },
+      { amount: 95000, date: monthDate(0, 4), description: "Cà phê làm việc", accountId: checking.id, categoryId: byName["Ăn uống"].id, userId: user.id },
+      { amount: 480000, date: monthDate(0, 4), description: "Ăn tối với bạn bè", accountId: checking.id, categoryId: byName["Ăn uống"].id, userId: user.id },
+
+      // Previous month (expanded)
+      { amount: 18000000, date: monthDate(-1, 1), description: `Lương tháng ${monthNumber(-1)}`, accountId: checking.id, categoryId: byName["Lương"].id, userId: user.id },
+      { amount: 6000000, date: monthDate(-1, 1), description: `Tiền thuê nhà tháng ${monthNumber(-1)}`, accountId: checking.id, categoryId: byName["Thuê nhà"].id, userId: user.id },
+      { amount: 650000, date: monthDate(-1, 3), description: "Tiền điện nước", accountId: checking.id, categoryId: byName["Điện nước"].id, userId: user.id },
+      { amount: 120000, date: monthDate(-1, 4), description: "Cà phê & bánh mì", accountId: checking.id, categoryId: byName["Ăn uống"].id, userId: user.id },
+      { amount: 350000, date: monthDate(-1, 5), description: "Grab tuần 1", accountId: checking.id, categoryId: byName["Đi lại"].id, userId: user.id },
+      { amount: 890000, date: monthDate(-1, 6), description: "Siêu thị Co.opmart", accountId: checking.id, categoryId: byName["Ăn uống"].id, userId: user.id },
+      { amount: 8000000, date: monthDate(-1, 7), description: "Dự án thiết kế website", accountId: checking.id, categoryId: byName["Freelance"].id, userId: user.id },
+      { amount: 450000, date: monthDate(-1, 8), description: "Ăn trưa văn phòng", accountId: checking.id, categoryId: byName["Ăn uống"].id, userId: user.id },
+      { amount: 200000, date: monthDate(-1, 9), description: "Xăng xe", accountId: checking.id, categoryId: byName["Đi lại"].id, userId: user.id },
+      { amount: 180000, date: monthDate(-1, 10), description: "Netflix & Spotify", accountId: checking.id, categoryId: byName["Giải trí"].id, userId: user.id },
+      { amount: 1200000, date: monthDate(-1, 11), description: "Mua thực phẩm tuần 2", accountId: checking.id, categoryId: byName["Ăn uống"].id, userId: user.id },
+      { amount: 850000, date: monthDate(-1, 12), description: "Ăn tối nhà hàng", accountId: checking.id, categoryId: byName["Ăn uống"].id, userId: user.id },
+      { amount: 450000, date: monthDate(-1, 13), description: "Grab tuần 2", accountId: checking.id, categoryId: byName["Đi lại"].id, userId: user.id },
+      { amount: 3000000, date: monthDate(-1, 14), description: "Thanh toán thẻ tín dụng", accountId: checking.id, categoryId: byName["Thẻ tín dụng"].id, userId: user.id },
+      { amount: 75000, date: monthDate(-1, 15), description: "Trà sữa", accountId: checking.id, categoryId: byName["Ăn uống"].id, userId: user.id },
+      { amount: 560000, date: monthDate(-1, 16), description: "Siêu thị tuần 3", accountId: checking.id, categoryId: byName["Ăn uống"].id, userId: user.id },
+      { amount: 300000, date: monthDate(-1, 17), description: "Coi phim rạp", accountId: checking.id, categoryId: byName["Giải trí"].id, userId: user.id },
+      { amount: 420000, date: monthDate(-1, 18), description: "Ăn sáng & cà phê cả tuần", accountId: checking.id, categoryId: byName["Ăn uống"].id, userId: user.id },
+      { amount: 2000000, date: monthDate(-1, 19), description: "Bạn trả nợ", accountId: savings.id, categoryId: byName["Cho vay"].id, userId: user.id },
+      { amount: 350000, date: monthDate(-1, 20), description: "Grab tuần 3", accountId: checking.id, categoryId: byName["Đi lại"].id, userId: user.id },
+      { amount: 1100000, date: monthDate(-1, 21), description: "Mua thực phẩm tuần 3", accountId: checking.id, categoryId: byName["Ăn uống"].id, userId: user.id },
+      { amount: 250000, date: monthDate(-1, 22), description: "Bia bạn bè cuối tuần", accountId: checking.id, categoryId: byName["Giải trí"].id, userId: user.id },
+      { amount: 95000, date: monthDate(-1, 23), description: "Cà phê sáng", accountId: checking.id, categoryId: byName["Ăn uống"].id, userId: user.id },
+      { amount: 200000, date: monthDate(-1, 24), description: "Xăng xe tuần 4", accountId: checking.id, categoryId: byName["Đi lại"].id, userId: user.id },
+      { amount: 700000, date: monthDate(-1, 25), description: "Ăn tối sinh nhật bạn", accountId: checking.id, categoryId: byName["Ăn uống"].id, userId: user.id },
+      { amount: 1000000, date: monthDate(-1, 26), description: "Siêu thị tuần 4", accountId: checking.id, categoryId: byName["Ăn uống"].id, userId: user.id },
+      { amount: 80000, date: monthDate(-1, 27), description: "Vé xe buýt tháng", accountId: checking.id, categoryId: byName["Đi lại"].id, userId: user.id },
+      { amount: 3000000, date: monthDate(-1, 28), description: "Freelance UI design", accountId: checking.id, categoryId: byName["Freelance"].id, userId: user.id },
+      { amount: 420000, date: monthDate(-1, 29), description: "Grab cuối tháng", accountId: checking.id, categoryId: byName["Đi lại"].id, userId: user.id },
+      { amount: 180000, date: monthDate(-1, 30), description: "Ăn vặt cuối tháng", accountId: checking.id, categoryId: byName["Ăn uống"].id, userId: user.id },
+      { amount: 500000, date: monthDate(-1, 31), description: "Mua sách online", accountId: checking.id, categoryId: byName["Giải trí"].id, userId: user.id },
+
+      // Two months ago
+      { amount: 18000000, date: monthDate(-2, 1), description: `Lương tháng ${monthNumber(-2)}`, accountId: checking.id, categoryId: byName["Lương"].id, userId: user.id },
+      { amount: 6000000, date: monthDate(-2, 1), description: `Tiền thuê nhà tháng ${monthNumber(-2)}`, accountId: checking.id, categoryId: byName["Thuê nhà"].id, userId: user.id },
+      { amount: 600000, date: monthDate(-2, 3), description: `Tiền điện nước tháng ${monthNumber(-2)}`, accountId: checking.id, categoryId: byName["Điện nước"].id, userId: user.id },
+      { amount: 1500000, date: monthDate(-2, 4), description: "Tết sắm đồ", accountId: checking.id, categoryId: byName["Ăn uống"].id, userId: user.id },
+      { amount: 2000000, date: monthDate(-2, 5), description: "Lì xì Tết", accountId: checking.id, categoryId: byName["Giải trí"].id, userId: user.id },
+      { amount: 1800000, date: monthDate(-2, 8), description: "Ăn uống dịp Tết", accountId: checking.id, categoryId: byName["Ăn uống"].id, userId: user.id },
+      { amount: 400000, date: monthDate(-2, 10), description: "Xăng đi chơi Tết", accountId: checking.id, categoryId: byName["Đi lại"].id, userId: user.id },
+      { amount: 6000000, date: monthDate(-2, 12), description: "Dự án freelance backend", accountId: checking.id, categoryId: byName["Freelance"].id, userId: user.id },
+      { amount: 750000, date: monthDate(-2, 14), description: "Valentine dinner", accountId: checking.id, categoryId: byName["Ăn uống"].id, userId: user.id },
+      { amount: 3500000, date: monthDate(-2, 15), description: "Thanh toán thẻ tín dụng", accountId: checking.id, categoryId: byName["Thẻ tín dụng"].id, userId: user.id },
+      { amount: 980000, date: monthDate(-2, 18), description: "Siêu thị tuần 3", accountId: checking.id, categoryId: byName["Ăn uống"].id, userId: user.id },
+      { amount: 350000, date: monthDate(-2, 20), description: `Grab tháng ${monthNumber(-2)}`, accountId: checking.id, categoryId: byName["Đi lại"].id, userId: user.id },
+      { amount: 180000, date: monthDate(-2, 22), description: "Netflix & Spotify", accountId: checking.id, categoryId: byName["Giải trí"].id, userId: user.id },
+      { amount: 620000, date: monthDate(-2, 25), description: "Ăn uống cuối tuần", accountId: checking.id, categoryId: byName["Ăn uống"].id, userId: user.id },
+      { amount: 200000, date: monthDate(-2, 28), description: "Xăng xe cuối tháng", accountId: checking.id, categoryId: byName["Đi lại"].id, userId: user.id },
+
+      // Three months ago
+      { amount: 18000000, date: monthDate(-3, 1), description: `Lương tháng ${monthNumber(-3)}`, accountId: checking.id, categoryId: byName["Lương"].id, userId: user.id },
+      { amount: 6000000, date: monthDate(-3, 1), description: `Tiền thuê nhà tháng ${monthNumber(-3)}`, accountId: checking.id, categoryId: byName["Thuê nhà"].id, userId: user.id },
+      { amount: 580000, date: monthDate(-3, 4), description: `Tiền điện nước tháng ${monthNumber(-3)}`, accountId: checking.id, categoryId: byName["Điện nước"].id, userId: user.id },
+      { amount: 4000000, date: monthDate(-3, 5), description: `Freelance tháng ${monthNumber(-3)}`, accountId: checking.id, categoryId: byName["Freelance"].id, userId: user.id },
+      { amount: 900000, date: monthDate(-3, 8), description: "Siêu thị tuần 1", accountId: checking.id, categoryId: byName["Ăn uống"].id, userId: user.id },
+      { amount: 350000, date: monthDate(-3, 10), description: "Grab đi làm", accountId: checking.id, categoryId: byName["Đi lại"].id, userId: user.id },
+      { amount: 3000000, date: monthDate(-3, 15), description: "Thanh toán thẻ tín dụng", accountId: checking.id, categoryId: byName["Thẻ tín dụng"].id, userId: user.id },
+      { amount: 180000, date: monthDate(-3, 18), description: "Netflix & Spotify", accountId: checking.id, categoryId: byName["Giải trí"].id, userId: user.id },
+      { amount: 750000, date: monthDate(-3, 20), description: "Ăn tối cuối tuần", accountId: checking.id, categoryId: byName["Ăn uống"].id, userId: user.id },
+      { amount: 200000, date: monthDate(-3, 22), description: "Xăng xe", accountId: checking.id, categoryId: byName["Đi lại"].id, userId: user.id },
+      { amount: 1200000, date: monthDate(-3, 25), description: "Siêu thị tuần 4", accountId: checking.id, categoryId: byName["Ăn uống"].id, userId: user.id },
+      { amount: 500000, date: monthDate(-3, 28), description: "Bia bạn bè", accountId: checking.id, categoryId: byName["Giải trí"].id, userId: user.id },
+      { amount: 400000, date: monthDate(-3, 30), description: "Grab cuối tháng", accountId: checking.id, categoryId: byName["Đi lại"].id, userId: user.id },
     ],
   });
 
-  const monthStart = new Date("2026-03-01");
+  const monthStart = monthDate(-1, 1);
 
   await prisma.budget.createMany({
     data: [

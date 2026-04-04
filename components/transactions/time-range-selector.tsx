@@ -80,7 +80,7 @@ export function TimeRangeSelector({
         <div className="flex gap-2 items-center">
           <Input
             type="date"
-            className="h-7 text-xs px-2"
+            className="h-7 text-[16px] md:text-xs px-2"
             value={customRange.startDate}
             onChange={(e) =>
               onCustomRangeChange({ ...customRange, startDate: e.target.value })
@@ -89,7 +89,7 @@ export function TimeRangeSelector({
           <span className="text-xs text-muted-foreground shrink-0">to</span>
           <Input
             type="date"
-            className="h-7 text-xs px-2"
+            className="h-7 text-[16px] md:text-xs px-2"
             value={customRange.endDate}
             onChange={(e) =>
               onCustomRangeChange({ ...customRange, endDate: e.target.value })

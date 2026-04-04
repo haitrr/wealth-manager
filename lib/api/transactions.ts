@@ -22,12 +22,23 @@ export interface Transaction {
   loanPaymentPrepayFee: { id: string; loanId: string; loan: { id: string; name: string } } | null;
 }
 
+export interface PaginatedTransactions {
+  data: Transaction[];
+  hasMore: boolean;
+}
+
 export async function getTransactions(params?: {
   startDate?: string;
   endDate?: string;
   search?: string;
-}): Promise<Transaction[]> {
-  const { data } = await api.get<Transaction[]>("/transactions", { params });
+  limit?: number;
+  offset?: number;
+}): Promise<PaginatedTransactions> {
+  // Strip falsy date values so the backend doesn't receive empty strings
+  const cleaned = params
+    ? Object.fromEntries(Object.entries(params).filter(([, v]) => v !== "" && v != null))
+    : undefined;
+  const { data } = await api.get<PaginatedTransactions>("/transactions", { params: cleaned });
   return data;
 }
 
