@@ -106,20 +106,22 @@ model Transaction {
   loanPaymentPrincipal LoanPayment?        @relation("LoanPrincipalTransaction")
   loanPaymentInterest  LoanPayment?        @relation("LoanInterestTransaction")
   loanPaymentPrepayFee LoanPayment?        @relation("LoanPrepayFeeTransaction")
+  loanInitial          Loan?               @relation("LoanInitialTransaction")
   createdAt            DateTime            @default(now())
   updatedAt            DateTime            @updatedAt
 }
 
 model Loan {
-  id               String        @id @default(cuid())
-  name             String
-  direction        LoanDirection
-  principalAmount  Float
-  currency         Currency      @default(USD)
-  startDate        DateTime
-  counterpartyName String?
-  notes            String?
-  status           LoanStatus    @default(active)
+  id                   String        @id @default(cuid())
+  name                 String
+  direction            LoanDirection
+  currency             Currency      @default(USD)
+  startDate            DateTime
+  counterpartyName     String?
+  notes                String?
+  status               LoanStatus    @default(active)
+  initialTransactionId String?       @unique
+  initialTransaction   Transaction?  @relation("LoanInitialTransaction", fields: [initialTransactionId], references: [id], onDelete: SetNull)
   accountId           String
   account             Account              @relation(fields: [accountId], references: [id])
   principalCategoryId String?

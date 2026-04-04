@@ -4,6 +4,7 @@ import { getSession } from "@/app/lib/auth";
 import {
   ensureLoanTransactionCategory,
   ensureOwnedAccount,
+  getLoanPrincipalAmount,
   getOwnedLoan,
   getOwnedLoanPayment,
   parseLoanPaymentPayload,
@@ -35,7 +36,7 @@ export async function PUT(
     const otherPaymentsPrincipal = loan.payments
       .filter((p) => p.id !== paymentId)
       .reduce((sum, p) => sum + (p.principalTransaction?.amount ?? 0), 0);
-    const remainingPrincipal = loan.principalAmount - otherPaymentsPrincipal;
+    const remainingPrincipal = getLoanPrincipalAmount(loan) - otherPaymentsPrincipal;
     if (payload.principalAmount > remainingPrincipal + 0.01) {
       return NextResponse.json({ error: "Principal payment exceeds remaining principal" }, { status: 400 });
     }
@@ -120,7 +121,7 @@ export async function PUT(
       }
 
       const newPaidPrincipal = otherPaymentsPrincipal + payload.principalAmount;
-      const newStatus = newPaidPrincipal >= loan.principalAmount - 0.01 ? "closed" : "active";
+      const newStatus = newPaidPrincipal >= getLoanPrincipalAmount(loan) - 0.01 ? "closed" : "active";
 
       await tx.loanPayment.update({
         where: { id: paymentId },
@@ -166,7 +167,7 @@ export async function DELETE(
 
       const remainingPayments = loan.payments.filter((p) => p.id !== paymentId);
       const newPaidPrincipal = remainingPayments.reduce((sum, p) => sum + (p.principalTransaction?.amount ?? 0), 0);
-      const newStatus = newPaidPrincipal >= loan.principalAmount - 0.01 ? "closed" : "active";
+      const newStatus = newPaidPrincipal >= getLoanPrincipalAmount(loan) - 0.01 ? "closed" : "active";
 
       await tx.loan.update({ where: { id: loan.id }, data: { status: newStatus } });
 

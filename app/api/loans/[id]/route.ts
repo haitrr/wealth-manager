@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/app/lib/db";
 import { getSession } from "@/app/lib/auth";
 import {
+  ensureLoanInitialCategory,
   ensureOwnedAccount,
   getOwnedLoan,
   LOAN_INCLUDE,
@@ -29,16 +30,35 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     const existing = await getOwnedLoan(id, session.userId);
     if (!existing) return NextResponse.json({ error: "Loan not found" }, { status: 404 });
 
-    const data = parseLoanPayload(await req.json());
-    const account = await ensureOwnedAccount(data.accountId, session.userId);
-    if (account.currency !== data.currency) {
+    const parsed = parseLoanPayload(await req.json());
+    const { principalAmount, ...loanData } = parsed;
+
+    const account = await ensureOwnedAccount(loanData.accountId, session.userId);
+    if (account.currency !== loanData.currency) {
       throw new Error("Loan and account must use the same currency");
     }
 
-    const updated = await prisma.loan.update({
-      where: { id },
-      data,
-      include: LOAN_INCLUDE,
+    const updated = await prisma.$transaction(async (tx) => {
+      if (existing.initialTransactionId) {
+        await tx.transaction.update({
+          where: { id: existing.initialTransactionId },
+          data: { amount: principalAmount, date: loanData.startDate },
+        });
+      } else {
+        const category = await ensureLoanInitialCategory(tx, session.userId, loanData.direction);
+        const initialTx = await tx.transaction.create({
+          data: {
+            amount: principalAmount,
+            date: loanData.startDate,
+            description: `${loanData.name} - initial`,
+            accountId: loanData.accountId,
+            categoryId: category.id,
+            userId: session.userId,
+          },
+        });
+        await tx.loan.update({ where: { id }, data: { initialTransactionId: initialTx.id } });
+      }
+      return tx.loan.update({ where: { id }, data: loanData, include: LOAN_INCLUDE });
     });
 
     return NextResponse.json(serializeLoan(updated));

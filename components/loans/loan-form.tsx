@@ -172,7 +172,7 @@ export function LoanForm({ open, loan, defaultDirection, accounts, categories = 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
               <Label htmlFor="principalAmount">Principal</Label>
-              <AmountInput id="principalAmount" name="principalAmount" defaultValue={loan?.principalAmount} required />
+              <AmountInput id="principalAmount" name="principalAmount" defaultValue={loan?.principalAmount} required key={loan?.id} />
             </div>
             <div className="space-y-2">
               <Label htmlFor="currency">Currency</Label>

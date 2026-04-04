@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/app/lib/db";
 import { getSession } from "@/app/lib/auth";
 import {
+  ensureLoanInitialCategory,
   ensureOwnedAccount,
   LOAN_INCLUDE,
   parseLoanPayload,
@@ -26,15 +27,30 @@ export async function POST(req: NextRequest) {
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   try {
-    const data = parseLoanPayload(await req.json());
-    const account = await ensureOwnedAccount(data.accountId, session.userId);
-    if (account.currency !== data.currency) {
+    const parsed = parseLoanPayload(await req.json());
+    const { principalAmount, ...loanData } = parsed;
+
+    const account = await ensureOwnedAccount(loanData.accountId, session.userId);
+    if (account.currency !== loanData.currency) {
       throw new Error("Loan and account must use the same currency");
     }
 
-    const loan = await prisma.loan.create({
-      data: { ...data, userId: session.userId },
-      include: LOAN_INCLUDE,
+    const loan = await prisma.$transaction(async (tx) => {
+      const category = await ensureLoanInitialCategory(tx, session.userId, loanData.direction);
+      const initialTx = await tx.transaction.create({
+        data: {
+          amount: principalAmount,
+          date: loanData.startDate,
+          description: `${loanData.name} - initial`,
+          accountId: loanData.accountId,
+          categoryId: category.id,
+          userId: session.userId,
+        },
+      });
+      return tx.loan.create({
+        data: { ...loanData, initialTransactionId: initialTx.id, userId: session.userId },
+        include: LOAN_INCLUDE,
+      });
     });
 
     return NextResponse.json(serializeLoan(loan), { status: 201 });

@@ -29,7 +29,8 @@
       "Bash(npx tsx:*)",
       "Bash(PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION=\"yes\" pnpm exec prisma migrate reset --force)",
       "Bash(grep -r \"principalCategory\" /Users/haitran/code/wealth-manager/node_modules/.pnpm/@prisma+client@*/node_modules/@prisma/client/index.d.ts)",
-      "Bash(node -e \"const { PrismaClient } = require\\('./node_modules/@prisma/client'\\); console.log\\('ok'\\)\")"
+      "Bash(node -e \"const { PrismaClient } = require\\('./node_modules/@prisma/client'\\); console.log\\('ok'\\)\")",
+      "Bash(grep -l \"principalAmount\\\\|initialTransaction\" /Users/haitran/code/wealth-manager/node_modules/.prisma/client/*.d.ts)"
     ]
   }
 }

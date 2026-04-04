@@ -45,7 +45,8 @@ export interface Loan {
   id: string;
   name: string;
   direction: LoanDirection;
-  principalAmount: number;
+  principalAmount: number; // computed from initialTransaction.amount
+  initialTransactionId: string | null;
   currency: Currency;
   startDate: string;
   counterpartyName: string | null;

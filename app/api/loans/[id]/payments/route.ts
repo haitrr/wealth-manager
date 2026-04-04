@@ -4,6 +4,7 @@ import { getSession } from "@/app/lib/auth";
 import {
   ensureLoanTransactionCategory,
   ensureOwnedAccount,
+  getLoanPrincipalAmount,
   getOwnedLoan,
   parseLoanPaymentPayload,
   serializeLoan,
@@ -29,7 +30,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     }
 
     const paidPrincipal = loan.payments.reduce((sum, p) => sum + (p.principalTransaction?.amount ?? 0), 0);
-    const remainingPrincipal = loan.principalAmount - paidPrincipal;
+    const remainingPrincipal = getLoanPrincipalAmount(loan) - paidPrincipal;
     if (payload.principalAmount > remainingPrincipal + 0.01) {
       return NextResponse.json({ error: "Principal payment exceeds remaining principal" }, { status: 400 });
     }
@@ -97,7 +98,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       }
 
       const newPaidPrincipal = paidPrincipal + payload.principalAmount;
-      const newStatus = newPaidPrincipal >= loan.principalAmount - 0.01 ? "closed" : "active";
+      const newStatus = newPaidPrincipal >= getLoanPrincipalAmount(loan) - 0.01 ? "closed" : "active";
 
       await tx.loanPayment.create({
         data: {

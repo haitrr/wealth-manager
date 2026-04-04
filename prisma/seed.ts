@@ -90,17 +90,35 @@ async function main() {
   });
 
   // Seed loans
+  const loanReceivedCategory = await prisma.transactionCategory.create({
+    data: { name: "Loan Received", type: "income", userId: user.id },
+  });
+  const loanGivenCategory = await prisma.transactionCategory.create({
+    data: { name: "Loan Given", type: "expense", userId: user.id },
+  });
+
+  const homeLoanInitialTx = await prisma.transaction.create({
+    data: {
+      amount: 2000_000_000,
+      date: new Date("2024-01-26"),
+      description: "Vay mua nhà - initial",
+      accountId: checking.id,
+      categoryId: loanReceivedCategory.id,
+      userId: user.id,
+    },
+  });
+
   const homeLoan = await prisma.loan.create({
     data: {
       name: "Vay mua nhà",
       direction: "borrowed",
-      principalAmount: 2000_000_000,
       currency: "VND",
       startDate: new Date("2024-01-26"),
       counterpartyName: "Vietcombank",
       notes: "Vay mua căn hộ chung cư",
       status: "active",
       accountId: checking.id,
+      initialTransactionId: homeLoanInitialTx.id,
       userId: user.id,
     },
   });
@@ -225,16 +243,27 @@ async function main() {
     });
   }
 
+  const lentLoanInitialTx = await prisma.transaction.create({
+    data: {
+      amount: 10000000,
+      date: new Date("2025-12-01"),
+      description: "Cho bạn vay - initial",
+      accountId: savings.id,
+      categoryId: loanGivenCategory.id,
+      userId: user.id,
+    },
+  });
+
   await prisma.loan.create({
     data: {
       name: "Cho bạn vay",
       direction: "lent",
-      principalAmount: 10000000,
       currency: "VND",
       startDate: new Date("2025-12-01"),
       counterpartyName: "Nguyễn Văn A",
       status: "active",
       accountId: savings.id,
+      initialTransactionId: lentLoanInitialTx.id,
       userId: user.id,
     },
   });

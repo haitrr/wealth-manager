@@ -3,6 +3,7 @@ import { prisma } from "@/app/lib/db";
 
 export const LOAN_INCLUDE = {
   account: { select: { id: true, name: true, currency: true } },
+  initialTransaction: { select: { id: true, amount: true, date: true, categoryId: true } },
   principalCategory: { select: { id: true, name: true, type: true } },
   interestCategory: { select: { id: true, name: true, type: true } },
   prepayFeeCategory: { select: { id: true, name: true, type: true } },
@@ -124,6 +125,27 @@ export async function ensureOwnedAccount(accountId: string, userId: string) {
   return account;
 }
 
+export async function ensureLoanInitialCategory(
+  tx: LoanTransactionClient,
+  userId: string,
+  direction: LoanDirection
+) {
+  // Borrowed: income (received loan money, balance increases)
+  // Lent: expense (gave money out, balance decreases)
+  const config = direction === "borrowed"
+    ? { name: "Loan Received", type: "income" as const }
+    : { name: "Loan Given", type: "expense" as const };
+
+  const existing = await tx.transactionCategory.findFirst({
+    where: { userId, name: config.name, type: config.type },
+  });
+  if (existing) return existing;
+
+  return tx.transactionCategory.create({
+    data: { name: config.name, type: config.type, userId, icon: null },
+  });
+}
+
 export async function ensureLoanTransactionCategory(
   tx: LoanTransactionClient,
   userId: string,
@@ -161,15 +183,21 @@ export async function ensureLoanTransactionCategory(
   });
 }
 
+export function getLoanPrincipalAmount(loan: LoanWithRelations): number {
+  return loan.initialTransaction?.amount ?? 0;
+}
+
 export function serializeLoan(loan: LoanWithRelations) {
+  const principalAmount = getLoanPrincipalAmount(loan);
   const paidPrincipal = loan.payments.reduce((sum, p) => sum + (p.principalTransaction?.amount ?? 0), 0);
-  const remainingPrincipal = Math.max(0, loan.principalAmount - paidPrincipal);
-  const progressPercent = loan.principalAmount === 0
+  const remainingPrincipal = Math.max(0, principalAmount - paidPrincipal);
+  const progressPercent = principalAmount === 0
     ? 100
-    : Math.max(0, Math.min(100, (paidPrincipal / loan.principalAmount) * 100));
+    : Math.max(0, Math.min(100, (paidPrincipal / principalAmount) * 100));
 
   return {
     ...loan,
+    principalAmount,
     summary: { remainingPrincipal, progressPercent },
   };
 }
