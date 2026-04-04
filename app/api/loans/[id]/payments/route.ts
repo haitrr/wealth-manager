@@ -40,7 +40,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       let prepayFeeTransactionId: string | null = null;
 
       if (payload.principalAmount > 0) {
-        const category = await ensureLoanTransactionCategory(tx, session.userId, loan.direction, "principal");
+        const category = await ensureLoanTransactionCategory(tx, session.userId, loan.direction, "principal", loan.principalCategoryId);
         const txn = await tx.transaction.create({
           data: {
             amount: payload.principalAmount,
@@ -55,7 +55,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       }
 
       if (payload.interestAmount > 0) {
-        const category = await ensureLoanTransactionCategory(tx, session.userId, loan.direction, "interest");
+        const category = await ensureLoanTransactionCategory(tx, session.userId, loan.direction, "interest", loan.interestCategoryId);
         const txn = await tx.transaction.create({
           data: {
             amount: payload.interestAmount,
@@ -70,7 +70,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       }
 
       if (payload.prepayFeeAmount > 0) {
-        const category = await ensureLoanTransactionCategory(tx, session.userId, loan.direction, "prepay_fee");
+        const category = await ensureLoanTransactionCategory(tx, session.userId, loan.direction, "prepay_fee", loan.prepayFeeCategoryId);
         const txn = await tx.transaction.create({
           data: {
             amount: payload.prepayFeeAmount,

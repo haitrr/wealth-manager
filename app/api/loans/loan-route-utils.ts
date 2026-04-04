@@ -3,6 +3,9 @@ import { prisma } from "@/app/lib/db";
 
 export const LOAN_INCLUDE = {
   account: { select: { id: true, name: true, currency: true } },
+  principalCategory: { select: { id: true, name: true, type: true } },
+  interestCategory: { select: { id: true, name: true, type: true } },
+  prepayFeeCategory: { select: { id: true, name: true, type: true } },
   payments: {
     orderBy: [{ paymentDate: "desc" as const }],
     include: {
@@ -30,6 +33,9 @@ export interface LoanPayload {
   notes?: string;
   status?: string;
   accountId: string;
+  principalCategoryId?: string | null;
+  interestCategoryId?: string | null;
+  prepayFeeCategoryId?: string | null;
 }
 
 export interface LoanPaymentPayload {
@@ -69,6 +75,9 @@ export function parseLoanPayload(payload: LoanPayload) {
     notes: payload.notes?.trim() || null,
     status,
     accountId: payload.accountId,
+    principalCategoryId: payload.principalCategoryId || null,
+    interestCategoryId: payload.interestCategoryId || null,
+    prepayFeeCategoryId: payload.prepayFeeCategoryId || null,
   };
 }
 
@@ -119,8 +128,14 @@ export async function ensureLoanTransactionCategory(
   tx: LoanTransactionClient,
   userId: string,
   direction: LoanDirection,
-  type: "principal" | "interest" | "prepay_fee" = "principal"
+  type: "principal" | "interest" | "prepay_fee" = "principal",
+  categoryId?: string | null
 ) {
+  if (categoryId) {
+    const configured = await tx.transactionCategory.findFirst({ where: { id: categoryId, userId } });
+    if (configured) return configured;
+  }
+
   const configs = {
     principal: direction === "borrowed"
       ? { name: "Loan Repayment", type: "payable" as const }

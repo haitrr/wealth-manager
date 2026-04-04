@@ -35,6 +35,12 @@ export interface LoanSummary {
   progressPercent: number;
 }
 
+export interface LoanCategoryConfig {
+  id: string;
+  name: string;
+  type: string;
+}
+
 export interface Loan {
   id: string;
   name: string;
@@ -47,6 +53,12 @@ export interface Loan {
   status: LoanStatus;
   accountId: string;
   account: { id: string; name: string; currency: Currency };
+  principalCategoryId: string | null;
+  principalCategory: LoanCategoryConfig | null;
+  interestCategoryId: string | null;
+  interestCategory: LoanCategoryConfig | null;
+  prepayFeeCategoryId: string | null;
+  prepayFeeCategory: LoanCategoryConfig | null;
   userId: string;
   payments: LoanPayment[];
   createdAt: string;
@@ -64,6 +76,9 @@ export interface LoanPayload {
   notes?: string;
   status?: LoanStatus;
   accountId: string;
+  principalCategoryId?: string | null;
+  interestCategoryId?: string | null;
+  prepayFeeCategoryId?: string | null;
 }
 
 export interface LoanPaymentPayload {

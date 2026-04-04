@@ -9,12 +9,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { AmountInput } from "@/components/transactions/amount-input";
 import { Account, Currency } from "@/lib/api/accounts";
 import { Loan, LoanDirection, LoanPayload, LoanStatus } from "@/lib/api/loans";
+import { TransactionCategory } from "@/lib/api/transaction-categories";
 
 interface LoanFormProps {
   open: boolean;
   loan?: Loan | null;
   defaultDirection?: LoanDirection;
   accounts: Account[];
+  categories?: TransactionCategory[];
   onClose: () => void;
   onSubmit: (payload: LoanPayload) => Promise<void>;
   onDelete?: (loan: Loan) => Promise<void>;
@@ -66,16 +68,25 @@ function NativeSelect({
   );
 }
 
-export function LoanForm({ open, loan, defaultDirection, accounts, onClose, onSubmit, onDelete }: LoanFormProps) {
+export function LoanForm({ open, loan, defaultDirection, accounts, categories = [], onClose, onSubmit, onDelete }: LoanFormProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [direction, setDirection] = useState<LoanDirection>(loan?.direction ?? defaultDirection ?? "borrowed");
   const [currency, setCurrency] = useState<Currency>(loan?.currency ?? accounts.find((a) => a.isDefault)?.currency ?? "VND");
   const [status, setStatus] = useState<LoanStatus>(loan?.status ?? "active");
+  const [principalCategoryId, setPrincipalCategoryId] = useState<string>(loan?.principalCategoryId ?? "");
+  const [interestCategoryId, setInterestCategoryId] = useState<string>(loan?.interestCategoryId ?? "");
+  const [prepayFeeCategoryId, setPrepayFeeCategoryId] = useState<string>(loan?.prepayFeeCategoryId ?? "");
 
   const defaultAccount = useMemo(() => accounts.find((a) => a.isDefault) ?? accounts[0], [accounts]);
   const directionLabel = DIRECTION_OPTIONS.find((o) => o.value === direction)?.label ?? "Borrowed";
+
+  const principalCategoryType = direction === "borrowed" ? "payable" : "receivable";
+  const interestCategoryType = direction === "borrowed" ? "expense" : "income";
+  const principalCategories = useMemo(() => categories.filter((c) => c.type === principalCategoryType), [categories, principalCategoryType]);
+  const interestCategories = useMemo(() => categories.filter((c) => c.type === interestCategoryType), [categories, interestCategoryType]);
+  const prepayFeeCategories = useMemo(() => categories.filter((c) => c.type === "expense"), [categories]);
 
   useEffect(() => {
     if (!open) return;
@@ -84,6 +95,9 @@ export function LoanForm({ open, loan, defaultDirection, accounts, onClose, onSu
     setDirection(loan?.direction ?? defaultDirection ?? "borrowed");
     setCurrency(loan?.currency ?? defaultAccount?.currency ?? "VND");
     setStatus(loan?.status ?? "active");
+    setPrincipalCategoryId(loan?.principalCategoryId ?? "");
+    setInterestCategoryId(loan?.interestCategoryId ?? "");
+    setPrepayFeeCategoryId(loan?.prepayFeeCategoryId ?? "");
   }, [open, loan, defaultDirection, defaultAccount?.currency]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -106,6 +120,9 @@ export function LoanForm({ open, loan, defaultDirection, accounts, onClose, onSu
       notes: (form.elements.namedItem("notes") as HTMLTextAreaElement).value || undefined,
       status,
       accountId: (form.elements.namedItem("accountId") as HTMLSelectElement).value,
+      principalCategoryId: principalCategoryId || null,
+      interestCategoryId: interestCategoryId || null,
+      prepayFeeCategoryId: prepayFeeCategoryId || null,
     };
 
     try {
@@ -201,6 +218,51 @@ export function LoanForm({ open, loan, defaultDirection, accounts, onClose, onSu
             <Label htmlFor="counterpartyName">Counterparty</Label>
             <Input id="counterpartyName" name="counterpartyName" placeholder="e.g. Vietcombank" defaultValue={loan?.counterpartyName ?? ""} />
           </div>
+
+          {categories.length > 0 && (
+            <div className="space-y-3 rounded-lg border p-3">
+              <p className="text-xs font-medium text-muted-foreground">Transaction categories (optional)</p>
+              <div className="space-y-2">
+                <Label htmlFor="principalCategory" className="text-xs">Principal</Label>
+                <NativeSelect
+                  id="principalCategory"
+                  name="principalCategory"
+                  value={principalCategoryId}
+                  onChange={setPrincipalCategoryId}
+                  options={[
+                    { value: "", label: "Auto" },
+                    ...principalCategories.map((c) => ({ value: c.id, label: c.name })),
+                  ]}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="interestCategory" className="text-xs">Interest</Label>
+                <NativeSelect
+                  id="interestCategory"
+                  name="interestCategory"
+                  value={interestCategoryId}
+                  onChange={setInterestCategoryId}
+                  options={[
+                    { value: "", label: "Auto" },
+                    ...interestCategories.map((c) => ({ value: c.id, label: c.name })),
+                  ]}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="prepayFeeCategory" className="text-xs">Prepay fee</Label>
+                <NativeSelect
+                  id="prepayFeeCategory"
+                  name="prepayFeeCategory"
+                  value={prepayFeeCategoryId}
+                  onChange={setPrepayFeeCategoryId}
+                  options={[
+                    { value: "", label: "Auto" },
+                    ...prepayFeeCategories.map((c) => ({ value: c.id, label: c.name })),
+                  ]}
+                />
+              </div>
+            </div>
+          )}
 
           <div className="space-y-2">
             <Label htmlFor="notes">Notes</Label>

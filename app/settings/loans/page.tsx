@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { LoanForm } from "@/components/loans/loan-form";
 import { getAccounts } from "@/lib/api/accounts";
 import { createLoan, deleteLoan, getLoans, Loan, LoanDirection, updateLoan } from "@/lib/api/loans";
+import { getTransactionCategories } from "@/lib/api/transaction-categories";
 import { formatCurrency } from "@/lib/utils";
 
 const DIRECTION_LABELS = {
@@ -28,6 +29,10 @@ export default function LoansSettingsPage() {
   const { data: accounts = [] } = useQuery({
     queryKey: ["accounts"],
     queryFn: getAccounts,
+  });
+  const { data: categories = [] } = useQuery({
+    queryKey: ["transaction-categories"],
+    queryFn: getTransactionCategories,
   });
 
   const invalidate = () => {
@@ -141,6 +146,7 @@ export default function LoansSettingsPage() {
         loan={editingLoan}
         defaultDirection={editingLoan ? undefined : createDirection}
         accounts={accounts}
+        categories={categories}
         onClose={() => setFormOpen(false)}
         onSubmit={async (payload) => {
           if (editingLoan) {

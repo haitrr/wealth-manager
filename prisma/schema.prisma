@@ -61,18 +61,21 @@ enum CategoryType {
 }
 
 model TransactionCategory {
-  id           String                @id @default(cuid())
-  name         String
-  icon         String?
-  type         CategoryType
-  userId       String
-  parentId     String?
-  parent       TransactionCategory?  @relation("CategoryChildren", fields: [parentId], references: [id])
-  children     TransactionCategory[] @relation("CategoryChildren")
-  user         User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  transactions Transaction[]
-  createdAt    DateTime              @default(now())
-  updatedAt    DateTime              @updatedAt
+  id                   String                @id @default(cuid())
+  name                 String
+  icon                 String?
+  type                 CategoryType
+  userId               String
+  parentId             String?
+  parent               TransactionCategory?  @relation("CategoryChildren", fields: [parentId], references: [id])
+  children             TransactionCategory[] @relation("CategoryChildren")
+  user                 User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions         Transaction[]
+  loanPrincipalConfig  Loan[]                @relation("LoanPrincipalCategory")
+  loanInterestConfig   Loan[]                @relation("LoanInterestCategory")
+  loanPrepayFeeConfig  Loan[]                @relation("LoanPrepayFeeCategory")
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
 }
 
 model Transaction {
@@ -104,13 +107,19 @@ model Loan {
   counterpartyName String?
   notes            String?
   status           LoanStatus    @default(active)
-  accountId        String
-  account          Account       @relation(fields: [accountId], references: [id])
-  userId           String
-  user             User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  payments         LoanPayment[]
-  createdAt        DateTime      @default(now())
-  updatedAt        DateTime      @updatedAt
+  accountId           String
+  account             Account              @relation(fields: [accountId], references: [id])
+  principalCategoryId String?
+  principalCategory   TransactionCategory? @relation("LoanPrincipalCategory", fields: [principalCategoryId], references: [id])
+  interestCategoryId  String?
+  interestCategory    TransactionCategory? @relation("LoanInterestCategory", fields: [interestCategoryId], references: [id])
+  prepayFeeCategoryId String?
+  prepayFeeCategory   TransactionCategory? @relation("LoanPrepayFeeCategory", fields: [prepayFeeCategoryId], references: [id])
+  userId              String
+  user                User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  payments            LoanPayment[]
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
 
   @@index([userId, status])
   @@index([accountId])

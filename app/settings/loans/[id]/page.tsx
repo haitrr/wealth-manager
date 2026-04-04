@@ -10,6 +10,7 @@ import { LoanForm } from "@/components/loans/loan-form";
 import { LoanPaymentForm } from "@/components/loans/loan-payment-form";
 import { getAccounts } from "@/lib/api/accounts";
 import { createLoanPayment, deleteLoan, deleteLoanPayment, getLoan, LoanPayment, updateLoan, updateLoanPayment } from "@/lib/api/loans";
+import { getTransactionCategories } from "@/lib/api/transaction-categories";
 import { LoanStats } from "@/components/loans/loan-stats";
 import { formatCurrency } from "@/lib/utils";
 
@@ -28,6 +29,10 @@ export default function LoanDetailPage({ params }: { params: Promise<{ id: strin
   const { data: accounts = [] } = useQuery({
     queryKey: ["accounts"],
     queryFn: getAccounts,
+  });
+  const { data: categories = [] } = useQuery({
+    queryKey: ["transaction-categories"],
+    queryFn: getTransactionCategories,
   });
 
   const invalidate = () => {
@@ -196,6 +201,7 @@ export default function LoanDetailPage({ params }: { params: Promise<{ id: strin
         open={editOpen}
         loan={loan}
         accounts={accounts}
+        categories={categories}
         onClose={() => setEditOpen(false)}
         onSubmit={async (payload) => {
           await updateMutation.mutateAsync(payload);
