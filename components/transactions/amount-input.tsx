@@ -44,6 +44,7 @@ export function AmountInput({
   const [internalRaw, setInternalRaw] = useState(normalizeRaw(defaultValue));
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const keyboardRef = useRef<HTMLDivElement>(null);
   const isControlled = value !== undefined;
   const raw = isControlled ? normalizeRaw(value) : internalRaw;
 
@@ -70,7 +71,11 @@ export function AmountInput({
 
   useEffect(() => {
     function handlePointerDown(e: PointerEvent) {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+      const target = e.target as Node;
+      if (
+        containerRef.current && !containerRef.current.contains(target) &&
+        keyboardRef.current && !keyboardRef.current.contains(target)
+      ) {
         setOpen(false);
       }
     }
@@ -105,7 +110,7 @@ export function AmountInput({
       />
 
       {open && createPortal(
-        <div className="fixed bottom-0 left-0 right-0 z-200 border-t bg-background pb-safe flex flex-col items-center">
+        <div ref={keyboardRef} className="fixed bottom-0 left-0 right-0 z-200 border-t bg-background pb-safe flex flex-col items-center">
           <div className="w-full max-w-sm">
           <div className="flex justify-end">
             <button
