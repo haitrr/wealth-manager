@@ -28,7 +28,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       return NextResponse.json({ error: "Loan and payment account must use the same currency" }, { status: 400 });
     }
 
-    const paidPrincipal = loan.payments.reduce((sum, p) => sum + p.principalAmount, 0);
+    const paidPrincipal = loan.payments.reduce((sum, p) => sum + (p.principalTransaction?.amount ?? 0), 0);
     const remainingPrincipal = loan.principalAmount - paidPrincipal;
     if (payload.principalAmount > remainingPrincipal + 0.01) {
       return NextResponse.json({ error: "Principal payment exceeds remaining principal" }, { status: 400 });
@@ -92,9 +92,6 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
           loanId: loan.id,
           accountId: payload.accountId,
           paymentDate: payload.paymentDate,
-          principalAmount: payload.principalAmount,
-          interestAmount: payload.interestAmount,
-          prepayFeeAmount: payload.prepayFeeAmount,
           principalTransactionId,
           interestTransactionId,
           prepayFeeTransactionId,

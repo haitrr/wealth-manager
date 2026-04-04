@@ -35,9 +35,12 @@ export function LoanPaymentForm({ open, loan, payment, accounts, onClose, onSubm
     if (!open) return;
     setError("");
     if (payment) {
-      setPrincipalRaw(payment.principalAmount > 0 ? String(payment.principalAmount) : "");
-      setInterestRaw(payment.interestAmount > 0 ? String(payment.interestAmount) : "");
-      setPrepayFeeRaw(payment.prepayFeeAmount > 0 ? String(payment.prepayFeeAmount) : "");
+      const principal = payment.principalTransaction?.amount ?? 0;
+      const interest = payment.interestTransaction?.amount ?? 0;
+      const prepayFee = payment.prepayFeeTransaction?.amount ?? 0;
+      setPrincipalRaw(principal > 0 ? String(principal) : "");
+      setInterestRaw(interest > 0 ? String(interest) : "");
+      setPrepayFeeRaw(prepayFee > 0 ? String(prepayFee) : "");
     } else {
       setPrincipalRaw("");
       setInterestRaw("");

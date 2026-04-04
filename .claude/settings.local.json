@@ -26,7 +26,8 @@
       "Bash(psql \"postgres://postgres:postgres@localhost:54523/wm\" -c \"SELECT conname, contype FROM pg_constraint WHERE conrelid = 'public.\\\\\"LoanPayment\\\\\"'::regclass ORDER BY conname;\")",
       "Bash(PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION=\"yes\" npx prisma migrate reset --force)",
       "Bash(bun ./prisma/seed.ts)",
-      "Bash(npx tsx:*)"
+      "Bash(npx tsx:*)",
+      "Bash(PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION=\"yes\" pnpm exec prisma migrate reset --force)"
     ]
   }
 }

@@ -14,9 +14,9 @@ export function LoanStats({ loan }: LoanStatsProps) {
     (a, b) => new Date(a.paymentDate).getTime() - new Date(b.paymentDate).getTime()
   );
 
-  const totalPrincipalPaid = sortedPayments.reduce((s, p) => s + p.principalAmount, 0);
-  const totalInterestPaid = sortedPayments.reduce((s, p) => s + p.interestAmount, 0);
-  const totalFeesPaid = sortedPayments.reduce((s, p) => s + p.prepayFeeAmount, 0);
+  const totalPrincipalPaid = sortedPayments.reduce((s, p) => s + (p.principalTransaction?.amount ?? 0), 0);
+  const totalInterestPaid = sortedPayments.reduce((s, p) => s + (p.interestTransaction?.amount ?? 0), 0);
+  const totalFeesPaid = sortedPayments.reduce((s, p) => s + (p.prepayFeeTransaction?.amount ?? 0), 0);
   const totalCost = totalInterestPaid + totalFeesPaid;
 
   const startDate = new Date(loan.startDate);
@@ -29,7 +29,7 @@ export function LoanStats({ loan }: LoanStatsProps) {
   ];
   let runningBalance = loan.principalAmount;
   for (const p of sortedPayments) {
-    runningBalance -= p.principalAmount;
+    runningBalance -= (p.principalTransaction?.amount ?? 0);
     balanceData.push({
       date: new Date(p.paymentDate).getTime(),
       remaining: Math.max(0, runningBalance),
@@ -39,9 +39,9 @@ export function LoanStats({ loan }: LoanStatsProps) {
   // Bar chart data per payment
   const paymentBreakdown = sortedPayments.map((p) => ({
     date: new Date(p.paymentDate).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
-    principal: p.principalAmount,
-    interest: p.interestAmount,
-    fee: p.prepayFeeAmount,
+    principal: p.principalTransaction?.amount ?? 0,
+    interest: p.interestTransaction?.amount ?? 0,
+    fee: p.prepayFeeTransaction?.amount ?? 0,
   }));
 
   const accentColor = loan.direction === "borrowed" ? "#f59e0b" : "#10b981";

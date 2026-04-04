@@ -141,7 +141,7 @@ export async function ensureLoanTransactionCategory(
 }
 
 export function serializeLoan(loan: LoanWithRelations) {
-  const paidPrincipal = loan.payments.reduce((sum, p) => sum + p.principalAmount, 0);
+  const paidPrincipal = loan.payments.reduce((sum, p) => sum + (p.principalTransaction?.amount ?? 0), 0);
   const remainingPrincipal = Math.max(0, loan.principalAmount - paidPrincipal);
   const progressPercent = loan.principalAmount === 0
     ? 100

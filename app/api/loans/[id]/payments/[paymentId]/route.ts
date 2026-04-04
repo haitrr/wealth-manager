@@ -34,7 +34,7 @@ export async function PUT(
 
     const otherPaymentsPrincipal = loan.payments
       .filter((p) => p.id !== paymentId)
-      .reduce((sum, p) => sum + p.principalAmount, 0);
+      .reduce((sum, p) => sum + (p.principalTransaction?.amount ?? 0), 0);
     const remainingPrincipal = loan.principalAmount - otherPaymentsPrincipal;
     if (payload.principalAmount > remainingPrincipal + 0.01) {
       return NextResponse.json({ error: "Principal payment exceeds remaining principal" }, { status: 400 });
@@ -115,9 +115,6 @@ export async function PUT(
         data: {
           accountId: payload.accountId,
           paymentDate: payload.paymentDate,
-          principalAmount: payload.principalAmount,
-          interestAmount: payload.interestAmount,
-          prepayFeeAmount: payload.prepayFeeAmount,
           principalTransactionId,
           interestTransactionId,
           prepayFeeTransactionId,
@@ -156,7 +153,7 @@ export async function DELETE(
       await tx.loanPayment.delete({ where: { id: paymentId } });
 
       const remainingPayments = loan.payments.filter((p) => p.id !== paymentId);
-      const newPaidPrincipal = remainingPayments.reduce((sum, p) => sum + p.principalAmount, 0);
+      const newPaidPrincipal = remainingPayments.reduce((sum, p) => sum + (p.principalTransaction?.amount ?? 0), 0);
       const newStatus = newPaidPrincipal >= loan.principalAmount - 0.01 ? "closed" : "active";
 
       await tx.loan.update({ where: { id: loan.id }, data: { status: newStatus } });

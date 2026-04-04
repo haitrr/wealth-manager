@@ -174,15 +174,15 @@ export default function LoanDetailPage({ params }: { params: Promise<{ id: strin
                 <div className="grid grid-cols-3 gap-2 mt-2 text-sm">
                   <div>
                     <p className="text-xs text-muted-foreground">Principal</p>
-                    <p>{formatCurrency(payment.principalAmount, loan.currency)}</p>
+                    <p>{formatCurrency(payment.principalTransaction?.amount ?? 0, loan.currency)}</p>
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground">Interest</p>
-                    <p>{formatCurrency(payment.interestAmount, loan.currency)}</p>
+                    <p>{formatCurrency(payment.interestTransaction?.amount ?? 0, loan.currency)}</p>
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground">Prepay fee</p>
-                    <p>{formatCurrency(payment.prepayFeeAmount, loan.currency)}</p>
+                    <p>{formatCurrency(payment.prepayFeeTransaction?.amount ?? 0, loan.currency)}</p>
                   </div>
                 </div>
                 {payment.note && <p className="text-xs text-muted-foreground mt-2">{payment.note}</p>}

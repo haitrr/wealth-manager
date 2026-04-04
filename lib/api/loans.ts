@@ -4,18 +4,26 @@ import { Currency } from "./accounts";
 export type LoanDirection = "borrowed" | "lent";
 export type LoanStatus = "active" | "closed";
 
+export interface LoanTransaction {
+  id: string;
+  amount: number;
+  date: string;
+  description: string;
+  categoryId: string | null;
+}
+
 export interface LoanPayment {
   id: string;
   loanId: string;
   accountId: string;
   account: { id: string; name: string; currency: Currency };
   paymentDate: string;
-  principalAmount: number;
-  interestAmount: number;
-  prepayFeeAmount: number;
   principalTransactionId: string | null;
   interestTransactionId: string | null;
   prepayFeeTransactionId: string | null;
+  principalTransaction: LoanTransaction | null;
+  interestTransaction: LoanTransaction | null;
+  prepayFeeTransaction: LoanTransaction | null;
   note: string | null;
   userId: string;
   createdAt: string;

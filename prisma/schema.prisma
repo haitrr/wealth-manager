@@ -123,9 +123,6 @@ model LoanPayment {
   accountId              String
   account                Account      @relation(fields: [accountId], references: [id])
   paymentDate            DateTime
-  principalAmount        Float        @default(0)
-  interestAmount         Float        @default(0)
-  prepayFeeAmount        Float        @default(0)
   principalTransactionId String?      @unique
   principalTransaction   Transaction? @relation("LoanPrincipalTransaction", fields: [principalTransactionId], references: [id], onDelete: SetNull)
   interestTransactionId  String?      @unique

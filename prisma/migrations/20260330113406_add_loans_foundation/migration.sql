@@ -29,9 +29,6 @@ CREATE TABLE "LoanPayment" (
     "loanId" TEXT NOT NULL,
     "accountId" TEXT NOT NULL,
     "paymentDate" TIMESTAMP(3) NOT NULL,
-    "principalAmount" DOUBLE PRECISION NOT NULL,
-    "interestAmount" DOUBLE PRECISION NOT NULL,
-    "prepayFeeAmount" DOUBLE PRECISION NOT NULL DEFAULT 0,
     "note" TEXT,
     "userId" TEXT NOT NULL,
     "principalTransactionId" TEXT,
@@ -84,3 +81,6 @@ ALTER TABLE "LoanPayment" ADD CONSTRAINT "LoanPayment_interestTransactionId_fkey
 
 -- AddForeignKey
 ALTER TABLE "LoanPayment" ADD CONSTRAINT "LoanPayment_prepayFeeTransactionId_fkey" FOREIGN KEY ("prepayFeeTransactionId") REFERENCES "Transaction"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "LoanPayment" ADD CONSTRAINT "LoanPayment_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
