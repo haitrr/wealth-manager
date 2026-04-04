@@ -1,24 +1,13 @@
 "use client";
 
-import { FormEvent, useEffect, useEffectEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AmountInput } from "@/components/transactions/amount-input";
 import { Account } from "@/lib/api/accounts";
-import { Loan, LoanPayment, LoanPaymentKind, LoanPaymentPayload, PrepaymentStrategy } from "@/lib/api/loans";
-
-const PAYMENT_KIND_OPTIONS: Array<{ value: LoanPaymentKind; label: string }> = [
-  { value: "scheduled", label: "Scheduled payment" },
-  { value: "prepayment", label: "Prepayment" },
-  { value: "adjustment", label: "Adjustment" },
-];
-
-const PREPAYMENT_STRATEGY_OPTIONS: Array<{ value: PrepaymentStrategy; label: string }> = [
-  { value: "reduce_payment", label: "Reduce future payments" },
-  { value: "shorten_term", label: "Shorten remaining term" },
-];
+import { Loan, LoanPayment, LoanPaymentPayload } from "@/lib/api/loans";
 
 interface LoanPaymentFormProps {
   open: boolean;
@@ -35,68 +24,28 @@ function parseRawAmount(raw: string) {
   return Number.isFinite(parsed) ? parsed : 0;
 }
 
-function formatDisplayAmount(amount: number, currency: Loan["currency"]) {
-  const decimals = currency === "VND" ? 0 : 2;
-  return amount.toLocaleString("en-US", {
-    minimumFractionDigits: decimals,
-    maximumFractionDigits: decimals,
-  });
-}
-
 export function LoanPaymentForm({ open, loan, payment, accounts, onClose, onSubmit }: LoanPaymentFormProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [paymentKind, setPaymentKind] = useState<LoanPaymentKind>(payment?.paymentKind ?? "scheduled");
-  const [prepaymentStrategy, setPrepaymentStrategy] = useState<PrepaymentStrategy>(payment?.prepaymentStrategy ?? "reduce_payment");
   const [principalRaw, setPrincipalRaw] = useState("");
   const [interestRaw, setInterestRaw] = useState("");
-
-  const nextEntry = useMemo(
-    () => loan.scheduleEntries.find((entry) => entry.status !== "paid") ?? null,
-    [loan.scheduleEntries]
-  );
-
-  const applySuggestion = useEffectEvent((kind: LoanPaymentKind) => {
-    if (kind === "scheduled" && nextEntry) {
-      const unpaidPrincipal = Math.max(0, nextEntry.scheduledPrincipal - nextEntry.paidPrincipal);
-      const unpaidInterest = Math.max(0, nextEntry.scheduledInterest - nextEntry.paidInterest);
-      setPrincipalRaw(String(unpaidPrincipal));
-      setInterestRaw(String(unpaidInterest));
-      return;
-    }
-
-    if (kind === "prepayment") {
-      setPrincipalRaw(String(loan.remainingPrincipal));
-      setInterestRaw("0");
-      return;
-    }
-
-    setPrincipalRaw(nextEntry ? String(Math.max(0, nextEntry.scheduledPrincipal - nextEntry.paidPrincipal)) : "0");
-    setInterestRaw("0");
-  });
+  const [prepayFeeRaw, setPrepayFeeRaw] = useState("");
 
   useEffect(() => {
     if (!open) return;
     setError("");
     if (payment) {
-      setPaymentKind(payment.paymentKind);
-      setPrepaymentStrategy(payment.prepaymentStrategy ?? "reduce_payment");
-      setPrincipalRaw(String(payment.principalAmount));
-      setInterestRaw(String(payment.interestAmount));
-      return;
+      setPrincipalRaw(payment.principalAmount > 0 ? String(payment.principalAmount) : "");
+      setInterestRaw(payment.interestAmount > 0 ? String(payment.interestAmount) : "");
+      setPrepayFeeRaw(payment.prepayFeeAmount > 0 ? String(payment.prepayFeeAmount) : "");
+    } else {
+      setPrincipalRaw("");
+      setInterestRaw("");
+      setPrepayFeeRaw("");
     }
+  }, [open, payment]);
 
-    setPaymentKind("scheduled");
-    setPrepaymentStrategy("reduce_payment");
-    applySuggestion("scheduled");
-  }, [open, loan.id, nextEntry?.id, payment]);
-
-  useEffect(() => {
-    if (!open || payment) return;
-    applySuggestion(paymentKind);
-  }, [open, payment, paymentKind]);
-
-  const totalAmount = parseRawAmount(principalRaw) + parseRawAmount(interestRaw);
+  const totalAmount = parseRawAmount(principalRaw) + parseRawAmount(interestRaw) + parseRawAmount(prepayFeeRaw);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -107,12 +56,10 @@ export function LoanPaymentForm({ open, loan, payment, accounts, onClose, onSubm
     const payload: LoanPaymentPayload = {
       accountId: (form.elements.namedItem("accountId") as HTMLSelectElement).value,
       paymentDate: (form.elements.namedItem("paymentDate") as HTMLInputElement).value,
-      paymentKind,
-      totalAmount,
       principalAmount: parseRawAmount(principalRaw),
       interestAmount: parseRawAmount(interestRaw),
+      prepayFeeAmount: parseRawAmount(prepayFeeRaw),
       note: (form.elements.namedItem("note") as HTMLTextAreaElement).value || undefined,
-      prepaymentStrategy: paymentKind === "prepayment" ? prepaymentStrategy : undefined,
     };
 
     try {
@@ -125,6 +72,8 @@ export function LoanPaymentForm({ open, loan, payment, accounts, onClose, onSubm
     }
   }
 
+  const remainingPrincipal = loan.summary.remainingPrincipal;
+
   return (
     <Dialog open={open} onOpenChange={(nextOpen) => !nextOpen && onClose()}>
       <DialogContent className="w-[95vw] max-w-lg">
@@ -133,38 +82,6 @@ export function LoanPaymentForm({ open, loan, payment, accounts, onClose, onSubm
         </DialogHeader>
 
         <form key={`${loan.id}-${open ? "open" : "closed"}`} onSubmit={handleSubmit} className="space-y-4 py-2">
-          <div className="space-y-2">
-            <Label htmlFor="paymentKind">Payment kind</Label>
-            <select
-              id="paymentKind"
-              name="paymentKind"
-              value={paymentKind}
-              onChange={(event) => setPaymentKind(event.target.value as LoanPaymentKind)}
-              className="h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-[16px] md:text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-            >
-              {PAYMENT_KIND_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>{option.label}</option>
-              ))}
-            </select>
-          </div>
-
-          {paymentKind === "prepayment" && loan.productType === "installment" && (
-            <div className="space-y-2">
-              <Label htmlFor="prepaymentStrategy">After prepayment</Label>
-              <select
-                id="prepaymentStrategy"
-                name="prepaymentStrategy"
-                value={prepaymentStrategy}
-                onChange={(event) => setPrepaymentStrategy(event.target.value as PrepaymentStrategy)}
-                className="h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-[16px] md:text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-              >
-                {PREPAYMENT_STRATEGY_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>{option.label}</option>
-                ))}
-              </select>
-            </div>
-          )}
-
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
               <Label htmlFor="paymentDate">Payment date</Label>
@@ -175,8 +92,6 @@ export function LoanPaymentForm({ open, loan, payment, accounts, onClose, onSubm
                 defaultValue={
                   payment
                     ? new Date(payment.paymentDate).toISOString().split("T")[0]
-                    : nextEntry
-                    ? new Date(nextEntry.dueDate).toISOString().split("T")[0]
                     : new Date().toISOString().split("T")[0]
                 }
                 required
@@ -198,22 +113,13 @@ export function LoanPaymentForm({ open, loan, payment, accounts, onClose, onSubm
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="totalAmount">Total amount</Label>
-            <Input id="totalAmount" name="totalAmount" value={formatDisplayAmount(totalAmount, loan.currency)} readOnly />
+          <div className="rounded-lg border p-3 text-xs text-muted-foreground">
+            Remaining principal: <span className="font-medium text-foreground">
+              {remainingPrincipal.toLocaleString()} {loan.currency}
+            </span>
           </div>
 
-          <div className="rounded-lg border p-3 text-sm text-muted-foreground">
-            {paymentKind === "scheduled"
-              ? "Suggested from the next unpaid installment."
-              : paymentKind === "prepayment"
-              ? prepaymentStrategy === "shorten_term"
-                ? "Suggested as a full principal payoff with zero interest. Future installments will keep similar payment amounts and the schedule will end earlier."
-                  : "Suggested as a full principal payoff with zero interest. Future installments will be recalculated across the remaining term."
-                : "Suggested as principal-only adjustment. Edit principal and interest as needed."}
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-3 gap-3">
             <div className="space-y-2">
               <Label htmlFor="principalAmount">Principal</Label>
               <AmountInput
@@ -221,7 +127,6 @@ export function LoanPaymentForm({ open, loan, payment, accounts, onClose, onSubm
                 name="principalAmount"
                 value={principalRaw}
                 onValueChange={setPrincipalRaw}
-                required
               />
             </div>
             <div className="space-y-2">
@@ -231,9 +136,22 @@ export function LoanPaymentForm({ open, loan, payment, accounts, onClose, onSubm
                 name="interestAmount"
                 value={interestRaw}
                 onValueChange={setInterestRaw}
-                required
               />
             </div>
+            <div className="space-y-2">
+              <Label htmlFor="prepayFeeAmount">Prepay fee</Label>
+              <AmountInput
+                id="prepayFeeAmount"
+                name="prepayFeeAmount"
+                value={prepayFeeRaw}
+                onValueChange={setPrepayFeeRaw}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Total</Label>
+            <Input value={totalAmount.toLocaleString()} readOnly />
           </div>
 
           <div className="space-y-2">
@@ -241,10 +159,10 @@ export function LoanPaymentForm({ open, loan, payment, accounts, onClose, onSubm
             <textarea
               id="note"
               name="note"
-              rows={3}
+              rows={2}
               defaultValue={payment?.note ?? ""}
               className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-[16px] md:text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring resize-none"
-              placeholder="Optional memo for this payment"
+              placeholder="Optional memo"
             />
           </div>
 

@@ -34,24 +34,25 @@ export function LoanOverview({ currency, exchangeRates }: { currency: Currency; 
   const activeLoans = loans.filter((loan) => loan.status !== "closed");
   if (activeLoans.length === 0) return null;
 
-  const loansWithDisplayBalance = activeLoans.map((loan) => ({
-    loan,
-    displayRemainingPrincipal: convertAmount(loan.remainingPrincipal, loan.currency, currency, exchangeRates),
-  }));
   const borrowed = activeLoans.filter((loan) => loan.direction === "borrowed");
   const lent = activeLoans.filter((loan) => loan.direction === "lent");
-  const topLoans = [...loansWithDisplayBalance]
-    .sort((left, right) => right.displayRemainingPrincipal - left.displayRemainingPrincipal)
-    .slice(0, 4);
 
   const totalBorrowed = borrowed.reduce(
-    (sum, loan) => sum + convertAmount(loan.remainingPrincipal, loan.currency, currency, exchangeRates),
+    (sum, loan) => sum + convertAmount(loan.summary.remainingPrincipal, loan.currency, currency, exchangeRates),
     0
   );
   const totalLent = lent.reduce(
-    (sum, loan) => sum + convertAmount(loan.remainingPrincipal, loan.currency, currency, exchangeRates),
+    (sum, loan) => sum + convertAmount(loan.summary.remainingPrincipal, loan.currency, currency, exchangeRates),
     0
   );
+
+  const topLoans = [...activeLoans]
+    .sort((a, b) => {
+      const aRemaining = convertAmount(a.summary.remainingPrincipal, a.currency, currency, exchangeRates);
+      const bRemaining = convertAmount(b.summary.remainingPrincipal, b.currency, currency, exchangeRates);
+      return bRemaining - aRemaining;
+    })
+    .slice(0, 4);
 
   return (
     <Card>
@@ -77,13 +78,14 @@ export function LoanOverview({ currency, exchangeRates }: { currency: Currency; 
         </div>
 
         <div className="space-y-2">
-          {topLoans.map(({ loan, displayRemainingPrincipal }) => {
+          {topLoans.map((loan) => {
             const progress = Math.max(0, Math.min(100, loan.summary.progressPercent));
+            const displayRemaining = convertAmount(loan.summary.remainingPrincipal, loan.currency, currency, exchangeRates);
             return (
               <Link key={loan.id} href={`/loans/${loan.id}`} className="block space-y-1.5">
                 <div className="flex items-center justify-between gap-2 text-xs">
                   <span className="truncate flex-1 font-medium">{loan.name}</span>
-                  <span className="text-muted-foreground shrink-0">{loan.summary.currentAnnualRate.toFixed(2)}%</span>
+                  <span className="text-muted-foreground shrink-0">{progress.toFixed(0)}%</span>
                 </div>
                 <div className="h-1.5 rounded-full bg-muted overflow-hidden">
                   <div
@@ -94,13 +96,8 @@ export function LoanOverview({ currency, exchangeRates }: { currency: Currency; 
                 <div className="flex justify-between text-[10px] text-muted-foreground">
                   <span>
                     {loan.currency === currency
-                      ? formatCurrency(loan.remainingPrincipal, loan.currency)
-                      : `${formatCurrency(displayRemainingPrincipal, currency, true)} · ${formatCurrency(loan.remainingPrincipal, loan.currency, true)}`}
-                  </span>
-                  <span>
-                    {loan.summary.nextDueDate
-                      ? new Date(loan.summary.nextDueDate).toLocaleDateString("en-US", { month: "short", day: "numeric" })
-                      : "Closed"}
+                      ? formatCurrency(loan.summary.remainingPrincipal, loan.currency)
+                      : `${formatCurrency(displayRemaining, currency, true)} · ${formatCurrency(loan.summary.remainingPrincipal, loan.currency, true)}`}
                   </span>
                 </div>
               </Link>

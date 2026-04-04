@@ -48,49 +48,9 @@ enum LoanDirection {
   lent
 }
 
-enum LoanProductType {
-  installment
-  bullet
-}
-
-enum LoanInstallmentStrategy {
-  equal_principal
-  annuity
-  bullet
-}
-
-enum RepaymentFrequency {
-  monthly
-  quarterly
-  yearly
-}
-
 enum LoanStatus {
-  draft
   active
   closed
-}
-
-enum LoanRatePeriodType {
-  fixed
-  floating
-}
-
-enum LoanPaymentKind {
-  scheduled
-  prepayment
-  adjustment
-}
-
-enum PrepaymentStrategy {
-  reduce_payment
-  shorten_term
-}
-
-enum LoanScheduleStatus {
-  pending
-  partially_paid
-  paid
 }
 
 enum CategoryType {
@@ -116,117 +76,67 @@ model TransactionCategory {
 }
 
 model Transaction {
-  id          String              @id @default(cuid())
-  amount      Float
-  date        DateTime
-  description String?
-  details     String?
-  accountId   String
-  account     Account             @relation(fields: [accountId], references: [id])
-  categoryId  String
-  category    TransactionCategory @relation(fields: [categoryId], references: [id])
-  userId      String
-  user        User                @relation(fields: [userId], references: [id], onDelete: Cascade)
-  loanPayment LoanPayment?
-  originatedLoan Loan?            @relation("LoanOriginationTransaction")
-  createdAt   DateTime            @default(now())
-  updatedAt   DateTime            @updatedAt
+  id                   String              @id @default(cuid())
+  amount               Float
+  date                 DateTime
+  description          String?
+  details              String?
+  accountId            String
+  account              Account             @relation(fields: [accountId], references: [id])
+  categoryId           String
+  category             TransactionCategory @relation(fields: [categoryId], references: [id])
+  userId               String
+  user                 User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  loanPaymentPrincipal LoanPayment?        @relation("LoanPrincipalTransaction")
+  loanPaymentInterest  LoanPayment?        @relation("LoanInterestTransaction")
+  loanPaymentPrepayFee LoanPayment?        @relation("LoanPrepayFeeTransaction")
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
 }
 
 model Loan {
-  id                  String                  @id @default(cuid())
-  name                String
-  direction           LoanDirection
-  productType         LoanProductType
-  installmentStrategy LoanInstallmentStrategy
-  principalAmount     Float
-  remainingPrincipal  Float
-  currency            Currency               @default(USD)
-  termMonths          Int
-  repaymentFrequency  RepaymentFrequency     @default(monthly)
-  startDate           DateTime
-  firstPaymentDate    DateTime
-  counterpartyName    String?
-  notes               String?
-  status              LoanStatus             @default(active)
-  accountId           String
-  account             Account                @relation(fields: [accountId], references: [id])
-  originationTransactionId String?           @unique
-  originationTransaction Transaction?        @relation("LoanOriginationTransaction", fields: [originationTransactionId], references: [id], onDelete: SetNull)
-  userId              String
-  user                User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  ratePeriods         LoanRatePeriod[]
-  payments            LoanPayment[]
-  scheduleEntries     LoanScheduleEntry[]
-  createdAt           DateTime               @default(now())
-  updatedAt           DateTime               @updatedAt
+  id               String        @id @default(cuid())
+  name             String
+  direction        LoanDirection
+  principalAmount  Float
+  currency         Currency      @default(USD)
+  startDate        DateTime
+  counterpartyName String?
+  notes            String?
+  status           LoanStatus    @default(active)
+  accountId        String
+  account          Account       @relation(fields: [accountId], references: [id])
+  userId           String
+  user             User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  payments         LoanPayment[]
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
 
   @@index([userId, status])
   @@index([accountId])
 }
 
-model LoanRatePeriod {
-  id                     String             @id @default(cuid())
-  loanId                 String
-  loan                   Loan               @relation(fields: [loanId], references: [id], onDelete: Cascade)
-  periodType             LoanRatePeriodType
-  annualRate             Float
-  startDate              DateTime
-  endDate                DateTime?
-  repricingIntervalMonths Int?
-  sequence               Int
-  scheduleEntries        LoanScheduleEntry[]
-  createdAt              DateTime           @default(now())
-  updatedAt              DateTime           @updatedAt
-
-  @@unique([loanId, sequence])
-  @@index([loanId, startDate])
-}
-
-model LoanScheduleEntry {
-  id                String             @id @default(cuid())
-  loanId            String
-  loan              Loan               @relation(fields: [loanId], references: [id], onDelete: Cascade)
-  ratePeriodId      String?
-  ratePeriod        LoanRatePeriod?    @relation(fields: [ratePeriodId], references: [id], onDelete: SetNull)
-  installmentIndex  Int
-  dueDate           DateTime
-  openingPrincipal  Float
-  scheduledPrincipal Float
-  scheduledInterest Float
-  scheduledTotal    Float
-  closingPrincipal  Float
-  appliedAnnualRate Float
-  status            LoanScheduleStatus @default(pending)
-  paidPrincipal     Float              @default(0)
-  paidInterest      Float              @default(0)
-  paidTotal         Float              @default(0)
-  createdAt         DateTime           @default(now())
-  updatedAt         DateTime           @updatedAt
-
-  @@unique([loanId, installmentIndex])
-  @@index([loanId, dueDate])
-}
-
 model LoanPayment {
-  id              String          @id @default(cuid())
-  loanId          String
-  loan            Loan            @relation(fields: [loanId], references: [id], onDelete: Cascade)
-  accountId       String
-  account         Account         @relation(fields: [accountId], references: [id])
-  transactionId   String?         @unique
-  transaction     Transaction?    @relation(fields: [transactionId], references: [id], onDelete: SetNull)
-  paymentDate     DateTime
-  paymentKind     LoanPaymentKind @default(scheduled)
-  totalAmount     Float
-  principalAmount Float
-  interestAmount  Float
-  prepaymentStrategy PrepaymentStrategy?
-  note            String?
-  userId          String
-  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
+  id                     String       @id @default(cuid())
+  loanId                 String
+  loan                   Loan         @relation(fields: [loanId], references: [id], onDelete: Cascade)
+  accountId              String
+  account                Account      @relation(fields: [accountId], references: [id])
+  paymentDate            DateTime
+  principalAmount        Float        @default(0)
+  interestAmount         Float        @default(0)
+  prepayFeeAmount        Float        @default(0)
+  principalTransactionId String?      @unique
+  principalTransaction   Transaction? @relation("LoanPrincipalTransaction", fields: [principalTransactionId], references: [id], onDelete: SetNull)
+  interestTransactionId  String?      @unique
+  interestTransaction    Transaction? @relation("LoanInterestTransaction", fields: [interestTransactionId], references: [id], onDelete: SetNull)
+  prepayFeeTransactionId String?      @unique
+  prepayFeeTransaction   Transaction? @relation("LoanPrepayFeeTransaction", fields: [prepayFeeTransactionId], references: [id], onDelete: SetNull)
+  note                   String?
+  userId                 String
+  user                   User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt              DateTime     @default(now())
+  updatedAt              DateTime     @updatedAt
 
   @@index([loanId, paymentDate])
   @@index([userId])

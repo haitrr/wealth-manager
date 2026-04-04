@@ -2,59 +2,20 @@ import api from "@/lib/axios";
 import { Currency } from "./accounts";
 
 export type LoanDirection = "borrowed" | "lent";
-export type LoanProductType = "installment" | "bullet";
-export type LoanInstallmentStrategy = "equal_principal" | "annuity" | "bullet";
-export type RepaymentFrequency = "monthly" | "quarterly" | "yearly";
-export type LoanStatus = "draft" | "active" | "closed";
-export type LoanRatePeriodType = "fixed" | "floating";
-export type LoanPaymentKind = "scheduled" | "prepayment" | "adjustment";
-export type LoanScheduleStatus = "pending" | "partially_paid" | "paid";
-export type PrepaymentStrategy = "reduce_payment" | "shorten_term";
-
-export interface LoanRatePeriod {
-  id: string;
-  loanId: string;
-  periodType: LoanRatePeriodType;
-  annualRate: number;
-  startDate: string;
-  endDate: string | null;
-  repricingIntervalMonths: number | null;
-  sequence: number;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface LoanScheduleEntry {
-  id: string;
-  loanId: string;
-  ratePeriodId: string | null;
-  installmentIndex: number;
-  dueDate: string;
-  openingPrincipal: number;
-  scheduledPrincipal: number;
-  scheduledInterest: number;
-  scheduledTotal: number;
-  closingPrincipal: number;
-  appliedAnnualRate: number;
-  status: LoanScheduleStatus;
-  paidPrincipal: number;
-  paidInterest: number;
-  paidTotal: number;
-  createdAt: string;
-  updatedAt: string;
-}
+export type LoanStatus = "active" | "closed";
 
 export interface LoanPayment {
   id: string;
   loanId: string;
   accountId: string;
-  transactionId: string | null;
+  account: { id: string; name: string; currency: Currency };
   paymentDate: string;
-  paymentKind: LoanPaymentKind;
-  totalAmount: number;
   principalAmount: number;
   interestAmount: number;
-  prepaymentStrategy: PrepaymentStrategy | null;
+  prepayFeeAmount: number;
+  principalTransactionId: string | null;
+  interestTransactionId: string | null;
+  prepayFeeTransactionId: string | null;
   note: string | null;
   userId: string;
   createdAt: string;
@@ -62,13 +23,7 @@ export interface LoanPayment {
 }
 
 export interface LoanSummary {
-  principalAmount: number;
   remainingPrincipal: number;
-  totalScheduledInterest: number;
-  totalScheduledAmount: number;
-  nextDueDate: string | null;
-  currentAnnualRate: number;
-  currentRatePeriodType: LoanRatePeriodType;
   progressPercent: number;
 }
 
@@ -76,80 +31,40 @@ export interface Loan {
   id: string;
   name: string;
   direction: LoanDirection;
-  productType: LoanProductType;
-  installmentStrategy: LoanInstallmentStrategy;
   principalAmount: number;
-  remainingPrincipal: number;
   currency: Currency;
-  termMonths: number;
-  repaymentFrequency: RepaymentFrequency;
   startDate: string;
-  firstPaymentDate: string;
   counterpartyName: string | null;
   notes: string | null;
   status: LoanStatus;
   accountId: string;
   account: { id: string; name: string; currency: Currency };
-  originationTransactionId: string | null;
-  originationTransaction: {
-    id: string;
-    amount: number;
-    date: string;
-    description: string | null;
-    details: string | null;
-    accountId: string;
-    categoryId: string;
-  } | null;
   userId: string;
-  ratePeriods: LoanRatePeriod[];
-  scheduleEntries: LoanScheduleEntry[];
   payments: LoanPayment[];
   createdAt: string;
   updatedAt: string;
   summary: LoanSummary;
 }
 
-export interface LoanRatePeriodPayload {
-  periodType: LoanRatePeriodType;
-  annualRate: number;
-  startDate: string;
-  endDate?: string | null;
-  repricingIntervalMonths?: number | null;
-}
-
 export interface LoanPayload {
   name: string;
   direction: LoanDirection;
-  productType: LoanProductType;
-  installmentStrategy: LoanInstallmentStrategy;
   principalAmount: number;
   currency: Currency;
-  termMonths: number;
-  repaymentFrequency?: RepaymentFrequency;
   startDate: string;
-  firstPaymentDate: string;
   counterpartyName?: string;
   notes?: string;
   status?: LoanStatus;
   accountId: string;
-  ratePeriods: LoanRatePeriodPayload[];
 }
 
 export interface LoanPaymentPayload {
   accountId: string;
   paymentDate: string;
-  paymentKind?: LoanPaymentKind;
-  totalAmount: number;
-  principalAmount: number;
-  interestAmount: number;
+  principalAmount?: number;
+  interestAmount?: number;
+  prepayFeeAmount?: number;
   note?: string;
-  prepaymentStrategy?: PrepaymentStrategy;
-}
-
-export interface LoanRepricingPayload {
-  effectiveDate: string;
-  annualRate: number;
-  repricingIntervalMonths?: number | null;
 }
 
 export async function getLoans(): Promise<Loan[]> {
@@ -186,7 +101,7 @@ export async function updateLoanPayment(id: string, paymentId: string, payload: 
   return data;
 }
 
-export async function repriceLoan(id: string, payload: LoanRepricingPayload): Promise<Loan> {
-  const { data } = await api.post<Loan>(`/loans/${id}/repricing`, payload);
+export async function deleteLoanPayment(id: string, paymentId: string): Promise<Loan> {
+  const { data } = await api.delete<Loan>(`/loans/${id}/payments/${paymentId}`);
   return data;
 }
