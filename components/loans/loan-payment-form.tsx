@@ -85,35 +85,34 @@ export function LoanPaymentForm({ open, loan, payment, accounts, onClose, onSubm
         </DialogHeader>
 
         <form key={`${loan.id}-${open ? "open" : "closed"}`} onSubmit={handleSubmit} className="space-y-4 py-2">
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-2">
-              <Label htmlFor="paymentDate">Payment date</Label>
-              <Input
-                id="paymentDate"
-                name="paymentDate"
-                type="date"
-                defaultValue={
-                  payment
-                    ? new Date(payment.paymentDate).toISOString().split("T")[0]
-                    : new Date().toISOString().split("T")[0]
-                }
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="accountId">Account</Label>
-              <select
-                id="accountId"
-                name="accountId"
-                defaultValue={payment?.accountId ?? loan.accountId}
-                className="h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-[16px] md:text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                required
-              >
-                {accounts.map((account) => (
-                  <option key={account.id} value={account.id}>{account.name}</option>
-                ))}
-              </select>
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="paymentDate">Payment date</Label>
+            <Input
+              id="paymentDate"
+              name="paymentDate"
+              type="date"
+              defaultValue={
+                payment
+                  ? new Date(payment.paymentDate).toISOString().split("T")[0]
+                  : new Date().toISOString().split("T")[0]
+              }
+              required
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="accountId">Account</Label>
+            <select
+              id="accountId"
+              name="accountId"
+              defaultValue={payment?.accountId ?? loan.accountId}
+              className="h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-[16px] md:text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              required
+            >
+              {accounts.map((account) => (
+                <option key={account.id} value={account.id}>{account.name}</option>
+              ))}
+            </select>
           </div>
 
           <div className="rounded-lg border p-3 text-xs text-muted-foreground">
