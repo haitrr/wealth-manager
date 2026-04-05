@@ -205,27 +205,24 @@ export default function Home() {
                 currency={currency}
               />
               <BalanceTrendChart dailyData={summary.dailyData} currency={currency} />
+              <BudgetOverview />
             </div>
 
             {/* Right */}
             <div className="md:w-72 md:shrink-0 space-y-2">
+              {/* Category breakdown */}
+              <CategoryPieChart
+                title="Expenses by Category"
+                data={summary.expensesByCategory}
+                currency={currency}
+              />
+              <CategoryPieChart
+                title="Income by Category"
+                data={summary.incomeByCategory}
+                currency={currency}
+              />
               <LoanOverview currency={currency} exchangeRates={exchangeRates} />
-              <BudgetOverview />
             </div>
-          </div>
-
-          {/* Bottom: pie charts side by side */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-            <CategoryPieChart
-              title="Expenses by Category"
-              data={summary.expensesByCategory}
-              currency={currency}
-            />
-            <CategoryPieChart
-              title="Income by Category"
-              data={summary.incomeByCategory}
-              currency={currency}
-            />
           </div>
         </div>
       )}
