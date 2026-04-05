@@ -22,7 +22,7 @@ const RANGES: { label: string; value: TimeRange }[] = [
   { label: "Last month", value: "last-month" },
   { label: "This year", value: "this-year" },
   { label: "Last year", value: "last-year" },
-  { label: "Custom", value: "custom" },
+  { label: "...", value: "custom" },
 ];
 
 export function getDateRange(range: Exclude<TimeRange, "custom">): CustomDateRange {
