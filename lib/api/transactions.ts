@@ -79,6 +79,15 @@ export interface ImportResult {
   errors: string[];
 }
 
+export async function attachTransactionToLoan(
+  id: string,
+  loanId: string,
+  paymentType: "principal" | "interest" | "prepayFee"
+): Promise<Transaction> {
+  const { data } = await api.post<Transaction>(`/transactions/${id}/attach-loan`, { loanId, paymentType });
+  return data;
+}
+
 export async function importTransactions(file: File): Promise<ImportResult> {
   const formData = new FormData();
   formData.append("file", file);
