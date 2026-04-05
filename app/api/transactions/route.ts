@@ -20,10 +20,19 @@ export async function GET(req: NextRequest) {
         t.id, t.amount, t.date, t.description, t.details,
         t."accountId", t."categoryId", t."userId", t."createdAt", t."updatedAt",
         json_build_object('id', a.id, 'name', a.name, 'currency', a.currency::text) AS account,
-        json_build_object('id', c.id, 'name', c.name, 'type', c.type::text, 'icon', c.icon) AS category
+        json_build_object('id', c.id, 'name', c.name, 'type', c.type::text, 'icon', c.icon) AS category,
+        CASE WHEN lpp.id IS NOT NULL THEN json_build_object('id', lpp.id, 'loanId', lpp."loanId", 'loan', json_build_object('id', loan_p.id, 'name', loan_p.name)) ELSE NULL END AS "loanPaymentPrincipal",
+        CASE WHEN lpi.id IS NOT NULL THEN json_build_object('id', lpi.id, 'loanId', lpi."loanId", 'loan', json_build_object('id', loan_i.id, 'name', loan_i.name)) ELSE NULL END AS "loanPaymentInterest",
+        CASE WHEN lpf.id IS NOT NULL THEN json_build_object('id', lpf.id, 'loanId', lpf."loanId", 'loan', json_build_object('id', loan_f.id, 'name', loan_f.name)) ELSE NULL END AS "loanPaymentPrepayFee"
       FROM "Transaction" t
       JOIN "Account" a ON t."accountId" = a.id
       JOIN "TransactionCategory" c ON t."categoryId" = c.id
+      LEFT JOIN "LoanPayment" lpp ON lpp."principalTransactionId" = t.id
+      LEFT JOIN "Loan" loan_p ON loan_p.id = lpp."loanId"
+      LEFT JOIN "LoanPayment" lpi ON lpi."interestTransactionId" = t.id
+      LEFT JOIN "Loan" loan_i ON loan_i.id = lpi."loanId"
+      LEFT JOIN "LoanPayment" lpf ON lpf."prepayFeeTransactionId" = t.id
+      LEFT JOIN "Loan" loan_f ON loan_f.id = lpf."loanId"
       WHERE t."userId" = ${session.userId}
         AND (
           t.description ILIKE ${pattern}
