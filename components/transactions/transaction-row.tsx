@@ -4,6 +4,7 @@ import { Transaction } from "@/lib/api/transactions";
 import { CategoryType } from "@/lib/api/transaction-categories";
 import { formatCurrency } from "@/lib/utils";
 import { CategoryIcon } from "@/components/transaction-categories/category-icon";
+import { Landmark } from "lucide-react";
 
 const TYPE_COLORS: Record<CategoryType, string> = {
   income: "text-green-600 dark:text-green-400",
@@ -20,9 +21,23 @@ interface TransactionRowProps {
   onEdit: (transaction: Transaction) => void;
 }
 
+const LOAN_PAYMENT_LABELS: Record<string, string> = {
+  principal: "Principal",
+  interest: "Interest",
+  prepayFee: "Prepay Fee",
+};
+
+function getLoanPayment(transaction: Transaction) {
+  if (transaction.loanPaymentPrincipal) return { role: "principal", payment: transaction.loanPaymentPrincipal };
+  if (transaction.loanPaymentInterest) return { role: "interest", payment: transaction.loanPaymentInterest };
+  if (transaction.loanPaymentPrepayFee) return { role: "prepayFee", payment: transaction.loanPaymentPrepayFee };
+  return null;
+}
+
 export function TransactionRow({ transaction, onEdit }: TransactionRowProps) {
   const type = transaction.category.type;
   const formattedAmount = formatCurrency(Math.abs(transaction.amount), transaction.account.currency);
+  const loanPayment = getLoanPayment(transaction);
 
   const formattedDate = new Intl.DateTimeFormat("en-US", {
     month: "short",
@@ -53,6 +68,15 @@ export function TransactionRow({ transaction, onEdit }: TransactionRowProps) {
             <p className="text-xs text-muted-foreground">{formattedDate}</p>
             <span className="text-xs text-muted-foreground">·</span>
             <p className="text-xs text-muted-foreground">{transaction.account.name}</p>
+            {loanPayment && (
+              <>
+                <span className="text-xs text-muted-foreground">·</span>
+                <span className="flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400">
+                  <Landmark size={11} />
+                  {loanPayment.payment.loan.name} · {LOAN_PAYMENT_LABELS[loanPayment.role]}
+                </span>
+              </>
+            )}
           </div>
         </div>
       </div>
