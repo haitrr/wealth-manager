@@ -18,6 +18,10 @@ export const metadata: Metadata = {
   title: "Wealth Manager",
   description: "Manage your wealth",
   manifest: "/manifest.webmanifest",
+  icons: {
+    icon: "/icons/icon-192x192.svg",
+    apple: "/icons/apple-touch-icon.png",
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
