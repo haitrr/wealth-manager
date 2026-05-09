@@ -110,7 +110,8 @@ async function transactions() {
   if (limit) params.limit = Number(limit);
   if (accountId) params.accountId = accountId;
   if (categoryId) params.categoryId = categoryId;
-  const { data } = await http.get("/api/transactions", { params });
+  const { data: res } = await http.get("/api/transactions", { params });
+  const data = Array.isArray(res) ? res : (res.data ?? res);
   if (jsonOutput) { printJson(data); return; }
 
   const rows = data.map((t: {
