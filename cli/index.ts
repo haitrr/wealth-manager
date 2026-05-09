@@ -153,18 +153,18 @@ async function budgets() {
   if (jsonOutput) { printJson(data); return; }
 
   const rows = data.map((b: {
-    id: string; name: string; currency: string; spent: number; limit: number;
-    percentUsed: number; periodLabel?: string; period?: string
+    id: string; name: string; currency: string; spent: number; amount: number;
+    percentUsed: number; period: string; daysRemaining: number
   }) => [
     b.id,
     b.name,
     b.currency,
     fmt(b.spent),
-    fmt(b.limit),
+    fmt(b.amount),
     `${(b.percentUsed ?? 0).toFixed(1)}%`,
-    b.periodLabel ?? b.period ?? "",
+    b.period,
   ]);
-  table(["ID", "Name", "Currency", "Spent", "Limit", "Used", "Period"], rows, {
+  table(["ID", "Name", "Currency", "Spent", "Budget", "Used", "Period"], rows, {
     align: ["left", "left", "left", "right", "right", "right", "left"],
   });
 }
