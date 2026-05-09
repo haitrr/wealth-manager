@@ -307,10 +307,10 @@ Commands:
   config                                Set API key and base URL
   accounts                              List all accounts
   transactions                          List transactions
-    --from DATE     Start date (YYYY-MM-DD)
-    --to DATE       End date (YYYY-MM-DD)
+    --from DATE     Start date (YYYY-MM-DD, ignored when --search is used)
+    --to DATE       End date (YYYY-MM-DD, ignored when --search is used)
     --limit N       Max results (default 30)
-    --search TEXT   Search description, details, category, amount, date
+    --search TEXT   Full-text search across description, details, category, amount, date
   add <amount> <category>               Create a transaction
     --desc TEXT     Description
     --details TEXT  Item list or extra details (multiline supported)
