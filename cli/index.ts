@@ -282,7 +282,7 @@ async function add() {
   const accName = accs.find((a: { id: string; name: string }) => a.id === accountId)?.name ?? accountId;
   const sign = cat.type === "income" ? "+" : "-";
   const desc = description ? ` — ${description}` : "";
-  console.log(`Added: ${sign}${fmt(amount)} ${cat.name}${desc} (${fmtDate(data.date)}, ${accName})`);
+  console.log(`Added [${data.id}]: ${sign}${fmt(amount)} ${cat.name}${desc} (${fmtDate(data.date)}, ${accName})`);
 }
 
 async function deleteTransaction() {
