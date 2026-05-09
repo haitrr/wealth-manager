@@ -31,6 +31,7 @@ let http = axios.create();
 
 const args = process.argv.slice(2);
 const command = args[0];
+const jsonOutput = args.includes("--json");
 
 function flag(name: string): string | undefined {
   const idx = args.indexOf(`--${name}`);
@@ -46,18 +47,55 @@ function positional(index: number): string | undefined {
   return positionals[index];
 }
 
-function pp(data: unknown) {
+function printJson(data: unknown) {
   console.log(JSON.stringify(data, (key, value) => {
     if (key === "icon" && typeof value === "string" && value.startsWith("data:")) return undefined;
     return value;
   }, 2));
 }
 
+// ── Table formatter ─────────────────────────────────────────────────────────
+
+function table(headers: string[], rows: string[][], opts?: { align?: ("left" | "right")[] }) {
+  const cols = headers.length;
+  const widths = headers.map((h, i) => Math.max(h.length, ...rows.map(r => (r[i] ?? "").length)));
+  const align = opts?.align ?? headers.map(() => "left" as const);
+
+  const pad = (s: string, w: number, a: "left" | "right") =>
+    a === "right" ? s.padStart(w) : s.padEnd(w);
+
+  const sep = widths.map(w => "─".repeat(w)).join("  ");
+  const header = headers.map((h, i) => pad(h, widths[i], "left")).join("  ");
+
+  console.log(header);
+  console.log(sep);
+  for (const row of rows) {
+    console.log(Array.from({ length: cols }, (_, i) => pad(row[i] ?? "", widths[i], align[i])).join("  "));
+  }
+}
+
+function fmt(n: number, decimals = 2): string {
+  return n.toLocaleString("en-US", { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+}
+
+function fmtDate(iso: string): string {
+  return iso.split("T")[0];
+}
+
 // ── Commands ────────────────────────────────────────────────────────────────
 
 async function accounts() {
   const { data } = await http.get("/api/accounts");
-  pp(data);
+  if (jsonOutput) { printJson(data); return; }
+
+  const rows = data.map((a: { id: string; name: string; currency: string; balance: number; isDefault: boolean }) => [
+    a.id,
+    a.name,
+    a.currency,
+    fmt(a.balance),
+    a.isDefault ? "✓" : "",
+  ]);
+  table(["ID", "Name", "Currency", "Balance", "Default"], rows, { align: ["left", "left", "left", "right", "left"] });
 }
 
 async function transactions() {
@@ -73,24 +111,73 @@ async function transactions() {
   if (accountId) params.accountId = accountId;
   if (categoryId) params.categoryId = categoryId;
   const { data } = await http.get("/api/transactions", { params });
-  pp(data);
+  if (jsonOutput) { printJson(data); return; }
+
+  const rows = data.map((t: {
+    id: string; date: string; description?: string; category?: { name: string; type: string };
+    amount: number; account?: { name: string }
+  }) => [
+    t.id,
+    fmtDate(t.date),
+    t.category?.name ?? "",
+    t.description ?? "",
+    (t.category?.type === "income" ? "+" : "-") + fmt(t.amount),
+    t.account?.name ?? "",
+  ]);
+  table(["ID", "Date", "Category", "Description", "Amount", "Account"], rows, {
+    align: ["left", "left", "left", "left", "right", "left"],
+  });
+  console.log(`\n${data.length} transaction(s)`);
 }
 
 async function categories() {
   const type = flag("type");
   const params = type ? { type } : {};
   const { data } = await http.get("/api/transaction-categories", { params });
-  pp(data);
+  if (jsonOutput) { printJson(data); return; }
+
+  const grouped: Record<string, { id: string; name: string }[]> = {};
+  for (const c of data as { id: string; name: string; type: string }[]) {
+    (grouped[c.type] ??= []).push({ id: c.id, name: c.name });
+  }
+  for (const [t, items] of Object.entries(grouped)) {
+    console.log(`\n${t.toUpperCase()}`);
+    const maxName = Math.max(...items.map(c => c.name.length));
+    for (const c of items) console.log(`  ${c.name.padEnd(maxName)}  ${c.id}`);
+  }
 }
 
 async function budgets() {
   const { data } = await http.get("/api/budgets");
-  pp(data);
+  if (jsonOutput) { printJson(data); return; }
+
+  const rows = data.map((b: {
+    id: string; name: string; currency: string; spent: number; limit: number;
+    percentUsed: number; periodLabel?: string; period?: string
+  }) => [
+    b.id,
+    b.name,
+    b.currency,
+    fmt(b.spent),
+    fmt(b.limit),
+    `${(b.percentUsed ?? 0).toFixed(1)}%`,
+    b.periodLabel ?? b.period ?? "",
+  ]);
+  table(["ID", "Name", "Currency", "Spent", "Limit", "Used", "Period"], rows, {
+    align: ["left", "left", "left", "right", "right", "right", "left"],
+  });
 }
 
 async function exchangeRates() {
   const { data } = await http.get("/api/exchange-rates");
-  pp(data);
+  if (jsonOutput) { printJson(data); return; }
+
+  const rows = data.map((r: { fromCurrency: string; toCurrency: string; rate: number }) => [
+    r.fromCurrency,
+    r.toCurrency,
+    fmt(r.rate, 4),
+  ]);
+  table(["From", "To", "Rate"], rows, { align: ["left", "left", "right"] });
 }
 
 async function summary() {
@@ -102,7 +189,28 @@ async function summary() {
   const { data } = await http.get("/api/transactions/summary", {
     params: { startDate: start, endDate: end },
   });
-  pp(data);
+  if (jsonOutput) { printJson(data); return; }
+
+  console.log(`\n${data.month}`);
+  console.log(`Income:   ${fmt(data.totalIncome)}`);
+  console.log(`Expenses: ${fmt(data.totalExpenses)}`);
+  console.log(`Net:      ${fmt(data.netBalance)}`);
+
+  if (data.incomeByCategory?.length) {
+    console.log("\nIncome by category:");
+    const sorted = [...data.incomeByCategory].sort((a: { amount: number }, b: { amount: number }) => b.amount - a.amount);
+    for (const c of sorted as { name: string; amount: number }[]) {
+      console.log(`  ${c.name.padEnd(20)} ${fmt(c.amount).padStart(12)}`);
+    }
+  }
+
+  if (data.expensesByCategory?.length) {
+    console.log("\nExpenses by category:");
+    const sorted = [...data.expensesByCategory].sort((a: { amount: number }, b: { amount: number }) => b.amount - a.amount);
+    for (const c of sorted as { name: string; amount: number }[]) {
+      console.log(`  ${c.name.padEnd(20)} ${fmt(c.amount).padStart(12)}`);
+    }
+  }
 }
 
 async function add() {
@@ -168,8 +276,12 @@ async function add() {
     categoryId: cat.id,
   });
 
-  console.log("Transaction created:");
-  pp(data);
+  if (jsonOutput) { printJson(data); return; }
+
+  const accName = accs.find((a: { id: string; name: string }) => a.id === accountId)?.name ?? accountId;
+  const sign = cat.type === "income" ? "+" : "-";
+  const desc = description ? ` — ${description}` : "";
+  console.log(`Added: ${sign}${fmt(amount)} ${cat.name}${desc} (${fmtDate(data.date)}, ${accName})`);
 }
 
 async function deleteTransaction() {
@@ -179,14 +291,14 @@ async function deleteTransaction() {
     process.exit(1);
   }
   await http.delete(`/api/transactions/${id}`);
-  console.log(`Transaction ${id} deleted.`);
+  console.log(`Deleted transaction ${id}.`);
 }
 
 function help() {
   console.log(`
 Wealth Manager CLI
 
-Usage: wm <command> [options]
+Usage: wm <command> [options] [--json]
 
 Commands:
   config                                Set API key and base URL
@@ -210,6 +322,9 @@ Commands:
     --year YEAR   Year (default: current)
     --month MONTH Month 1-12 (default: current)
   exchange-rates                        List exchange rates
+
+Options:
+  --json        Output raw JSON instead of human-readable format
 
 Config: ~/.wm/config.yml  (env vars WM_API_KEY / WM_BASE_URL take precedence)
 `);
