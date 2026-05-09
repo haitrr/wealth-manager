@@ -103,14 +103,10 @@ async function transactions() {
   const from = flag("from");
   const to = flag("to");
   const limit = flag("limit");
-  const accountId = flag("account");
-  const categoryId = flag("category");
   const search = flag("search");
   if (from) params.startDate = from;
   if (to) params.endDate = to;
   if (limit) params.limit = Number(limit);
-  if (accountId) params.accountId = accountId;
-  if (categoryId) params.categoryId = categoryId;
   if (search) params.search = search;
   const { data: res } = await http.get("/api/transactions", { params });
   const data = Array.isArray(res) ? res : (res.data ?? res);
@@ -314,8 +310,6 @@ Commands:
     --from DATE     Start date (YYYY-MM-DD)
     --to DATE       End date (YYYY-MM-DD)
     --limit N       Max results (default 30)
-    --account ID    Filter by account ID
-    --category ID   Filter by category ID
     --search TEXT   Search description, details, category, amount, date
   add <amount> <category>               Create a transaction
     --desc TEXT     Description
