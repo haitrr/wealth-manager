@@ -115,18 +115,21 @@ async function transactions() {
   if (jsonOutput) { printJson(data); return; }
 
   const rows = data.map((t: {
-    id: string; date: string; description?: string; category?: { name: string; type: string };
-    amount: number; account?: { name: string }
+    id: string; date: string; description?: string;
+    category?: { id: string; name: string; type: string };
+    amount: number; account?: { id: string; name: string }
   }) => [
     t.id,
     fmtDate(t.date),
     t.category?.name ?? "",
+    t.category?.id ?? "",
     t.description ?? "",
     (t.category?.type === "income" ? "+" : "-") + fmt(t.amount),
     t.account?.name ?? "",
+    t.account?.id ?? "",
   ]);
-  table(["ID", "Date", "Category", "Description", "Amount", "Account"], rows, {
-    align: ["left", "left", "left", "left", "right", "left"],
+  table(["ID", "Date", "Category", "CategoryID", "Description", "Amount", "Account", "AccountID"], rows, {
+    align: ["left", "left", "left", "left", "left", "right", "left", "left"],
   });
   console.log(`\n${data.length} transaction(s)`);
 }
@@ -173,12 +176,13 @@ async function exchangeRates() {
   const { data } = await http.get("/api/exchange-rates");
   if (jsonOutput) { printJson(data); return; }
 
-  const rows = data.map((r: { fromCurrency: string; toCurrency: string; rate: number }) => [
+  const rows = data.map((r: { id: string; fromCurrency: string; toCurrency: string; rate: number }) => [
+    r.id,
     r.fromCurrency,
     r.toCurrency,
     fmt(r.rate, 4),
   ]);
-  table(["From", "To", "Rate"], rows, { align: ["left", "left", "right"] });
+  table(["ID", "From", "To", "Rate"], rows, { align: ["left", "left", "left", "right"] });
 }
 
 async function summary() {
@@ -200,16 +204,16 @@ async function summary() {
   if (data.incomeByCategory?.length) {
     console.log("\nIncome by category:");
     const sorted = [...data.incomeByCategory].sort((a: { amount: number }, b: { amount: number }) => b.amount - a.amount);
-    for (const c of sorted as { name: string; amount: number }[]) {
-      console.log(`  ${c.name.padEnd(20)} ${fmt(c.amount).padStart(12)}`);
+    for (const c of sorted as { id: string; name: string; amount: number }[]) {
+      console.log(`  ${c.name.padEnd(20)} ${fmt(c.amount).padStart(12)}  ${c.id}`);
     }
   }
 
   if (data.expensesByCategory?.length) {
     console.log("\nExpenses by category:");
     const sorted = [...data.expensesByCategory].sort((a: { amount: number }, b: { amount: number }) => b.amount - a.amount);
-    for (const c of sorted as { name: string; amount: number }[]) {
-      console.log(`  ${c.name.padEnd(20)} ${fmt(c.amount).padStart(12)}`);
+    for (const c of sorted as { id: string; name: string; amount: number }[]) {
+      console.log(`  ${c.name.padEnd(20)} ${fmt(c.amount).padStart(12)}  ${c.id}`);
     }
   }
 }
