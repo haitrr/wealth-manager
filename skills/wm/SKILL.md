@@ -26,7 +26,11 @@ wm accounts
 wm transactions
 wm transactions --from 2026-03-01 --to 2026-03-31
 wm transactions --limit 20
+wm transactions --search "coffee"
 ```
+- `--from` / `--to` — filter by date range (ignored when `--search` is used)
+- `--limit` — max results, default 30, max 100
+- `--search` — full-text search across description, details, category name, amount, and date
 
 ### Monthly summary (income / expenses / net / by category)
 ```bash
@@ -76,7 +80,9 @@ wm exchange-rates
 
 **"Show recent transactions"** → `wm transactions --limit 20`.
 
-**"Am I over budget?"** → `wm budgets`, compare amount vs spent.
+**"Find a transaction"** → `wm transactions --search "<keyword>"`. Use the ID from results to delete if needed.
+
+**"Am I over budget?"** → `wm budgets`, compare spent vs Budget columns.
 
 ## Transaction entry rules
 
