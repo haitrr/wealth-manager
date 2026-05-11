@@ -37,8 +37,18 @@ docker compose -f docker-compose.prod.yml up -d --build && ok "App deployed" || 
 step "Deploying CLI"
 pnpm link --global && ok "CLI linked" || fail "CLI link failed"
 
-step "Updating openclaw skill"
-cp skills/wm/SKILL.md ~/.openclaw/workspace/skills/wm/SKILL.md && ok "Skill updated" || fail "Skill update failed"
+step "Updating agent skills"
+if [ -d ~/.openclaw/workspace/skills ]; then
+  cp skills/wm/SKILL.md ~/.openclaw/workspace/skills/wm/SKILL.md && ok "openclaw skill updated" || fail "openclaw skill update failed"
+else
+  ok "openclaw not installed, skipping"
+fi
+if [ -d ~/.hermes/skills ]; then
+  mkdir -p ~/.hermes/skills/wm
+  cp skills/wm/SKILL.md ~/.hermes/skills/wm/SKILL.md && ok "hermes skill updated" || fail "hermes skill update failed"
+else
+  ok "hermes not installed, skipping"
+fi
 
 echo ""
 echo -e "${GREEN}${BOLD}=== All done at $(date '+%Y-%m-%d %H:%M:%S') ===${RESET}"

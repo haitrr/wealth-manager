@@ -203,7 +203,7 @@ async function summary() {
     console.log("\nIncome by category:");
     const sorted = [...data.incomeByCategory].sort((a: { amount: number }, b: { amount: number }) => b.amount - a.amount);
     for (const c of sorted as { id: string; name: string; amount: number }[]) {
-      console.log(`  ${c.name.padEnd(20)} ${fmt(c.amount).padStart(12)}  ${c.id}`);
+      console.log(`  ${c.name.padEnd(20)} ${fmt(c.amount).padStart(12)}`);
     }
   }
 
@@ -211,7 +211,7 @@ async function summary() {
     console.log("\nExpenses by category:");
     const sorted = [...data.expensesByCategory].sort((a: { amount: number }, b: { amount: number }) => b.amount - a.amount);
     for (const c of sorted as { id: string; name: string; amount: number }[]) {
-      console.log(`  ${c.name.padEnd(20)} ${fmt(c.amount).padStart(12)}  ${c.id}`);
+      console.log(`  ${c.name.padEnd(20)} ${fmt(c.amount).padStart(12)}`);
     }
   }
 }
