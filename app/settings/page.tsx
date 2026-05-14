@@ -19,10 +19,7 @@ const SETTINGS_ITEMS = [
   { href: "/settings/loan-categories", label: "Loan Defaults", description: "Default categories for loan payments", icon: Landmark },
 ];
 
-const CURRENCIES: { value: Currency; label: string }[] = [
-  { value: "USD", label: "USD — US Dollar" },
-  { value: "VND", label: "VND — Vietnamese Dong" },
-];
+const CURRENCIES: Currency[] = ["USD", "VND"];
 
 export default function SettingsPage() {
   const [importOpen, setImportOpen] = useState(false);
@@ -36,20 +33,27 @@ export default function SettingsPage() {
 
   return (
     <main className="max-w-lg mx-auto px-4 py-8 space-y-4">
-      <div className="rounded-lg border px-4 py-3 flex items-center justify-between">
-        <div>
-          <p className="text-sm font-medium">Display Currency</p>
-          <p className="text-xs text-muted-foreground">All summaries are converted to this currency</p>
+      <div className="rounded-lg border px-4 py-3">
+        <p className="text-sm font-medium mb-0.5">Display Currency</p>
+        <p className="text-xs text-muted-foreground mb-3">All summaries are converted to this currency</p>
+        <div className="flex rounded-lg border overflow-hidden">
+          {CURRENCIES.map(c => {
+            const active = (settings?.defaultCurrency ?? "USD") === c;
+            return (
+              <button
+                key={c}
+                onClick={() => updateMutation.mutate({ defaultCurrency: c })}
+                className={`flex-1 py-2 text-sm font-medium transition-colors ${
+                  active
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {c}
+              </button>
+            );
+          })}
         </div>
-        <select
-          className="text-sm border rounded-md px-2 py-1.5 bg-background"
-          value={settings?.defaultCurrency ?? "USD"}
-          onChange={e => updateMutation.mutate({ defaultCurrency: e.target.value as Currency })}
-        >
-          {CURRENCIES.map(c => (
-            <option key={c.value} value={c.value}>{c.label}</option>
-          ))}
-        </select>
       </div>
 
       <div className="divide-y rounded-lg border overflow-hidden">
