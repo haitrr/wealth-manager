@@ -39,7 +39,10 @@ export async function GET(req: NextRequest) {
       create: { userId: session.userId },
       update: {},
     }),
-    prisma.account.findMany({ where: { userId: session.userId } }),
+    prisma.account.findMany({
+      where: { userId: session.userId },
+      include: { transactions: { include: { category: { select: { type: true } } } } },
+    }),
     prisma.asset.findMany({ where: { userId: session.userId } }),
     prisma.loan.findMany({
       where: { userId: session.userId, status: "active" },
@@ -65,13 +68,19 @@ export async function GET(req: NextRequest) {
     return convertToCurrency(amount, fromCurrency, targetCurrency, exchangeRates);
   }
 
-  const accountItems = accounts.map(a => ({
-    id: a.id,
-    name: a.name,
-    balance: a.balance,
-    currency: a.currency,
-    valueInTarget: convert(a.balance, a.currency),
-  }));
+  const accountItems = accounts.map(({ transactions, ...a }) => {
+    const balance = transactions.reduce((sum, tx) => {
+      const isIncome = tx.category.type === "income";
+      return sum + (isIncome ? tx.amount : -tx.amount);
+    }, 0);
+    return {
+      id: a.id,
+      name: a.name,
+      balance,
+      currency: a.currency,
+      valueInTarget: convert(balance, a.currency),
+    };
+  });
 
   const assetItems = assets.map(a => ({
     ...a,
