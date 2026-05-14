@@ -1,0 +1,211 @@
+"use client";
+
+import Link from "next/link";
+import { useQuery } from "@tanstack/react-query";
+import { AlertTriangle, ArrowRight } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  getNetWorth,
+  NetWorthResponse,
+  AssetItem,
+  AccountItem,
+  LoanItem,
+} from "@/lib/api/networth";
+import { formatCurrency } from "@/lib/utils";
+
+const ASSET_TYPE_LABELS: Record<string, string> = {
+  real_estate: "Real Estate",
+  stock: "Stocks",
+  bond: "Bonds",
+  gold: "Gold",
+};
+
+function SectionCard({
+  title,
+  total,
+  children,
+  href,
+}: {
+  title: string;
+  total: number;
+  children: React.ReactNode;
+  href?: string;
+}) {
+  return (
+    <div className="rounded-lg border">
+      <div className="flex items-center justify-between px-4 py-3 border-b">
+        <h2 className="text-sm font-semibold">{title}</h2>
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-semibold">{formatCurrency(total, "USD")}</span>
+          {href && (
+            <Link href={href} className="text-muted-foreground hover:text-foreground">
+              <ArrowRight className="size-4" />
+            </Link>
+          )}
+        </div>
+      </div>
+      <div className="divide-y">{children}</div>
+    </div>
+  );
+}
+
+function Row({ label, value, sub }: { label: string; value: number; sub?: string }) {
+  return (
+    <div className="flex items-center justify-between px-4 py-2">
+      <div>
+        <p className="text-sm">{label}</p>
+        {sub && <p className="text-[10px] text-muted-foreground">{sub}</p>}
+      </div>
+      <p className="text-sm font-medium">{formatCurrency(value, "USD")}</p>
+    </div>
+  );
+}
+
+function AssetsBreakdown({ data }: { data: NetWorthResponse["assets"] }) {
+  return (
+    <>
+      {(
+        Object.entries(data.byType) as [
+          string,
+          { total: number; items: AssetItem[] },
+        ][]
+      )
+        .filter(([, v]) => v.items.length > 0)
+        .map(([type, group]) => (
+          <div key={type}>
+            <div className="flex items-center justify-between px-4 py-2 bg-muted/30">
+              <p className="text-xs font-medium text-muted-foreground">
+                {ASSET_TYPE_LABELS[type]}
+              </p>
+              <p className="text-xs font-medium text-muted-foreground">
+                {formatCurrency(group.total, "USD")}
+              </p>
+            </div>
+            {group.items.map(item => (
+              <Row
+                key={item.id}
+                label={item.name}
+                value={item.valueInUsd}
+                sub={
+                  item.ticker
+                    ? `${item.ticker} · qty ${item.quantity}`
+                    : undefined
+                }
+              />
+            ))}
+          </div>
+        ))}
+    </>
+  );
+}
+
+export default function NetWorthPage() {
+  const { data, isLoading, error } = useQuery<NetWorthResponse>({
+    queryKey: ["networth"],
+    queryFn: getNetWorth,
+  });
+
+  return (
+    <main className="max-w-lg mx-auto px-4 py-8 pb-24">
+      <h1 className="text-2xl font-semibold mb-6">Net Worth</h1>
+
+      {isLoading && <p className="text-sm text-muted-foreground">Loading…</p>}
+      {!isLoading && error && (
+        <p className="text-sm text-destructive">Unable to load net worth.</p>
+      )}
+
+      {data && (
+        <div className="space-y-4">
+          <Card>
+            <CardContent className="py-4 px-4">
+              <p className="text-xs text-muted-foreground">Total Net Worth</p>
+              <p
+                className={`text-3xl font-bold tracking-tight mt-1 ${
+                  data.totalNetWorth >= 0 ? "" : "text-destructive"
+                }`}
+              >
+                {formatCurrency(data.totalNetWorth, "USD")}
+              </p>
+              <div className="mt-3 grid grid-cols-3 gap-2 text-center">
+                <div>
+                  <p className="text-[10px] text-muted-foreground">Liquid</p>
+                  <p className="text-sm font-semibold text-green-600 dark:text-green-400">
+                    {formatCurrency(data.liquid.total, "USD")}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[10px] text-muted-foreground">Assets</p>
+                  <p className="text-sm font-semibold text-blue-600 dark:text-blue-400">
+                    {formatCurrency(data.assets.total, "USD")}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[10px] text-muted-foreground">Liabilities</p>
+                  <p className="text-sm font-semibold text-red-600 dark:text-red-400">
+                    {formatCurrency(data.liabilities.total, "USD")}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {data.missingRates.length > 0 && (
+            <div className="flex items-start gap-2 rounded-lg border border-yellow-500/30 bg-yellow-500/10 px-3 py-2 text-sm text-yellow-700 dark:text-yellow-400">
+              <AlertTriangle className="size-4 mt-0.5 shrink-0" />
+              <span>
+                Missing exchange rates for: {data.missingRates.join(", ")}. Some
+                values shown unconverted.
+              </span>
+            </div>
+          )}
+
+          <SectionCard
+            title="Liquid"
+            total={data.liquid.total}
+            href="/settings/accounts"
+          >
+            {data.liquid.accounts.map((a: AccountItem) => (
+              <Row
+                key={a.id}
+                label={a.name}
+                value={a.valueInUsd}
+                sub={
+                  a.currency !== "USD"
+                    ? formatCurrency(a.balance, a.currency)
+                    : undefined
+                }
+              />
+            ))}
+          </SectionCard>
+
+          {data.assets.total > 0 && (
+            <SectionCard title="Assets" total={data.assets.total} href="/assets">
+              <AssetsBreakdown data={data.assets} />
+            </SectionCard>
+          )}
+
+          {data.liabilities.total > 0 && (
+            <SectionCard
+              title="Liabilities"
+              total={data.liabilities.total}
+              href="/loans"
+            >
+              {data.liabilities.loans.map((l: LoanItem) => (
+                <Row
+                  key={l.id}
+                  label={l.name}
+                  value={l.valueInUsd}
+                  sub={
+                    l.currency !== "USD"
+                      ? `${formatCurrency(l.outstandingPrincipal, l.currency)} outstanding`
+                      : "outstanding"
+                  }
+                />
+              ))}
+            </SectionCard>
+          )}
+        </div>
+      )}
+    </main>
+  );
+}
