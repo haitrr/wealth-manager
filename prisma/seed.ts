@@ -26,6 +26,10 @@ async function main() {
     data: { email: "test@example.com", password },
   });
 
+  await prisma.userSettings.create({
+    data: { userId: user.id, defaultCurrency: "VND" },
+  });
+
   const [checking, savings] = await Promise.all([
     prisma.account.create({
       data: { name: "Tài khoản thanh toán", balance: 10000000, currency: "VND", isDefault: true, userId: user.id },
