@@ -1,8 +1,10 @@
 import api from "@/lib/axios";
+import { Currency } from "./accounts";
 
 export interface UserSettings {
   id: string;
   userId: string;
+  defaultCurrency: Currency;
   loanBorrowedInitialCategoryId: string | null;
   loanBorrowedPrincipalCategoryId: string | null;
   loanBorrowedInterestCategoryId: string | null;
@@ -17,6 +19,7 @@ export interface UserSettings {
 
 export type UserSettingsPayload = Partial<Pick<
   UserSettings,
+  | "defaultCurrency"
   | "loanBorrowedInitialCategoryId"
   | "loanBorrowedPrincipalCategoryId"
   | "loanBorrowedInterestCategoryId"
