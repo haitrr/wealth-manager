@@ -2,15 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Building2, HandCoins, Home, List, PiggyBank, Settings, TrendingUp } from "lucide-react";
+import { Home, List, Settings, TrendingUp } from "lucide-react";
 
 const NAV_ITEMS = [
   { href: "/", label: "Home", icon: Home },
   { href: "/transactions", label: "Transactions", icon: List },
-  { href: "/budgets", label: "Budgets", icon: PiggyBank },
   { href: "/networth", label: "Net Worth", icon: TrendingUp },
-  { href: "/assets", label: "Assets", icon: Building2 },
-  { href: "/loans", label: "Loans", icon: HandCoins },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 

@@ -2,13 +2,16 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ChevronRight, CreditCard, Tag, User, DollarSign, Upload, Landmark } from "lucide-react";
+import { ChevronRight, CreditCard, Tag, User, DollarSign, Upload, Landmark, PiggyBank, Building2, HandCoins } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ImportDialog } from "@/components/transactions/import-dialog";
 import { getSettings, updateSettings } from "@/lib/api/settings";
 import { Currency } from "@/lib/api/accounts";
 
 const SETTINGS_ITEMS = [
+  { href: "/budgets", label: "Budgets", description: "Set and track spending budgets", icon: PiggyBank },
+  { href: "/assets", label: "Assets", description: "Manage real estate, stocks, gold", icon: Building2 },
+  { href: "/loans", label: "Loans", description: "Track borrowed and lent money", icon: HandCoins },
   { href: "/settings/account", label: "User", description: "Manage password and logout", icon: User },
   { href: "/settings/accounts", label: "Accounts", description: "Manage your bank accounts", icon: CreditCard },
   { href: "/settings/categories", label: "Categories", description: "Manage transaction categories", icon: Tag },
