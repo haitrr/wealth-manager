@@ -30,6 +30,7 @@ export default function AssetsPage() {
   const [formOpen, setFormOpen] = useState(false);
   const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
   const [refreshingId, setRefreshingId] = useState<string | null>(null);
+  const [refreshError, setRefreshError] = useState<string | null>(null);
 
   const { data: assets = [], isLoading, error } = useQuery({
     queryKey: ["assets"],
@@ -47,9 +48,12 @@ export default function AssetsPage() {
 
   async function handleRefreshPrice(asset: Asset) {
     setRefreshingId(asset.id);
+    setRefreshError(null);
     try {
       await refreshAssetPrice(asset.id);
       invalidate();
+    } catch (e) {
+      setRefreshError(e instanceof Error ? e.message : "Failed to refresh price");
     } finally {
       setRefreshingId(null);
     }
@@ -80,6 +84,7 @@ export default function AssetsPage() {
 
       {isLoading && <p className="text-sm text-muted-foreground">Loading…</p>}
       {!isLoading && error && <p className="text-sm text-destructive">Unable to load assets.</p>}
+      {refreshError && <p className="text-sm text-destructive mb-2">{refreshError}</p>}
 
       {!isLoading && !error && assets.length === 0 && (
         <div className="rounded-lg border p-4 space-y-1">
