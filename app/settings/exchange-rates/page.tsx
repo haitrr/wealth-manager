@@ -206,8 +206,8 @@ function ExchangeRateForm({ open, exchangeRate, onClose, onSubmit, onDelete }: E
                 id="rate"
                 name="rate"
                 type="number"
-                step="0.0001"
-                min="0.0001"
+                step="any"
+                min="0"
                 placeholder="e.g., 25000 for USD to VND"
                 defaultValue={exchangeRate?.rate ?? ""}
                 onKeyDown={(e) => e.key === "-" && e.preventDefault()}
