@@ -7,7 +7,7 @@ export interface AccountItem {
   name: string;
   balance: number;
   currency: Currency;
-  valueInUsd: number;
+  valueInTarget: number;
 }
 
 export interface AssetItem {
@@ -19,7 +19,7 @@ export interface AssetItem {
   quantity: number | null;
   ticker: string | null;
   lastPricedAt: string | null;
-  valueInUsd: number;
+  valueInTarget: number;
 }
 
 export interface LoanItem {
@@ -28,7 +28,7 @@ export interface LoanItem {
   direction: "borrowed" | "lent";
   outstandingPrincipal: number;
   currency: Currency;
-  valueInUsd: number;
+  valueInTarget: number;
 }
 
 export interface AssetsByType {
@@ -39,6 +39,7 @@ export interface AssetsByType {
 }
 
 export interface NetWorthResponse {
+  currency: Currency;
   totalNetWorth: number;
   missingRates: string[];
   liquid: { total: number; accounts: AccountItem[] };

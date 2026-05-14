@@ -12,6 +12,7 @@ import {
   LoanItem,
 } from "@/lib/api/networth";
 import { formatCurrency } from "@/lib/utils";
+import { Currency } from "@/lib/api/accounts";
 
 const ASSET_TYPE_LABELS: Record<string, string> = {
   real_estate: "Real Estate",
@@ -23,11 +24,13 @@ const ASSET_TYPE_LABELS: Record<string, string> = {
 function SectionCard({
   title,
   total,
+  currency,
   children,
   href,
 }: {
   title: string;
   total: number;
+  currency: Currency;
   children: React.ReactNode;
   href?: string;
 }) {
@@ -36,7 +39,7 @@ function SectionCard({
       <div className="flex items-center justify-between px-4 py-3 border-b">
         <h2 className="text-sm font-semibold">{title}</h2>
         <div className="flex items-center gap-2">
-          <span className="text-sm font-semibold">{formatCurrency(total, "USD")}</span>
+          <span className="text-sm font-semibold">{formatCurrency(total, currency)}</span>
           {href && (
             <Link href={href} className="text-muted-foreground hover:text-foreground">
               <ArrowRight className="size-4" />
@@ -49,19 +52,35 @@ function SectionCard({
   );
 }
 
-function Row({ label, value, sub }: { label: string; value: number; sub?: string }) {
+function Row({
+  label,
+  value,
+  currency,
+  sub,
+}: {
+  label: string;
+  value: number;
+  currency: Currency;
+  sub?: string;
+}) {
   return (
     <div className="flex items-center justify-between px-4 py-2">
       <div>
         <p className="text-sm">{label}</p>
         {sub && <p className="text-[10px] text-muted-foreground">{sub}</p>}
       </div>
-      <p className="text-sm font-medium">{formatCurrency(value, "USD")}</p>
+      <p className="text-sm font-medium">{formatCurrency(value, currency)}</p>
     </div>
   );
 }
 
-function AssetsBreakdown({ data }: { data: NetWorthResponse["assets"] }) {
+function AssetsBreakdown({
+  data,
+  currency,
+}: {
+  data: NetWorthResponse["assets"];
+  currency: Currency;
+}) {
   return (
     <>
       {(
@@ -78,14 +97,15 @@ function AssetsBreakdown({ data }: { data: NetWorthResponse["assets"] }) {
                 {ASSET_TYPE_LABELS[type]}
               </p>
               <p className="text-xs font-medium text-muted-foreground">
-                {formatCurrency(group.total, "USD")}
+                {formatCurrency(group.total, currency)}
               </p>
             </div>
             {group.items.map(item => (
               <Row
                 key={item.id}
                 label={item.name}
-                value={item.valueInUsd}
+                value={item.valueInTarget}
+                currency={currency}
                 sub={
                   item.ticker
                     ? `${item.ticker} · qty ${item.quantity}`
@@ -104,6 +124,8 @@ export default function NetWorthPage() {
     queryKey: ["networth"],
     queryFn: getNetWorth,
   });
+
+  const currency = data?.currency ?? "USD";
 
   return (
     <main className="max-w-lg mx-auto px-4 py-8 pb-24">
@@ -124,25 +146,25 @@ export default function NetWorthPage() {
                   data.totalNetWorth >= 0 ? "" : "text-destructive"
                 }`}
               >
-                {formatCurrency(data.totalNetWorth, "USD")}
+                {formatCurrency(data.totalNetWorth, currency)}
               </p>
               <div className="mt-3 grid grid-cols-3 gap-2 text-center">
                 <div>
                   <p className="text-[10px] text-muted-foreground">Liquid</p>
                   <p className="text-sm font-semibold text-green-600 dark:text-green-400">
-                    {formatCurrency(data.liquid.total, "USD")}
+                    {formatCurrency(data.liquid.total, currency)}
                   </p>
                 </div>
                 <div>
                   <p className="text-[10px] text-muted-foreground">Assets</p>
                   <p className="text-sm font-semibold text-blue-600 dark:text-blue-400">
-                    {formatCurrency(data.assets.total, "USD")}
+                    {formatCurrency(data.assets.total, currency)}
                   </p>
                 </div>
                 <div>
                   <p className="text-[10px] text-muted-foreground">Liabilities</p>
                   <p className="text-sm font-semibold text-red-600 dark:text-red-400">
-                    {formatCurrency(data.liabilities.total, "USD")}
+                    {formatCurrency(data.liabilities.total, currency)}
                   </p>
                 </div>
               </div>
@@ -162,15 +184,17 @@ export default function NetWorthPage() {
           <SectionCard
             title="Liquid"
             total={data.liquid.total}
+            currency={currency}
             href="/settings/accounts"
           >
             {data.liquid.accounts.map((a: AccountItem) => (
               <Row
                 key={a.id}
                 label={a.name}
-                value={a.valueInUsd}
+                value={a.valueInTarget}
+                currency={currency}
                 sub={
-                  a.currency !== "USD"
+                  a.currency !== currency
                     ? formatCurrency(a.balance, a.currency)
                     : undefined
                 }
@@ -179,8 +203,16 @@ export default function NetWorthPage() {
           </SectionCard>
 
           {data.assets.total > 0 && (
-            <SectionCard title="Assets" total={data.assets.total} href="/assets">
-              <AssetsBreakdown data={data.assets} />
+            <SectionCard
+              title="Assets"
+              total={data.assets.total}
+              currency={currency}
+              href="/assets"
+            >
+              <AssetsBreakdown
+                data={data.assets}
+                currency={currency}
+              />
             </SectionCard>
           )}
 
@@ -188,15 +220,17 @@ export default function NetWorthPage() {
             <SectionCard
               title="Liabilities"
               total={data.liabilities.total}
+              currency={currency}
               href="/loans"
             >
               {data.liabilities.loans.map((l: LoanItem) => (
                 <Row
                   key={l.id}
                   label={l.name}
-                  value={l.valueInUsd}
+                  value={l.valueInTarget}
+                  currency={currency}
                   sub={
-                    l.currency !== "USD"
+                    l.currency !== currency
                       ? `${formatCurrency(l.outstandingPrincipal, l.currency)} outstanding`
                       : "outstanding"
                   }
