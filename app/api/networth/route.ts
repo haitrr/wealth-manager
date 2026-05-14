@@ -3,6 +3,18 @@ import { prisma } from "@/app/lib/db";
 import { getSession } from "@/app/lib/auth";
 import { Currency } from "@prisma/client";
 
+function hasExchangeRate(
+  fromCurrency: Currency,
+  toCurrency: Currency,
+  rates: { fromCurrency: string; toCurrency: string; rate: number }[]
+): boolean {
+  if (fromCurrency === toCurrency) return true;
+  return rates.some(r =>
+    (r.fromCurrency === fromCurrency && r.toCurrency === toCurrency) ||
+    (r.fromCurrency === toCurrency && r.toCurrency === fromCurrency)
+  );
+}
+
 function convertToCurrency(
   amount: number,
   fromCurrency: Currency,
@@ -47,11 +59,10 @@ export async function GET(req: NextRequest) {
   const missingRates: string[] = [];
 
   function convert(amount: number, fromCurrency: Currency): number {
-    const result = convertToCurrency(amount, fromCurrency, targetCurrency, exchangeRates);
-    if (fromCurrency !== targetCurrency && result === amount) {
+    if (fromCurrency !== targetCurrency && !hasExchangeRate(fromCurrency, targetCurrency, exchangeRates)) {
       missingRates.push(`${fromCurrency}/${targetCurrency}`);
     }
-    return result;
+    return convertToCurrency(amount, fromCurrency, targetCurrency, exchangeRates);
   }
 
   const accountItems = accounts.map(a => ({
