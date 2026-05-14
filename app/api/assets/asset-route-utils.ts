@@ -1,4 +1,4 @@
-import { AssetType, Currency } from "@prisma/client";
+import { AssetType, Currency, Prisma } from "@prisma/client";
 import { prisma } from "@/app/lib/db";
 
 const ASSET_TYPES = new Set<AssetType>(["real_estate", "stock", "bond", "gold"]);
@@ -36,7 +36,7 @@ export function parseAssetPayload(payload: AssetPayload) {
     currentValue,
     quantity: payload.quantity != null ? Number(payload.quantity) : null,
     ticker: payload.ticker?.trim() || null,
-    metadata: payload.metadata ?? {},
+    metadata: (payload.metadata ?? {}) as Prisma.InputJsonValue,
   };
 }
 
