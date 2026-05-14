@@ -2,10 +2,16 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ChevronRight, CreditCard, Tag, User, DollarSign, Upload, Landmark } from "lucide-react";
+import { ChevronRight, CreditCard, Tag, User, DollarSign, Upload, Landmark, PiggyBank, Building2, HandCoins } from "lucide-react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ImportDialog } from "@/components/transactions/import-dialog";
+import { getSettings, updateSettings } from "@/lib/api/settings";
+import { Currency } from "@/lib/api/accounts";
 
 const SETTINGS_ITEMS = [
+  { href: "/budgets", label: "Budgets", description: "Set and track spending budgets", icon: PiggyBank },
+  { href: "/assets", label: "Assets", description: "Manage real estate, stocks, gold", icon: Building2 },
+  { href: "/loans", label: "Loans", description: "Track borrowed and lent money", icon: HandCoins },
   { href: "/settings/account", label: "User", description: "Manage password and logout", icon: User },
   { href: "/settings/accounts", label: "Accounts", description: "Manage your bank accounts", icon: CreditCard },
   { href: "/settings/categories", label: "Categories", description: "Manage transaction categories", icon: Tag },
@@ -13,12 +19,44 @@ const SETTINGS_ITEMS = [
   { href: "/settings/loan-categories", label: "Loan Defaults", description: "Default categories for loan payments", icon: Landmark },
 ];
 
+const CURRENCIES: Currency[] = ["USD", "VND"];
+
 export default function SettingsPage() {
   const [importOpen, setImportOpen] = useState(false);
+  const queryClient = useQueryClient();
+
+  const { data: settings } = useQuery({ queryKey: ["settings"], queryFn: getSettings });
+  const updateMutation = useMutation({
+    mutationFn: updateSettings,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["settings"] }),
+  });
 
   return (
-    <main className="max-w-lg mx-auto px-4 py-8">
-<div className="divide-y rounded-lg border overflow-hidden">
+    <main className="max-w-lg mx-auto px-4 py-8 space-y-4">
+      <div className="rounded-lg border px-4 py-3">
+        <p className="text-sm font-medium mb-0.5">Display Currency</p>
+        <p className="text-xs text-muted-foreground mb-3">All summaries are converted to this currency</p>
+        <div className="flex rounded-lg border overflow-hidden">
+          {CURRENCIES.map(c => {
+            const active = (settings?.defaultCurrency ?? "USD") === c;
+            return (
+              <button
+                key={c}
+                onClick={() => updateMutation.mutate({ defaultCurrency: c })}
+                className={`flex-1 py-2 text-sm font-medium transition-colors ${
+                  active
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {c}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="divide-y rounded-lg border overflow-hidden">
         {SETTINGS_ITEMS.map(({ href, label, description, icon: Icon }) => (
           <Link
             key={href}
@@ -52,5 +90,6 @@ export default function SettingsPage() {
 
       <ImportDialog open={importOpen} onClose={() => setImportOpen(false)} />
     </main>
+
   );
 }

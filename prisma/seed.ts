@@ -17,11 +17,17 @@ async function main() {
   await prisma.transactionCategory.deleteMany({ where: { user: { email: "test@example.com" } } });
   await prisma.account.deleteMany({ where: { user: { email: "test@example.com" } } });
   await prisma.exchangeRate.deleteMany({ where: { user: { email: "test@example.com" } } });
+  await prisma.asset.deleteMany({ where: { user: { email: "test@example.com" } } });
+  await prisma.userSettings.deleteMany({ where: { user: { email: "test@example.com" } } });
   await prisma.user.deleteMany({ where: { email: "test@example.com" } });
 
   const password = await bcrypt.hash("password123", 10);
   const user = await prisma.user.create({
     data: { email: "test@example.com", password },
+  });
+
+  await prisma.userSettings.create({
+    data: { userId: user.id, defaultCurrency: "VND" },
   });
 
   const [checking, savings] = await Promise.all([
@@ -345,6 +351,57 @@ async function main() {
       initialTransactionId: lentLoanInitialTx.id,
       userId: user.id,
     },
+  });
+
+  // Seed assets
+  await prisma.asset.createMany({
+    data: [
+      {
+        name: "Căn hộ Vinhomes",
+        type: "real_estate",
+        currency: "VND",
+        currentValue: 3_500_000_000,
+        metadata: { address: "Vinhomes Grand Park, Quận 9, TP.HCM", purchasePrice: 2_800_000_000, purchaseDate: "2022-06-15" },
+        userId: user.id,
+      },
+      {
+        name: "Apple (AAPL)",
+        type: "stock",
+        currency: "USD",
+        currentValue: 34_650,
+        quantity: 150,
+        ticker: "AAPL",
+        metadata: { exchange: "NASDAQ" },
+        userId: user.id,
+      },
+      {
+        name: "VN30 ETF",
+        type: "stock",
+        currency: "VND",
+        currentValue: 45_000_000,
+        quantity: 3000,
+        ticker: "E1VFVN30",
+        metadata: { exchange: "HOSE" },
+        userId: user.id,
+      },
+      {
+        name: "Trái phiếu Chính phủ",
+        type: "bond",
+        currency: "VND",
+        currentValue: 200_000_000,
+        metadata: { issuer: "Bộ Tài chính Việt Nam", interestRate: 5.8, maturityDate: "2028-03-01" },
+        userId: user.id,
+      },
+      {
+        name: "Vàng SJC",
+        type: "gold",
+        currency: "VND",
+        currentValue: 60_000_000,
+        quantity: 1,
+        metadata: { form: "physical" },
+        userId: user.id,
+      },
+    ],
   });
 
   console.log("Seed complete.");

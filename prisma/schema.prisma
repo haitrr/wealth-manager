@@ -21,12 +21,14 @@ model User {
   loans                Loan[]
   loanPayments         LoanPayment[]
   settings             UserSettings?
+  assets               Asset[]
 }
 
 model UserSettings {
   id                              String   @id @default(cuid())
   userId                          String   @unique
   user                            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  defaultCurrency                 Currency @default(USD)
   loanBorrowedInitialCategoryId   String?
   loanBorrowedPrincipalCategoryId String?
   loanBorrowedInterestCategoryId  String?
@@ -205,4 +207,29 @@ model ExchangeRate {
   updatedAt    DateTime @updatedAt
 
   @@unique([userId, fromCurrency, toCurrency])
+}
+
+enum AssetType {
+  real_estate
+  stock
+  bond
+  gold
+}
+
+model Asset {
+  id           String    @id @default(cuid())
+  name         String
+  type         AssetType
+  currency     Currency  @default(USD)
+  currentValue Float
+  quantity     Float?
+  ticker       String?
+  metadata     Json      @default("{}")
+  lastPricedAt DateTime?
+  userId       String
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([userId, type])
 }

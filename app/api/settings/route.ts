@@ -22,6 +22,7 @@ export async function PUT(req: NextRequest) {
   const body = await req.json();
 
   const allowed = [
+    "defaultCurrency",
     "loanBorrowedInitialCategoryId",
     "loanBorrowedPrincipalCategoryId",
     "loanBorrowedInterestCategoryId",
