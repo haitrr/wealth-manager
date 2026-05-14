@@ -15,6 +15,7 @@ import { createTransaction } from "@/lib/api/transactions";
 import { getAccounts } from "@/lib/api/accounts";
 import { getTransactionCategories } from "@/lib/api/transaction-categories";
 import { getExchangeRates } from "@/lib/api/exchange-rates";
+import { getSettings } from "@/lib/api/settings";
 import { formatCurrency } from "@/lib/utils";
 import { Currency } from "@/lib/api/accounts";
 import api from "@/lib/axios";
@@ -130,6 +131,7 @@ export default function Home() {
     queryFn: () => getMonthlySummary(timeRange),
   });
   const { data: accounts = [] } = useQuery({ queryKey: ["accounts"], queryFn: getAccounts });
+  const { data: settings } = useQuery({ queryKey: ["settings"], queryFn: getSettings });
   const { data: exchangeRates = [] } = useQuery({ queryKey: ["exchange-rates"], queryFn: getExchangeRates });
   const { data: categories = [] } = useQuery({
     queryKey: ["transaction-categories"],
@@ -144,9 +146,7 @@ export default function Home() {
     },
   });
 
-  // Use default account's currency or fallback to USD
-  const defaultAccount = accounts.find(acc => acc.isDefault);
-  const currency = defaultAccount?.currency ?? accounts[0]?.currency ?? "USD";
+  const currency = (settings?.defaultCurrency ?? "USD") as Currency;
 
   // Total balance across all accounts converted to default currency
   const totalBalance = accounts.reduce((sum, account) => {
