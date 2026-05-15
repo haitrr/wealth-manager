@@ -16,6 +16,7 @@ import { AmountInput } from "@/components/transactions/amount-input";
 import { BudgetCategorySelector, BudgetCategoryMode } from "@/components/budgets/budget-category-selector";
 import { Account, Currency } from "@/lib/api/accounts";
 import { TransactionCategory } from "@/lib/api/transaction-categories";
+import { localDayToISO } from "@/lib/dates";
 import { Budget, BudgetPayload, BudgetPeriod } from "@/lib/api/budgets";
 
 interface BudgetFormProps {
@@ -62,12 +63,14 @@ export function BudgetForm({ open, budget, accounts, categories, onClose, onSubm
     const amount = parseFloat((form.elements.namedItem("amount") as HTMLInputElement).value.replace(/,/g, ""));
     const currency = (form.elements.namedItem("currency") as HTMLSelectElement).value as Currency;
     const accountId = (form.elements.namedItem("accountId") as HTMLSelectElement).value;
-    const startDate = period === "custom"
+    const rawStart = period === "custom"
       ? (form.elements.namedItem("startDate") as HTMLInputElement).value
       : undefined;
-    const endDate = period === "custom"
+    const rawEnd = period === "custom"
       ? (form.elements.namedItem("endDate") as HTMLInputElement).value
       : undefined;
+    const startDate = rawStart ? localDayToISO(rawStart) : undefined;
+    const endDate = rawEnd ? localDayToISO(rawEnd) : undefined;
 
     try {
       await onSubmit({

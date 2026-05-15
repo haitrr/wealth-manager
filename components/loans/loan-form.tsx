@@ -10,6 +10,7 @@ import { AmountInput } from "@/components/transactions/amount-input";
 import { Account, Currency } from "@/lib/api/accounts";
 import { Loan, LoanDirection, LoanPayload, LoanStatus } from "@/lib/api/loans";
 import { TransactionCategory } from "@/lib/api/transaction-categories";
+import { localDayToISO } from "@/lib/dates";
 import { CategorySelector } from "@/components/transactions/category-selector";
 
 interface LoanFormProps {
@@ -115,7 +116,7 @@ export function LoanForm({ open, loan, defaultDirection, accounts, categories = 
       direction,
       principalAmount,
       currency,
-      startDate: (form.elements.namedItem("startDate") as HTMLInputElement).value,
+      startDate: localDayToISO((form.elements.namedItem("startDate") as HTMLInputElement).value),
       counterpartyName: (form.elements.namedItem("counterpartyName") as HTMLInputElement).value || undefined,
       notes: (form.elements.namedItem("notes") as HTMLTextAreaElement).value || undefined,
       status,

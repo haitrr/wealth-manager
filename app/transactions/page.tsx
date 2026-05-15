@@ -22,6 +22,7 @@ import {
 } from "@/lib/api/transactions";
 import { getAccounts } from "@/lib/api/accounts";
 import { getTransactionCategories } from "@/lib/api/transaction-categories";
+import { localStartOfDay, localEndOfDay } from "@/lib/dates";
 import { formatCurrency } from "@/lib/utils";
 
 const PAGE_SIZE = 30;
@@ -37,7 +38,7 @@ export default function TransactionsPage() {
 
   const dateRange =
     timeRange === "custom"
-      ? { startDate: customRange.startDate || undefined, endDate: customRange.endDate || undefined }
+      ? { startDate: customRange.startDate ? localStartOfDay(customRange.startDate) : undefined, endDate: customRange.endDate ? localEndOfDay(customRange.endDate) : undefined }
       : getDateRange(timeRange);
 
   const queryParams = debouncedSearch

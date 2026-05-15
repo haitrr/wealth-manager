@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { AmountInput } from "@/components/transactions/amount-input";
 import { CategorySelector } from "@/components/transactions/category-selector";
+import { localDayToISO } from "@/lib/dates";
 import { Transaction } from "@/lib/api/transactions";
 import { Account } from "@/lib/api/accounts";
 import { TransactionCategory } from "@/lib/api/transaction-categories";
@@ -192,7 +193,7 @@ export function TransactionForm({
     }
 
     try {
-      await onSubmit({ amount, date, description: description || undefined, details: details || undefined, accountId, categoryId });
+      await onSubmit({ amount, date: localDayToISO(date), description: description || undefined, details: details || undefined, accountId, categoryId });
       onClose();
     } catch (err: unknown) {
       const message =

@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AmountInput } from "@/components/transactions/amount-input";
 import { Account } from "@/lib/api/accounts";
+import { localDayToISO } from "@/lib/dates";
 import { Loan, LoanPayment, LoanPaymentPayload } from "@/lib/api/loans";
 
 interface LoanPaymentFormProps {
@@ -58,7 +59,7 @@ export function LoanPaymentForm({ open, loan, payment, accounts, onClose, onSubm
     const form = event.currentTarget;
     const payload: LoanPaymentPayload = {
       accountId: (form.elements.namedItem("accountId") as HTMLSelectElement).value,
-      paymentDate: (form.elements.namedItem("paymentDate") as HTMLInputElement).value,
+      paymentDate: localDayToISO((form.elements.namedItem("paymentDate") as HTMLInputElement).value),
       principalAmount: parseRawAmount(principalRaw),
       interestAmount: parseRawAmount(interestRaw),
       prepayFeeAmount: parseRawAmount(prepayFeeRaw),
