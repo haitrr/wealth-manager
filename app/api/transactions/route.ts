@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/app/lib/db";
 import { getSession } from "@/app/lib/auth";
+import { parseDateParam } from "@/lib/dates";
 
 export async function GET(req: NextRequest) {
   const session = await getSession(req);
@@ -54,8 +55,8 @@ export async function GET(req: NextRequest) {
       ...(startDate || endDate
         ? {
             date: {
-              ...(startDate ? { gte: new Date(startDate) } : {}),
-              ...(endDate ? { lte: new Date(endDate) } : {}),
+              ...(startDate ? { gte: parseDateParam(startDate, session.timezone) } : {}),
+              ...(endDate ? { lte: parseDateParam(endDate, session.timezone) } : {}),
             },
           }
         : {}),
@@ -106,7 +107,7 @@ export async function POST(req: NextRequest) {
   const transaction = await prisma.transaction.create({
     data: {
       amount: parseFloat(amount),
-      date: new Date(date),
+      date: parseDateParam(date, session.timezone),
       description: description?.trim() || null,
       details: details?.trim() || null,
       accountId,

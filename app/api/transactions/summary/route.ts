@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/app/lib/db";
 import { getSession } from "@/app/lib/auth";
+import { parseDateParam } from "@/lib/dates";
 
 export async function GET(request: NextRequest) {
   const session = await getSession(request);
@@ -11,8 +12,8 @@ export async function GET(request: NextRequest) {
   const endParam = searchParams.get("endDate");
 
   const now = new Date();
-  const start = startParam ? new Date(startParam) : new Date(now.getFullYear(), now.getMonth(), 1);
-  const end = endParam ? new Date(endParam) : new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+  const start = startParam ? parseDateParam(startParam, session.timezone) : new Date(now.getFullYear(), now.getMonth(), 1);
+  const end = endParam ? parseDateParam(endParam, session.timezone) : new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
 
   const transactions = await prisma.transaction.findMany({
     where: {
