@@ -11,6 +11,7 @@ import axios from "axios";
 import https from "https";
 import fs from "fs";
 import { resolvedConfig, configCommand } from "./config.js";
+import { assetsCommand, type CliDeps } from "./assets.js";
 
 function systemCaAgent(): https.Agent | undefined {
   const candidates = [
@@ -324,6 +325,15 @@ Commands:
     --year YEAR   Year (default: current)
     --month MONTH Month 1-12 (default: current)
   exchange-rates                        List exchange rates
+  assets                                List all assets
+    assets add <name> <type> <value>    Create an asset
+      --currency USD|VND  (default: USD)
+      --ticker SYMBOL     Required for stock
+      --quantity N        Required for stock or gold
+    assets update <id>                  Update an asset (patch any field)
+      --name TEXT  --value N  --currency USD|VND  --ticker SYMBOL  --quantity N
+    assets delete <id>                  Delete an asset
+    assets refresh <id>                 Refresh price (stock or gold only)
 
 Options:
   --json        Output raw JSON instead of human-readable format
@@ -363,6 +373,7 @@ async function main() {
     budgets,
     summary,
     "exchange-rates": exchangeRates,
+    assets: () => assetsCommand({ http, flag, positional, jsonOutput, printJson, table, fmt, fmtDate } satisfies CliDeps),
     help,
   };
 
