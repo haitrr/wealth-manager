@@ -12,6 +12,7 @@
     "lint": "eslint",
     "mcp:standalone": "tsx mcp-server/index.ts",
     "db:seed": "tsx prisma/seed.ts",
+    "test": "vitest run",
     "prepare": "husky"
   },
   "prisma": {
@@ -59,7 +60,8 @@
     "prisma": "^7.5.0",
     "tailwindcss": "^4",
     "tsx": "^4.21.0",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^4.1.6"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": "pnpm exec eslint"
