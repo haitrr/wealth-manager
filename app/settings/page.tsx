@@ -56,6 +56,20 @@ export default function SettingsPage() {
         </div>
       </div>
 
+      <div className="rounded-lg border px-4 py-3">
+        <p className="text-sm font-medium mb-0.5">Timezone</p>
+        <p className="text-xs text-muted-foreground mb-3">Used to interpret dates you enter</p>
+        <select
+          className="w-full rounded-md border bg-background px-3 py-2 text-[16px] md:text-sm"
+          value={settings?.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone}
+          onChange={(e) => updateMutation.mutate({ timezone: e.target.value })}
+        >
+          {Intl.supportedValuesOf("timeZone").map((tz) => (
+            <option key={tz} value={tz}>{tz}</option>
+          ))}
+        </select>
+      </div>
+
       <div className="divide-y rounded-lg border overflow-hidden">
         {SETTINGS_ITEMS.map(({ href, label, description, icon: Icon }) => (
           <Link

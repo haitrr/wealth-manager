@@ -5,6 +5,7 @@ export interface UserSettings {
   id: string;
   userId: string;
   defaultCurrency: Currency;
+  timezone: string;
   loanBorrowedInitialCategoryId: string | null;
   loanBorrowedPrincipalCategoryId: string | null;
   loanBorrowedInterestCategoryId: string | null;
@@ -20,6 +21,7 @@ export interface UserSettings {
 export type UserSettingsPayload = Partial<Pick<
   UserSettings,
   | "defaultCurrency"
+  | "timezone"
   | "loanBorrowedInitialCategoryId"
   | "loanBorrowedPrincipalCategoryId"
   | "loanBorrowedInterestCategoryId"

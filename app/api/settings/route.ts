@@ -23,6 +23,7 @@ export async function PUT(req: NextRequest) {
 
   const allowed = [
     "defaultCurrency",
+    "timezone",
     "loanBorrowedInitialCategoryId",
     "loanBorrowedPrincipalCategoryId",
     "loanBorrowedInterestCategoryId",
