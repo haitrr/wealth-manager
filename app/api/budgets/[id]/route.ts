@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/app/lib/db";
 import { getSession } from "@/app/lib/auth";
+import { parseDateParam } from "@/lib/dates";
 import {
   getPeriodBounds,
   computeProgress,
@@ -87,8 +88,8 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       amount: parseFloat(amount),
       currency: currency || existing.currency,
       period,
-      startDate: new Date(startDate ?? existing.startDate),
-      endDate: period === "custom" ? new Date(endDate) : null,
+      startDate: startDate ? parseDateParam(startDate, session.timezone) : existing.startDate,
+      endDate: period === "custom" ? parseDateParam(endDate, session.timezone) : null,
       accountId: accountId || null,
       categoryIds: Array.isArray(categoryIds) ? categoryIds : [],
       excludedCategoryIds: Array.isArray(excludedCategoryIds) ? excludedCategoryIds : [],

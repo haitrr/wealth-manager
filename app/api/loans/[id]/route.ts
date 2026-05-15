@@ -6,6 +6,7 @@ import {
   ensureOwnedAccount,
   getOwnedLoan,
   LOAN_INCLUDE,
+  LoanPayload,
   parseLoanPayload,
   serializeLoan,
 } from "../loan-route-utils";
@@ -30,7 +31,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     const existing = await getOwnedLoan(id, session.userId);
     if (!existing) return NextResponse.json({ error: "Loan not found" }, { status: 404 });
 
-    const parsed = parseLoanPayload(await req.json());
+    const parsed = parseLoanPayload(await req.json() as LoanPayload, session.timezone);
     const { principalAmount, initialCategoryId, ...loanData } = parsed;
 
     const account = await ensureOwnedAccount(loanData.accountId, session.userId);

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/app/lib/db";
 import { getSession } from "@/app/lib/auth";
+import { parseDateParam } from "@/lib/dates";
 
 async function getOwnedTransaction(transactionId: string, userId: string) {
   return prisma.transaction.findFirst({
@@ -54,7 +55,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     where: { id },
     data: {
       amount: parseFloat(amount),
-      date: new Date(date),
+      date: parseDateParam(date, session.timezone),
       description: description?.trim() || null,
       details: details?.trim() || null,
       accountId,
