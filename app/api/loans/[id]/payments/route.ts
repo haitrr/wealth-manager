@@ -6,6 +6,7 @@ import {
   ensureOwnedAccount,
   getLoanPrincipalAmount,
   getOwnedLoan,
+  LoanPaymentPayload,
   parseLoanPaymentPayload,
   serializeLoan,
   LOAN_INCLUDE,
@@ -23,7 +24,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       return NextResponse.json({ error: "Closed loans cannot receive payments" }, { status: 400 });
     }
 
-    const payload = parseLoanPaymentPayload(await req.json());
+    const payload = parseLoanPaymentPayload(await req.json() as LoanPaymentPayload, session.timezone);
     const account = await ensureOwnedAccount(payload.accountId, session.userId);
     if (account.currency !== loan.currency) {
       return NextResponse.json({ error: "Loan and payment account must use the same currency" }, { status: 400 });

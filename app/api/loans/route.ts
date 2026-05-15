@@ -5,6 +5,7 @@ import {
   ensureLoanInitialCategory,
   ensureOwnedAccount,
   LOAN_INCLUDE,
+  LoanPayload,
   parseLoanPayload,
   serializeLoan,
 } from "./loan-route-utils";
@@ -27,7 +28,7 @@ export async function POST(req: NextRequest) {
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   try {
-    const parsed = parseLoanPayload(await req.json());
+    const parsed = parseLoanPayload(await req.json() as LoanPayload, session.timezone);
     const { principalAmount, initialCategoryId, ...loanData } = parsed;
 
     const account = await ensureOwnedAccount(loanData.accountId, session.userId);

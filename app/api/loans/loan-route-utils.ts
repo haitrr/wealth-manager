@@ -1,5 +1,6 @@
 import { Currency, LoanDirection, LoanStatus, Prisma } from "@prisma/client";
 import { prisma } from "@/app/lib/db";
+import { parseDateParam } from "@/lib/dates";
 
 export const LOAN_INCLUDE = {
   account: { select: { id: true, name: true, currency: true } },
@@ -49,7 +50,7 @@ export interface LoanPaymentPayload {
   note?: string;
 }
 
-export function parseLoanPayload(payload: LoanPayload) {
+export function parseLoanPayload(payload: LoanPayload, timezone = "UTC") {
   const name = payload.name?.trim();
   if (!name) throw new Error("Name is required");
   if (!LOAN_DIRECTIONS.has(payload.direction as LoanDirection)) throw new Error("Invalid loan direction");
@@ -63,7 +64,7 @@ export function parseLoanPayload(payload: LoanPayload) {
   const status = (payload.status ?? "active") as LoanStatus;
   if (!LOAN_STATUSES.has(status)) throw new Error("Invalid loan status");
 
-  const startDate = new Date(payload.startDate);
+  const startDate = parseDateParam(payload.startDate, timezone);
   if (Number.isNaN(startDate.getTime())) throw new Error("Start date is required");
   if (!payload.accountId) throw new Error("Account is required");
 
@@ -84,8 +85,8 @@ export function parseLoanPayload(payload: LoanPayload) {
   };
 }
 
-export function parseLoanPaymentPayload(payload: LoanPaymentPayload) {
-  const paymentDate = new Date(payload.paymentDate);
+export function parseLoanPaymentPayload(payload: LoanPaymentPayload, timezone = "UTC") {
+  const paymentDate = parseDateParam(payload.paymentDate, timezone);
   if (Number.isNaN(paymentDate.getTime())) throw new Error("Payment date is required");
   if (!payload.accountId) throw new Error("Account is required");
 
