@@ -29,6 +29,7 @@ model UserSettings {
   userId                          String   @unique
   user                            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   defaultCurrency                 Currency @default(USD)
+  timezone                        String   @default("UTC")
   loanBorrowedInitialCategoryId   String?
   loanBorrowedPrincipalCategoryId String?
   loanBorrowedInterestCategoryId  String?
