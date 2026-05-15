@@ -13,6 +13,7 @@ import fs from "fs";
 import { startOfDay, endOfDay, parseISO } from "date-fns";
 import { resolvedConfig, configCommand } from "./config.js";
 import { assetsCommand, type CliDeps } from "./assets.js";
+import { localDayToISO } from "../lib/dates.js";
 
 function systemCaAgent(): https.Agent | undefined {
   const candidates = [
@@ -236,7 +237,7 @@ async function add() {
     accountId = defaultAcc.id;
   }
 
-  const date = flag("date") ? new Date(flag("date")!).toISOString() : new Date().toISOString();
+  const date = flag("date") ? localDayToISO(flag("date")!) : new Date().toISOString();
   const description = flag("desc");
   const details = flag("details");
 
