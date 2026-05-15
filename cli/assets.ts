@@ -6,11 +6,6 @@ export interface CliDeps {
   positional: (index: number) => string | undefined;
   jsonOutput: boolean;
   printJson: (data: unknown) => void;
-  table: (
-    headers: string[],
-    rows: string[][],
-    opts?: { align?: ("left" | "right")[] }
-  ) => void;
   fmt: (n: number, decimals?: number) => string;
   fmtDate: (iso: string) => string;
 }
@@ -30,21 +25,12 @@ async function listAssets(d: CliDeps): Promise<void> {
   const { data } = await d.http.get<Asset[]>("/api/assets");
   if (d.jsonOutput) { d.printJson(data); return; }
 
-  const rows = data.map((a) => [
-    a.id,
-    a.name,
-    a.type,
-    a.currency,
-    d.fmt(a.currentValue),
-    a.quantity != null ? String(a.quantity) : "—",
-    a.ticker ?? "—",
-    a.lastPricedAt ? d.fmtDate(a.lastPricedAt) : "—",
-  ]);
-  d.table(
-    ["ID", "Name", "Type", "Currency", "Value", "Quantity", "Ticker", "Last Priced"],
-    rows,
-    { align: ["left", "left", "left", "left", "right", "right", "left", "left"] }
-  );
+  console.log(`## Assets (${data.length})\n`);
+  for (const a of data) {
+    const qty = a.quantity != null ? `, ${a.quantity}${a.ticker ? ` × ${a.ticker}` : " oz"}` : "";
+    const priced = a.lastPricedAt ? `, priced ${d.fmtDate(a.lastPricedAt)}` : "";
+    console.log(`- **${a.name}** \`${a.id}\` — ${a.type}, ${a.currency} ${d.fmt(a.currentValue)}${qty}${priced}`);
+  }
 }
 
 const VALID_TYPES = ["real_estate", "stock", "bond", "gold"];
@@ -92,7 +78,7 @@ async function addAsset(d: CliDeps): Promise<void> {
   });
 
   if (d.jsonOutput) { d.printJson(data); return; }
-  console.log(`Added [${data.id}]: ${data.name} (${data.type}) — ${data.currency} ${d.fmt(data.currentValue)}`);
+  console.log(`Added asset \`${data.id}\` — **${data.name}** (${data.type}) ${data.currency} ${d.fmt(data.currentValue)}`);
 }
 
 async function updateAsset(d: CliDeps): Promise<void> {
@@ -135,7 +121,7 @@ async function updateAsset(d: CliDeps): Promise<void> {
   const { data: updated } = await d.http.patch<Asset>(`/api/assets/${id}`, payload);
 
   if (d.jsonOutput) { d.printJson(updated); return; }
-  console.log(`Updated [${updated.id}]: ${updated.name} (${updated.type}) — ${updated.currency} ${d.fmt(updated.currentValue)}`);
+  console.log(`Updated asset \`${updated.id}\` — **${updated.name}** (${updated.type}) ${updated.currency} ${d.fmt(updated.currentValue)}`);
 }
 
 async function deleteAsset(d: CliDeps): Promise<void> {
@@ -146,7 +132,7 @@ async function deleteAsset(d: CliDeps): Promise<void> {
   }
   await d.http.delete(`/api/assets/${id}`);
   if (d.jsonOutput) { d.printJson({ success: true, id }); return; }
-  console.log(`Deleted asset ${id}.`);
+  console.log(`Deleted asset \`${id}\`.`);
 }
 
 async function refreshAsset(d: CliDeps): Promise<void> {
@@ -157,7 +143,7 @@ async function refreshAsset(d: CliDeps): Promise<void> {
   }
   const { data: updated } = await d.http.post<Asset>(`/api/assets/${id}/refresh-price`);
   if (d.jsonOutput) { d.printJson(updated); return; }
-  console.log(`Refreshed [${updated.id}]: ${updated.name} — ${updated.currency} ${d.fmt(updated.currentValue)} (priced ${updated.lastPricedAt ? d.fmtDate(updated.lastPricedAt) : "now"})`);
+  console.log(`Refreshed asset \`${updated.id}\` — **${updated.name}** ${updated.currency} ${d.fmt(updated.currentValue)} (priced ${updated.lastPricedAt ? d.fmtDate(updated.lastPricedAt) : "now"})`);
 }
 
 export async function assetsCommand(d: CliDeps): Promise<void> {

@@ -55,26 +55,6 @@ function printJson(data: unknown) {
   }, 2));
 }
 
-// ── Table formatter ─────────────────────────────────────────────────────────
-
-function table(headers: string[], rows: string[][], opts?: { align?: ("left" | "right")[] }) {
-  const cols = headers.length;
-  const widths = headers.map((h, i) => Math.max(h.length, ...rows.map(r => (r[i] ?? "").length)));
-  const align = opts?.align ?? headers.map(() => "left" as const);
-
-  const pad = (s: string, w: number, a: "left" | "right") =>
-    a === "right" ? s.padStart(w) : s.padEnd(w);
-
-  const sep = widths.map(w => "─".repeat(w)).join("  ");
-  const header = headers.map((h, i) => pad(h, widths[i], "left")).join("  ");
-
-  console.log(header);
-  console.log(sep);
-  for (const row of rows) {
-    console.log(Array.from({ length: cols }, (_, i) => pad(row[i] ?? "", widths[i], align[i])).join("  "));
-  }
-}
-
 function fmt(n: number, decimals = 2): string {
   return n.toLocaleString("en-US", { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
 }
@@ -89,14 +69,12 @@ async function accounts() {
   const { data } = await http.get("/api/accounts");
   if (jsonOutput) { printJson(data); return; }
 
-  const rows = data.map((a: { id: string; name: string; currency: string; balance: number; isDefault: boolean }) => [
-    a.id,
-    a.name,
-    a.currency,
-    fmt(a.balance),
-    a.isDefault ? "✓" : "",
-  ]);
-  table(["ID", "Name", "Currency", "Balance", "Default"], rows, { align: ["left", "left", "left", "right", "left"] });
+  const list = data as { id: string; name: string; currency: string; balance: number; isDefault: boolean }[];
+  console.log(`## Accounts (${list.length})\n`);
+  for (const a of list) {
+    const def = a.isDefault ? ", default" : "";
+    console.log(`- **${a.name}** \`${a.id}\` — ${a.currency}, balance: ${fmt(a.balance)}${def}`);
+  }
 }
 
 async function transactions() {
@@ -113,24 +91,19 @@ async function transactions() {
   const data = Array.isArray(res) ? res : (res.data ?? res);
   if (jsonOutput) { printJson(data); return; }
 
-  const rows = data.map((t: {
+  const list = data as {
     id: string; date: string; description?: string;
     category?: { id: string; name: string; type: string };
-    amount: number; account?: { id: string; name: string }
-  }) => [
-    t.id,
-    fmtDate(t.date),
-    t.category?.name ?? "",
-    t.category?.id ?? "",
-    t.description ?? "",
-    (t.category?.type === "income" ? "+" : "-") + fmt(t.amount),
-    t.account?.name ?? "",
-    t.account?.id ?? "",
-  ]);
-  table(["ID", "Date", "Category", "CategoryID", "Description", "Amount", "Account", "AccountID"], rows, {
-    align: ["left", "left", "left", "left", "left", "right", "left", "left"],
-  });
-  console.log(`\n${data.length} transaction(s)`);
+    amount: number; account?: { id: string; name: string };
+  }[];
+  console.log(`## Transactions (${list.length})\n`);
+  for (const t of list) {
+    const sign = t.category?.type === "income" ? "+" : "-";
+    const desc = t.description ? ` "${t.description}"` : "";
+    const cat = t.category ? ` ${t.category.name} \`${t.category.id}\`` : "";
+    const acc = t.account ? ` · ${t.account.name}` : "";
+    console.log(`- **${fmtDate(t.date)}** \`${t.id}\` — ${sign}${fmt(t.amount)}${cat}${desc}${acc}`);
+  }
 }
 
 async function categories() {
@@ -143,10 +116,11 @@ async function categories() {
   for (const c of data as { id: string; name: string; type: string }[]) {
     (grouped[c.type] ??= []).push({ id: c.id, name: c.name });
   }
+  console.log("## Categories\n");
   for (const [t, items] of Object.entries(grouped)) {
-    console.log(`\n${t.toUpperCase()}`);
-    const maxName = Math.max(...items.map(c => c.name.length));
-    for (const c of items) console.log(`  ${c.name.padEnd(maxName)}  ${c.id}`);
+    console.log(`### ${t.charAt(0).toUpperCase() + t.slice(1)}`);
+    for (const c of items) console.log(`- ${c.name} \`${c.id}\``);
+    console.log();
   }
 }
 
@@ -154,34 +128,25 @@ async function budgets() {
   const { data } = await http.get("/api/budgets");
   if (jsonOutput) { printJson(data); return; }
 
-  const rows = data.map((b: {
+  const list = data as {
     id: string; name: string; currency: string; spent: number; amount: number;
-    percentUsed: number; period: string; daysRemaining: number
-  }) => [
-    b.id,
-    b.name,
-    b.currency,
-    fmt(b.spent),
-    fmt(b.amount),
-    `${(b.percentUsed ?? 0).toFixed(1)}%`,
-    b.period,
-  ]);
-  table(["ID", "Name", "Currency", "Spent", "Budget", "Used", "Period"], rows, {
-    align: ["left", "left", "left", "right", "right", "right", "left"],
-  });
+    percentUsed: number; period: string;
+  }[];
+  console.log(`## Budgets (${list.length})\n`);
+  for (const b of list) {
+    console.log(`- **${b.name}** \`${b.id}\` — ${b.currency} ${fmt(b.spent)} / ${fmt(b.amount)} (${(b.percentUsed ?? 0).toFixed(1)}% used, ${b.period})`);
+  }
 }
 
 async function exchangeRates() {
   const { data } = await http.get("/api/exchange-rates");
   if (jsonOutput) { printJson(data); return; }
 
-  const rows = data.map((r: { id: string; fromCurrency: string; toCurrency: string; rate: number }) => [
-    r.id,
-    r.fromCurrency,
-    r.toCurrency,
-    fmt(r.rate, 4),
-  ]);
-  table(["ID", "From", "To", "Rate"], rows, { align: ["left", "left", "left", "right"] });
+  const list = data as { id: string; fromCurrency: string; toCurrency: string; rate: number }[];
+  console.log(`## Exchange Rates (${list.length})\n`);
+  for (const r of list) {
+    console.log(`- **${r.fromCurrency} → ${r.toCurrency}** \`${r.id}\` — ${fmt(r.rate, 4)}`);
+  }
 }
 
 async function summary() {
@@ -195,24 +160,26 @@ async function summary() {
   });
   if (jsonOutput) { printJson(data); return; }
 
-  console.log(`\n${data.month}`);
-  console.log(`Income:   ${fmt(data.totalIncome)}`);
-  console.log(`Expenses: ${fmt(data.totalExpenses)}`);
-  console.log(`Net:      ${fmt(data.netBalance)}`);
+  const net = data.netBalance;
+  const netStr = net >= 0 ? `+${fmt(net)}` : `-${fmt(Math.abs(net))}`;
+  console.log(`## Summary — ${data.month}\n`);
+  console.log(`- Income: ${fmt(data.totalIncome)}`);
+  console.log(`- Expenses: ${fmt(data.totalExpenses)}`);
+  console.log(`- Net: ${netStr}`);
 
   if (data.incomeByCategory?.length) {
-    console.log("\nIncome by category:");
+    console.log("\n### Income by Category");
     const sorted = [...data.incomeByCategory].sort((a: { amount: number }, b: { amount: number }) => b.amount - a.amount);
-    for (const c of sorted as { id: string; name: string; amount: number }[]) {
-      console.log(`  ${c.name.padEnd(20)} ${fmt(c.amount).padStart(12)}`);
+    for (const c of sorted as { name: string; amount: number }[]) {
+      console.log(`- ${c.name} — ${fmt(c.amount)}`);
     }
   }
 
   if (data.expensesByCategory?.length) {
-    console.log("\nExpenses by category:");
+    console.log("\n### Expenses by Category");
     const sorted = [...data.expensesByCategory].sort((a: { amount: number }, b: { amount: number }) => b.amount - a.amount);
-    for (const c of sorted as { id: string; name: string; amount: number }[]) {
-      console.log(`  ${c.name.padEnd(20)} ${fmt(c.amount).padStart(12)}`);
+    for (const c of sorted as { name: string; amount: number }[]) {
+      console.log(`- ${c.name} — ${fmt(c.amount)}`);
     }
   }
 }
@@ -284,8 +251,8 @@ async function add() {
 
   const accName = accs.find((a: { id: string; name: string }) => a.id === accountId)?.name ?? accountId;
   const sign = cat.type === "income" ? "+" : "-";
-  const desc = description ? ` — ${description}` : "";
-  console.log(`Added [${data.id}]: ${sign}${fmt(amount)} ${cat.name}${desc} (${fmtDate(data.date)}, ${accName})`);
+  const desc = description ? ` "${description}"` : "";
+  console.log(`Added transaction \`${data.id}\` — ${sign}${fmt(amount)} ${cat.name}${desc} (${fmtDate(data.date)}, ${accName})`);
 }
 
 async function deleteTransaction() {
@@ -295,7 +262,7 @@ async function deleteTransaction() {
     process.exit(1);
   }
   await http.delete(`/api/transactions/${id}`);
-  console.log(`Deleted transaction ${id}.`);
+  console.log(`Deleted transaction \`${id}\`.`);
 }
 
 function help() {
@@ -336,7 +303,7 @@ Commands:
     assets refresh <id>                 Refresh price (stock or gold only)
 
 Options:
-  --json        Output raw JSON instead of human-readable format
+  --json        Output raw JSON instead of markdown format
 
 Config: ~/.wm/config.yml  (env vars WM_API_KEY / WM_BASE_URL take precedence)
 `);
@@ -373,7 +340,7 @@ async function main() {
     budgets,
     summary,
     "exchange-rates": exchangeRates,
-    assets: () => assetsCommand({ http, flag, positional, jsonOutput, printJson, table, fmt, fmtDate } satisfies CliDeps),
+    assets: () => assetsCommand({ http, flag, positional, jsonOutput, printJson, fmt, fmtDate } satisfies CliDeps),
     help,
   };
 
