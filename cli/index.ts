@@ -10,6 +10,7 @@
 import axios from "axios";
 import https from "https";
 import fs from "fs";
+import { startOfDay, endOfDay, parseISO } from "date-fns";
 import { resolvedConfig, configCommand } from "./config.js";
 import { assetsCommand, type CliDeps } from "./assets.js";
 
@@ -63,6 +64,7 @@ function fmtDate(iso: string): string {
   return iso.split("T")[0];
 }
 
+
 // ── Commands ────────────────────────────────────────────────────────────────
 
 async function accounts() {
@@ -83,8 +85,8 @@ async function transactions() {
   const to = flag("to");
   const limit = flag("limit");
   const search = flag("search");
-  if (from) params.startDate = from;
-  if (to) params.endDate = to;
+  if (from) params.startDate = startOfDay(parseISO(from)).toISOString();
+  if (to) params.endDate = endOfDay(parseISO(to)).toISOString();
   if (limit) params.limit = Number(limit);
   if (search) params.search = search;
   const { data: res } = await http.get("/api/transactions", { params });
