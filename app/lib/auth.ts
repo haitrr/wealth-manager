@@ -40,10 +40,10 @@ export async function getSession(req?: NextRequest) {
       await prisma.apiKey.update({ where: { id: apiKey.id }, data: { lastUsedAt: new Date() } });
       const user = await prisma.user.findUnique({
         where: { id: apiKey.userId },
-        select: { id: true, email: true },
+        select: { id: true, email: true, settings: { select: { timezone: true } } },
       });
       if (!user) return null;
-      return { userId: user.id, email: user.email };
+      return { userId: user.id, email: user.email, timezone: user.settings?.timezone ?? "UTC" };
     }
   }
 
@@ -55,10 +55,10 @@ export async function getSession(req?: NextRequest) {
     const payload = await verifyToken(token);
     const user = await prisma.user.findUnique({
       where: { id: payload.userId },
-      select: { id: true, email: true },
+      select: { id: true, email: true, settings: { select: { timezone: true } } },
     });
     if (!user) return null;
-    return payload;
+    return { userId: user.id, email: user.email, timezone: user.settings?.timezone ?? "UTC" };
   } catch {
     return null;
   }
