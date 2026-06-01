@@ -53,8 +53,9 @@ export async function getBudgets(): Promise<Budget[]> {
   return data;
 }
 
-export async function getBudget(id: string): Promise<Budget> {
-  const { data } = await api.get<Budget>(`/budgets/${id}`);
+export async function getBudget(id: string, date?: string): Promise<Budget> {
+  const params = date ? { params: { date } } : {};
+  const { data } = await api.get<Budget>(`/budgets/${id}`, params);
   return data;
 }
 
@@ -72,7 +73,8 @@ export async function deleteBudget(id: string): Promise<void> {
   await api.delete(`/budgets/${id}`);
 }
 
-export async function getBudgetTransactions(id: string) {
-  const { data } = await api.get(`/budgets/${id}/transactions`);
+export async function getBudgetTransactions(id: string, date?: string) {
+  const params = date ? { params: { date } } : {};
+  const { data } = await api.get(`/budgets/${id}/transactions`, params);
   return data;
 }
