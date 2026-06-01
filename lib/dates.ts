@@ -23,3 +23,21 @@ export function localEndOfDay(dateStr: string): string {
 
 // A bare date with no time context means start of that day.
 export const localDayToISO = localStartOfDay;
+
+// Server: parse a period URL param ("2026-04" or "2026") into a mid-period Date
+// so getPeriodBounds produces the correct month/year bounds.
+// Returns null if value is missing or doesn't match the expected format.
+export function parsePeriodParam(value: string | null, period: string): Date | null {
+  if (!value) return null;
+  if (period === "monthly") {
+    const match = /^(\d{4})-(\d{2})$/.exec(value);
+    if (!match) return null;
+    return new Date(parseInt(match[1]), parseInt(match[2]) - 1, 15);
+  }
+  if (period === "yearly") {
+    const match = /^(\d{4})$/.exec(value);
+    if (!match) return null;
+    return new Date(parseInt(match[1]), 6, 1);
+  }
+  return null;
+}

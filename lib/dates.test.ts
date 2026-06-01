@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { parseDateParam } from "./dates.js";
+import { parseDateParam, parsePeriodParam } from "./dates.js";
 
 describe("parseDateParam", () => {
   it("passes through a UTC ISO string unchanged", () => {
@@ -41,5 +41,45 @@ describe("parseDateParam", () => {
     // Accept either UTC-4 (EDT) or UTC-5 (EST)
     const iso = result.toISOString();
     expect(["2026-05-15T04:00:00.000Z", "2026-05-15T05:00:00.000Z"]).toContain(iso);
+  });
+});
+
+describe("parsePeriodParam", () => {
+  it("returns null for null input", () => {
+    expect(parsePeriodParam(null, "monthly")).toBeNull();
+  });
+
+  it("returns null for empty string", () => {
+    expect(parsePeriodParam("", "monthly")).toBeNull();
+  });
+
+  it("returns null for custom period", () => {
+    expect(parsePeriodParam("2026-04", "custom")).toBeNull();
+  });
+
+  it("parses monthly param as day 15 of that month", () => {
+    const result = parsePeriodParam("2026-04", "monthly");
+    expect(result).not.toBeNull();
+    expect(result!.getFullYear()).toBe(2026);
+    expect(result!.getMonth()).toBe(3); // April = 3
+    expect(result!.getDate()).toBe(15);
+  });
+
+  it("returns null for malformed monthly param", () => {
+    expect(parsePeriodParam("2026-4", "monthly")).toBeNull();
+    expect(parsePeriodParam("2026", "monthly")).toBeNull();
+  });
+
+  it("parses yearly param as July 1 of that year", () => {
+    const result = parsePeriodParam("2026", "yearly");
+    expect(result).not.toBeNull();
+    expect(result!.getFullYear()).toBe(2026);
+    expect(result!.getMonth()).toBe(6); // July = 6
+    expect(result!.getDate()).toBe(1);
+  });
+
+  it("returns null for malformed yearly param", () => {
+    expect(parsePeriodParam("26", "yearly")).toBeNull();
+    expect(parsePeriodParam("2026-04", "yearly")).toBeNull();
   });
 });
