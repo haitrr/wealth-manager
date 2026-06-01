@@ -125,10 +125,11 @@ export function getPeriodBounds(budget: Budget, now: Date, timezone = "UTC"): { 
 
 export function computeProgress(budget: Budget, spent: number, now: Date, timezone = "UTC") {
   const { start, end } = getPeriodBounds(budget, now, timezone);
+  const realNow = new Date();
   const msPerDay = 1000 * 60 * 60 * 24;
   const daysTotal = Math.max(1, Math.ceil((end.getTime() - start.getTime()) / msPerDay));
-  const daysElapsed = Math.max(1, Math.min(daysTotal, Math.ceil((now.getTime() - start.getTime()) / msPerDay)));
-  const daysRemaining = Math.max(0, Math.ceil((end.getTime() - now.getTime()) / msPerDay));
+  const daysElapsed = Math.max(1, Math.min(daysTotal, Math.ceil((realNow.getTime() - start.getTime()) / msPerDay)));
+  const daysRemaining = Math.max(0, Math.ceil((end.getTime() - realNow.getTime()) / msPerDay));
   const remaining = budget.amount - spent;
   const percentUsed = budget.amount > 0 ? (spent / budget.amount) * 100 : 0;
   const avgSpentPerDay = spent / daysElapsed;
