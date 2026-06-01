@@ -1,9 +1,10 @@
 "use client";
 
-import { use, useState } from "react";
-import { useRouter } from "next/navigation";
+import { use, useState, useMemo, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Pencil } from "lucide-react";
+import { ArrowLeft, Pencil, ChevronLeft, ChevronRight } from "lucide-react";
+import { format, subMonths, addMonths, subYears, addYears } from "date-fns";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { BudgetForm } from "@/components/budgets/budget-form";
@@ -19,16 +20,45 @@ import { formatCurrency } from "@/lib/utils";
 
 const PERIOD_LABELS: Record<string, string> = { monthly: "Monthly", yearly: "Yearly", custom: "Custom" };
 
-export default function BudgetDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params);
+function formatPeriodParam(date: Date, period: string): string {
+  if (period === "monthly") return format(date, "yyyy-MM");
+  if (period === "yearly") return format(date, "yyyy");
+  return "";
+}
+
+function parsePeriodParamClient(value: string | null, period: string): Date {
+  if (value && period === "monthly") {
+    const match = /^(\d{4})-(\d{2})$/.exec(value);
+    if (match) return new Date(parseInt(match[1]), parseInt(match[2]) - 1, 15);
+  }
+  if (value && period === "yearly") {
+    const match = /^(\d{4})$/.exec(value);
+    if (match) return new Date(parseInt(match[1]), 6, 1);
+  }
+  return new Date();
+}
+
+function BudgetDetailContent({ id }: { id: string }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const queryClient = useQueryClient();
   const [editOpen, setEditOpen] = useState(false);
   const [editingTx, setEditingTx] = useState<Transaction | null>(null);
   const [txFormOpen, setTxFormOpen] = useState(false);
 
-  const { data: budget, isLoading } = useQuery({ queryKey: ["budgets", id], queryFn: () => getBudget(id) });
-  const { data: transactions = [] } = useQuery({ queryKey: ["budget-transactions", id], queryFn: () => getBudgetTransactions(id), enabled: !!budget });
+  const dateParam = searchParams.get("date");
+
+  const { data: budget, isLoading } = useQuery({
+    queryKey: ["budgets", id, dateParam],
+    queryFn: () => getBudget(id, dateParam ?? undefined),
+  });
+
+  const { data: transactions = [] } = useQuery({
+    queryKey: ["budget-transactions", id, dateParam],
+    queryFn: () => getBudgetTransactions(id, dateParam ?? undefined),
+    enabled: !!budget,
+  });
+
   const { data: accounts = [] } = useQuery({ queryKey: ["accounts"], queryFn: getAccounts });
   const { data: categories = [] } = useQuery({ queryKey: ["transaction-categories"], queryFn: getTransactionCategories });
 
@@ -48,6 +78,36 @@ export default function BudgetDetailPage({ params }: { params: Promise<{ id: str
     mutationFn: (txId: string) => deleteTransaction(txId),
     onSuccess: invalidateBudget,
   });
+
+  const viewDate = useMemo(
+    () => parsePeriodParamClient(dateParam, budget?.period ?? "monthly"),
+    [dateParam, budget?.period]
+  );
+
+  const prevParam = useMemo(() => {
+    if (!budget || budget.period === "custom") return null;
+    const prev = budget.period === "monthly" ? subMonths(viewDate, 1) : subYears(viewDate, 1);
+    return formatPeriodParam(prev, budget.period);
+  }, [viewDate, budget]);
+
+  const nextParam = useMemo(() => {
+    if (!budget || budget.period === "custom") return null;
+    const next = budget.period === "monthly" ? addMonths(viewDate, 1) : addYears(viewDate, 1);
+    return formatPeriodParam(next, budget.period);
+  }, [viewDate, budget]);
+
+  const isCurrentPeriod = useMemo(() => {
+    if (!budget || budget.period === "custom") return true;
+    const currentParam = formatPeriodParam(new Date(), budget.period);
+    return !dateParam || dateParam === currentParam;
+  }, [dateParam, budget]);
+
+  function navigate(param: string | null) {
+    if (!param) return;
+    const url = new URL(window.location.href);
+    url.searchParams.set("date", param);
+    router.push(url.pathname + url.search);
+  }
 
   function openEditTx(tx: Transaction) {
     setEditingTx(tx);
@@ -78,7 +138,7 @@ export default function BudgetDetailPage({ params }: { params: Promise<{ id: str
       </div>
 
       {/* Meta */}
-      <p className="text-sm text-muted-foreground mb-4">
+      <p className="text-sm text-muted-foreground mb-1">
         {PERIOD_LABELS[budget.period]}
         {budget.account ? ` · ${budget.account.name}` : " · All accounts"}
         {budget.categories.length > 0
@@ -86,9 +146,36 @@ export default function BudgetDetailPage({ params }: { params: Promise<{ id: str
           : budget.excludedCategories.length > 0
           ? ` · All except ${budget.excludedCategories.map((c) => c.name).join(", ")}`
           : " · All expense categories"}
-        <br />
-        {periodStart} – {periodEnd}
       </p>
+
+      {/* Period navigation */}
+      {budget.period !== "custom" ? (
+        <div className="flex items-center gap-2 mb-1">
+          <button
+            onClick={() => navigate(prevParam)}
+            className="text-muted-foreground hover:text-foreground p-1 rounded"
+            aria-label="Previous period"
+          >
+            <ChevronLeft className="size-4" />
+          </button>
+          <span className="text-sm">{periodStart} – {periodEnd}</span>
+          <button
+            onClick={() => navigate(nextParam)}
+            disabled={isCurrentPeriod}
+            className="text-muted-foreground hover:text-foreground p-1 rounded disabled:opacity-30 disabled:cursor-not-allowed"
+            aria-label="Next period"
+          >
+            <ChevronRight className="size-4" />
+          </button>
+        </div>
+      ) : (
+        <p className="text-sm text-muted-foreground mb-1">{periodStart} – {periodEnd}</p>
+      )}
+
+      {!isCurrentPeriod && (
+        <p className="text-xs text-muted-foreground mb-4">Past period</p>
+      )}
+      {isCurrentPeriod && <div className="mb-4" />}
 
       {/* Progress */}
       <div className="rounded-lg border p-4 space-y-3 mb-6">
@@ -155,7 +242,6 @@ export default function BudgetDetailPage({ params }: { params: Promise<{ id: str
             transactions.reduce((groups: Record<string, Transaction[]>, tx: Transaction) => {
               const d = new Date(tx.date);
               const day = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-
               (groups[day] ??= []).push(tx);
               return groups;
             }, {} as Record<string, Transaction[]>)
@@ -182,13 +268,8 @@ export default function BudgetDetailPage({ params }: { params: Promise<{ id: str
         accounts={accounts}
         categories={categories}
         onClose={() => setEditOpen(false)}
-        onSubmit={async (data) => {
-          await updateMutation.mutateAsync(data);
-        }}
-        onDelete={async () => {
-          await deleteBudget(id);
-          router.push("/budgets");
-        }}
+        onSubmit={async (data) => { await updateMutation.mutateAsync(data); }}
+        onDelete={async () => { await deleteBudget(id); router.push("/budgets"); }}
       />
 
       <TransactionForm
@@ -203,5 +284,14 @@ export default function BudgetDetailPage({ params }: { params: Promise<{ id: str
         onDelete={async (t) => { await deleteTxMutation.mutateAsync(t.id); setTxFormOpen(false); }}
       />
     </main>
+  );
+}
+
+export default function BudgetDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
+  return (
+    <Suspense fallback={<main className="max-w-lg mx-auto px-4 py-8"><p className="text-muted-foreground text-sm">Loading…</p></main>}>
+      <BudgetDetailContent id={id} />
+    </Suspense>
   );
 }
