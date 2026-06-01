@@ -126,6 +126,12 @@ function BudgetDetailContent({ id }: { id: string }) {
   const currency = budget.currency;
   const periodStart = new Date(budget.periodStart).toLocaleDateString("en-US", { month: "short", day: "numeric" });
   const periodEnd = new Date(budget.periodEnd).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  const periodLabel =
+    budget.period === "monthly"
+      ? new Date(budget.periodStart).toLocaleDateString("en-US", { month: "long", year: "numeric" })
+      : budget.period === "yearly"
+      ? new Date(budget.periodStart).getFullYear().toString()
+      : null;
 
   return (
     <main className="max-w-lg mx-auto px-4 py-8 pb-24">
@@ -150,32 +156,31 @@ function BudgetDetailContent({ id }: { id: string }) {
 
       {/* Period navigation */}
       {budget.period !== "custom" ? (
-        <div className="flex items-center gap-2 mb-1">
+        <div className="flex items-center justify-between mb-4">
           <button
             onClick={() => navigate(prevParam)}
-            className="text-muted-foreground hover:text-foreground p-1 rounded"
+            className="flex items-center justify-center size-10 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition-colors shrink-0"
             aria-label="Previous period"
           >
-            <ChevronLeft className="size-4" />
+            <ChevronLeft className="size-5" />
           </button>
-          <span className="text-sm">{periodStart} – {periodEnd}</span>
+          <div className="text-center min-w-0">
+            <p className="text-sm font-medium">{periodLabel}</p>
+            <p className="text-xs text-muted-foreground">{periodStart} – {periodEnd}</p>
+            {!isCurrentPeriod && <p className="text-xs text-muted-foreground">Past period</p>}
+          </div>
           <button
             onClick={() => navigate(nextParam)}
             disabled={isCurrentPeriod}
-            className="text-muted-foreground hover:text-foreground p-1 rounded disabled:opacity-30 disabled:cursor-not-allowed"
+            className="flex items-center justify-center size-10 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition-colors disabled:opacity-30 disabled:cursor-not-allowed shrink-0"
             aria-label="Next period"
           >
-            <ChevronRight className="size-4" />
+            <ChevronRight className="size-5" />
           </button>
         </div>
       ) : (
-        <p className="text-sm text-muted-foreground mb-1">{periodStart} – {periodEnd}</p>
+        <p className="text-sm text-muted-foreground mb-4">{periodStart} – {periodEnd}</p>
       )}
-
-      {!isCurrentPeriod && (
-        <p className="text-xs text-muted-foreground mb-4">Past period</p>
-      )}
-      {isCurrentPeriod && <div className="mb-4" />}
 
       {/* Progress */}
       <div className="rounded-lg border p-4 space-y-3 mb-6">
