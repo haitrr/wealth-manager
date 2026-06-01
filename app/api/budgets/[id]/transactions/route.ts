@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/app/lib/db";
 import { getSession } from "@/app/lib/auth";
 import { getPeriodBounds, getCategoryFilter } from "../../budget-utils";
+import { parsePeriodParam } from "@/lib/dates";
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await getSession(req);
@@ -11,7 +12,10 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   const budget = await prisma.budget.findFirst({ where: { id, userId: session.userId } });
   if (!budget) return NextResponse.json({ error: "Budget not found" }, { status: 404 });
 
-  const { start, end } = getPeriodBounds(budget, new Date(), session.timezone);
+  const dateParam = req.nextUrl.searchParams.get("date");
+  const viewDate = parsePeriodParam(dateParam, budget.period) ?? new Date();
+
+  const { start, end } = getPeriodBounds(budget, viewDate, session.timezone);
   const categoryFilter = await getCategoryFilter(budget, session.userId);
 
   const transactions = await prisma.transaction.findMany({
