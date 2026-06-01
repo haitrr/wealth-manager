@@ -11,7 +11,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   const budget = await prisma.budget.findFirst({ where: { id, userId: session.userId } });
   if (!budget) return NextResponse.json({ error: "Budget not found" }, { status: 404 });
 
-  const { start, end } = getPeriodBounds(budget, new Date());
+  const { start, end } = getPeriodBounds(budget, new Date(), session.timezone);
   const categoryFilter = await getCategoryFilter(budget, session.userId);
 
   const transactions = await prisma.transaction.findMany({

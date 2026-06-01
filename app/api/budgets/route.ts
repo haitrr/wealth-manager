@@ -24,7 +24,7 @@ export async function GET(req: NextRequest) {
 
   const result = await Promise.all(
     budgets.map(async (budget) => {
-      const { start, end } = getPeriodBounds(budget, now);
+      const { start, end } = getPeriodBounds(budget, now, session.timezone);
       const categoryFilter = await getCategoryFilter(budget, session.userId);
 
       const transactions = await prisma.transaction.findMany({
@@ -96,7 +96,7 @@ export async function POST(req: NextRequest) {
   });
 
   const now = new Date();
-  const { start, end } = getPeriodBounds(budget, now);
+  const { start, end } = getPeriodBounds(budget, now, session.timezone);
   const categoryFilter = await getCategoryFilter(budget, session.userId);
 
   const transactions = await prisma.transaction.findMany({
@@ -119,6 +119,6 @@ export async function POST(req: NextRequest) {
     resolveCategorySummaries(budget.excludedCategoryIds),
   ]);
 
-  const progress = computeProgress(budget, spent, now);
+  const progress = computeProgress(budget, spent, now, session.timezone);
   return NextResponse.json({ ...budget, categories, excludedCategories, ...progress }, { status: 201 });
 }

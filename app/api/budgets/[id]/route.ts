@@ -10,7 +10,7 @@ import {
   resolveCategorySummaries,
 } from "../budget-utils";
 
-async function getBudgetWithProgress(budgetId: string, userId: string) {
+async function getBudgetWithProgress(budgetId: string, userId: string, timezone = "UTC") {
   const budget = await prisma.budget.findFirst({
     where: { id: budgetId, userId },
     include: { account: { select: { id: true, name: true, currency: true } } },
@@ -18,7 +18,7 @@ async function getBudgetWithProgress(budgetId: string, userId: string) {
   if (!budget) return null;
 
   const now = new Date();
-  const { start, end } = getPeriodBounds(budget, now);
+  const { start, end } = getPeriodBounds(budget, now, timezone);
   const categoryFilter = await getCategoryFilter(budget, userId);
 
   const transactions = await prisma.transaction.findMany({
@@ -41,7 +41,7 @@ async function getBudgetWithProgress(budgetId: string, userId: string) {
     resolveCategorySummaries(budget.excludedCategoryIds),
   ]);
 
-  const progress = computeProgress(budget, spent, now);
+  const progress = computeProgress(budget, spent, now, timezone);
   return { ...budget, categories, excludedCategories, ...progress };
 }
 
@@ -50,7 +50,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id } = await params;
-  const budget = await getBudgetWithProgress(id, session.userId);
+  const budget = await getBudgetWithProgress(id, session.userId, session.timezone);
   if (!budget) return NextResponse.json({ error: "Budget not found" }, { status: 404 });
 
   return NextResponse.json(budget);
@@ -96,7 +96,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     },
   });
 
-  const budget = await getBudgetWithProgress(id, session.userId);
+  const budget = await getBudgetWithProgress(id, session.userId, session.timezone);
   return NextResponse.json(budget);
 }
 

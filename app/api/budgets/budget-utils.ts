@@ -1,5 +1,6 @@
 import { Budget, Account, TransactionCategory, Currency, CategoryType } from "@prisma/client";
 import { prisma } from "@/app/lib/db";
+import { toZonedTime, fromZonedTime } from "date-fns-tz";
 
 export type BudgetPeriod = "monthly" | "yearly" | "custom";
 
@@ -104,23 +105,26 @@ export async function resolveCategorySummaries(ids: string[]): Promise<CategoryS
   });
 }
 
-export function getPeriodBounds(budget: Budget, now: Date): { start: Date; end: Date } {
+export function getPeriodBounds(budget: Budget, now: Date, timezone = "UTC"): { start: Date; end: Date } {
   if (budget.period === "custom") {
     return { start: new Date(budget.startDate), end: new Date(budget.endDate!) };
   }
+  // Compute month/year boundaries in user's local timezone so that transactions
+  // stored as UTC are correctly included even near midnight on the 1st/last of the month.
+  const local = toZonedTime(now, timezone);
   if (budget.period === "yearly") {
-    const start = new Date(now.getFullYear(), 0, 1);
-    const end = new Date(now.getFullYear(), 11, 31, 23, 59, 59, 999);
+    const start = fromZonedTime(new Date(local.getFullYear(), 0, 1, 0, 0, 0, 0), timezone);
+    const end = fromZonedTime(new Date(local.getFullYear(), 11, 31, 23, 59, 59, 999), timezone);
     return { start, end };
   }
   // monthly
-  const start = new Date(now.getFullYear(), now.getMonth(), 1);
-  const end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+  const start = fromZonedTime(new Date(local.getFullYear(), local.getMonth(), 1, 0, 0, 0, 0), timezone);
+  const end = fromZonedTime(new Date(local.getFullYear(), local.getMonth() + 1, 0, 23, 59, 59, 999), timezone);
   return { start, end };
 }
 
-export function computeProgress(budget: Budget, spent: number, now: Date) {
-  const { start, end } = getPeriodBounds(budget, now);
+export function computeProgress(budget: Budget, spent: number, now: Date, timezone = "UTC") {
+  const { start, end } = getPeriodBounds(budget, now, timezone);
   const msPerDay = 1000 * 60 * 60 * 24;
   const daysTotal = Math.max(1, Math.ceil((end.getTime() - start.getTime()) / msPerDay));
   const daysElapsed = Math.max(1, Math.min(daysTotal, Math.ceil((now.getTime() - start.getTime()) / msPerDay)));
