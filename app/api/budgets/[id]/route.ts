@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/app/lib/db";
 import { getSession } from "@/app/lib/auth";
-import { parseDateParam } from "@/lib/dates";
+import { parseDateParam, parsePeriodParam } from "@/lib/dates";
 import {
   getPeriodBounds,
   computeProgress,
@@ -10,14 +10,14 @@ import {
   resolveCategorySummaries,
 } from "../budget-utils";
 
-async function getBudgetWithProgress(budgetId: string, userId: string, timezone = "UTC") {
+async function getBudgetWithProgress(budgetId: string, userId: string, timezone = "UTC", viewDate?: Date) {
   const budget = await prisma.budget.findFirst({
     where: { id: budgetId, userId },
     include: { account: { select: { id: true, name: true, currency: true } } },
   });
   if (!budget) return null;
 
-  const now = new Date();
+  const now = viewDate ?? new Date();
   const { start, end } = getPeriodBounds(budget, now, timezone);
   const categoryFilter = await getCategoryFilter(budget, userId);
 
@@ -50,7 +50,14 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id } = await params;
-  const budget = await getBudgetWithProgress(id, session.userId, session.timezone);
+
+  const budgetMeta = await prisma.budget.findFirst({ where: { id, userId: session.userId }, select: { period: true } });
+  if (!budgetMeta) return NextResponse.json({ error: "Budget not found" }, { status: 404 });
+
+  const dateParam = req.nextUrl.searchParams.get("date");
+  const viewDate = parsePeriodParam(dateParam, budgetMeta.period) ?? undefined;
+
+  const budget = await getBudgetWithProgress(id, session.userId, session.timezone, viewDate);
   if (!budget) return NextResponse.json({ error: "Budget not found" }, { status: 404 });
 
   return NextResponse.json(budget);
