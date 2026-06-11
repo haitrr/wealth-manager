@@ -15,7 +15,7 @@ echo -e "${BLUE}${BOLD}Running database backup...${RESET}"
 
 docker compose -f docker-compose.prod.yml exec -T postgres-backup bash -c "
   mkdir -p /backups/deployments &&
-  pg_dump -h postgres -U \$POSTGRES_USER \$POSTGRES_DB | gzip > /backups/deployments/${DEPLOY_FILE} &&
+  PGPASSWORD=\$POSTGRES_PASSWORD pg_dump -h postgres -U \$POSTGRES_USER \$POSTGRES_DB | gzip > /backups/deployments/${DEPLOY_FILE} &&
   ls -t /backups/deployments/wm-deploy-*.sql.gz 2>/dev/null | tail -n +$((KEEP + 1)) | xargs -r rm --
 " && echo -e "  ${GREEN}✓${RESET} Backup complete at $(date '+%Y-%m-%d %H:%M:%S') → deployments/${DEPLOY_FILE}" \
   || { echo -e "  ${RED}✗ Backup failed${RESET}"; exit 1; }
