@@ -227,6 +227,7 @@ model Asset {
   ticker       String?
   metadata     Json                @default("{}")
   lastPricedAt DateTime?
+  purchaseDate DateTime?
   userId       String
   user         User                @relation(fields: [userId], references: [id], onDelete: Cascade)
   valueHistory AssetValueHistory[]

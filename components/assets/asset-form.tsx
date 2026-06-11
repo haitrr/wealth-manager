@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useState } from "react";
 import { Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -55,14 +55,6 @@ export function AssetForm({ open, asset, onClose, onSubmit, onDelete }: AssetFor
   const [type, setType] = useState<AssetType>(asset?.type ?? "stock");
   const [currency, setCurrency] = useState<Currency>(asset?.currency ?? "USD");
 
-  useEffect(() => {
-    if (!open) return;
-    setError("");
-    setConfirmDelete(false);
-    setType(asset?.type ?? "stock");
-    setCurrency(asset?.currency ?? "USD");
-  }, [open, asset]);
-
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError("");
@@ -92,6 +84,7 @@ export function AssetForm({ open, asset, onClose, onSubmit, onDelete }: AssetFor
       currentValue: Number(get("currentValue")),
       quantity: get("quantity") ? Number(get("quantity")) : null,
       ticker: get("ticker") || null,
+      purchaseDate: get("purchaseDate") || null,
       metadata,
     };
 
@@ -149,6 +142,17 @@ min="0"
                 defaultValue={asset?.currentValue ?? ""}
 required />
             </div>
+            <div className="space-y-2">
+              <Label htmlFor="purchaseDate">Purchase Date</Label>
+              <Input id="purchaseDate"
+name="purchaseDate"
+type="date"
+className="text-[16px] md:text-sm"
+                defaultValue={asset?.purchaseDate?.slice(0, 10) ?? ""} />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
             {(type === "stock" || type === "gold") && (
               <div className="space-y-2">
                 <Label htmlFor="quantity">{type === "gold" ? "Quantity (oz)" : "Shares"}</Label>

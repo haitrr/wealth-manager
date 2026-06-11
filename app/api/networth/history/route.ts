@@ -42,7 +42,7 @@ export async function GET(req: NextRequest) {
     }),
     prisma.asset.findMany({
       where: { userId: session.userId },
-      select: { id: true, currentValue: true, currency: true, createdAt: true },
+      select: { id: true, currentValue: true, currency: true, purchaseDate: true, createdAt: true },
     }),
     prisma.assetValueHistory.findMany({
       where: { asset: { userId: session.userId } },
@@ -73,7 +73,7 @@ export async function GET(req: NextRequest) {
     allDateStrs.add(toDateStr(new Date(h.date)));
   }
   for (const a of assets) {
-    allDateStrs.add(toDateStr(new Date(a.createdAt)));
+    allDateStrs.add(toDateStr(new Date(a.purchaseDate ?? a.createdAt)));
   }
 
   // Filter to range and add cutoff as anchor point
@@ -98,7 +98,7 @@ export async function GET(req: NextRequest) {
   // Actual history entries (added later) override via step interpolation when they exist.
   const baselineRecords: AssetHistoryRecord[] = assets.map(a => ({
     assetId: a.id,
-    date: new Date(a.createdAt),
+    date: new Date(a.purchaseDate ?? a.createdAt),
     value: a.currentValue,
     currency: a.currency,
   }));

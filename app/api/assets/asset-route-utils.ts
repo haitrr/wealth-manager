@@ -11,6 +11,7 @@ export interface AssetPayload {
   currentValue: number;
   quantity?: number | null;
   ticker?: string | null;
+  purchaseDate?: string | null;
   metadata?: Record<string, unknown>;
 }
 
@@ -29,6 +30,11 @@ export function parseAssetPayload(payload: AssetPayload) {
   if (payload.type === "gold") {
     if (!payload.quantity || Number(payload.quantity) <= 0) throw new Error("Quantity must be positive for gold");
   }
+  let purchaseDate: Date | null = null;
+  if (payload.purchaseDate) {
+    purchaseDate = new Date(payload.purchaseDate + "T00:00:00.000Z");
+    if (isNaN(purchaseDate.getTime())) throw new Error("Invalid purchase date");
+  }
   return {
     name,
     type: payload.type as AssetType,
@@ -36,6 +42,7 @@ export function parseAssetPayload(payload: AssetPayload) {
     currentValue,
     quantity: payload.quantity != null ? Number(payload.quantity) : null,
     ticker: payload.ticker?.trim() || null,
+    purchaseDate,
     metadata: (payload.metadata ?? {}) as Prisma.InputJsonValue,
   };
 }
