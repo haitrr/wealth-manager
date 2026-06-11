@@ -1,6 +1,6 @@
 "use client";
 
-import { RefreshCw, Pencil } from "lucide-react";
+import { History, Pencil, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Asset } from "@/lib/api/assets";
 import { formatCurrency } from "@/lib/utils";
@@ -16,10 +16,11 @@ interface AssetCardProps {
   asset: Asset;
   onEdit: (asset: Asset) => void;
   onRefreshPrice: (asset: Asset) => void;
+  onViewHistory: (asset: Asset) => void;
   refreshing?: boolean;
 }
 
-export function AssetCard({ asset, onEdit, onRefreshPrice, refreshing }: AssetCardProps) {
+export function AssetCard({ asset, onEdit, onRefreshPrice, onViewHistory, refreshing }: AssetCardProps) {
   const canRefresh = asset.type === "stock" || asset.type === "gold";
   const lastPriced = asset.lastPricedAt
     ? new Date(asset.lastPricedAt).toLocaleDateString()
@@ -53,6 +54,14 @@ export function AssetCard({ asset, onEdit, onRefreshPrice, refreshing }: AssetCa
             <RefreshCw className={`size-4 ${refreshing ? "animate-spin" : ""}`} />
           </Button>
         )}
+        <Button
+          size="icon"
+          variant="ghost"
+          className="size-8"
+          onClick={() => onViewHistory(asset)}
+        >
+          <History className="size-4" />
+        </Button>
         <Button
           size="icon"
           variant="ghost"

@@ -6,6 +6,7 @@ import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AssetForm } from "@/components/assets/asset-form";
 import { AssetCard } from "@/components/assets/asset-card";
+import { AssetValueHistoryDialog } from "@/components/assets/asset-value-history-dialog";
 import {
   createAsset,
   deleteAsset,
@@ -29,6 +30,7 @@ export default function AssetsPage() {
   const queryClient = useQueryClient();
   const [formOpen, setFormOpen] = useState(false);
   const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
+  const [historyAsset, setHistoryAsset] = useState<Asset | null>(null);
   const [refreshingId, setRefreshingId] = useState<string | null>(null);
   const [refreshError, setRefreshError] = useState<string | null>(null);
 
@@ -112,6 +114,7 @@ export default function AssetsPage() {
                       asset={asset}
                       onEdit={a => { setEditingAsset(a); setFormOpen(true); }}
                       onRefreshPrice={handleRefreshPrice}
+                      onViewHistory={a => setHistoryAsset(a)}
                       refreshing={refreshingId === asset.id}
                     />
                   ))}
@@ -134,6 +137,12 @@ export default function AssetsPage() {
           }
         }}
         onDelete={async asset => { await deleteMutation.mutateAsync(asset.id); }}
+      />
+
+      <AssetValueHistoryDialog
+        asset={historyAsset}
+        open={!!historyAsset}
+        onClose={() => setHistoryAsset(null)}
       />
     </main>
   );
