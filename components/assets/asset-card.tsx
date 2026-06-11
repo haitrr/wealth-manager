@@ -37,6 +37,15 @@ export function AssetCard({ asset, onEdit, onRefreshPrice, onViewHistory, refres
         </div>
         <p className="text-base font-semibold mt-0.5">
           {formatCurrency(asset.currentValue, asset.currency)}
+          {asset.purchasePrice > 0 && (() => {
+            const pct = ((asset.currentValue - asset.purchasePrice) / asset.purchasePrice) * 100;
+            const sign = pct >= 0 ? "+" : "";
+            return (
+              <span className={`ml-1.5 text-xs font-normal ${pct >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}>
+                ({sign}{pct.toFixed(1)}%)
+              </span>
+            );
+          })()}
         </p>
         {lastPriced && (
           <p className="text-[10px] text-muted-foreground">Last priced: {lastPriced}</p>
