@@ -13,7 +13,12 @@ export interface Asset {
   ticker: string | null;
   metadata: Record<string, unknown>;
   lastPricedAt: string | null;
-  purchaseDate: string | null;
+  purchaseDate: string;
+  purchasePrice: number;
+  purchaseTransactionId: string;
+  sellDate: string | null;
+  sellPrice: number | null;
+  sellTransactionId: string | null;
   userId: string;
   createdAt: string;
   updatedAt: string;
@@ -26,7 +31,12 @@ export interface AssetPayload {
   currentValue: number;
   quantity?: number | null;
   ticker?: string | null;
-  purchaseDate?: string | null;
+  purchaseDate: string;
+  purchasePrice: number;
+  purchaseAccountId: string;
+  sellDate?: string | null;
+  sellPrice?: number | null;
+  sellAccountId?: string | null;
   metadata?: Record<string, unknown>;
 }
 

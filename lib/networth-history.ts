@@ -13,11 +13,13 @@ export interface AssetHistoryRecord {
   currency: string;
 }
 
+
 export interface LoanRecord {
   id: string;
   direction: "borrowed" | "lent";
   initialAmount: number;
   currency: string;
+  startDate: Date;
   principalPayments: { date: Date; amount: number }[];
 }
 
@@ -103,8 +105,9 @@ export function computeNetWorthHistory(
       return sum + convertCurrency(entry.value, entry.currency, targetCurrency, exchangeRates);
     }, 0);
 
-    // Liabilities: outstanding principal for borrowed loans
+    // Liabilities: outstanding principal for borrowed loans (only after loan start date)
     const liabilities = borrowedLoans.reduce((sum, loan) => {
+      if (toDateStr(loan.startDate) > dateStr) return sum;
       const paidPrincipal = loan.principalPayments
         .filter(p => toDateStr(p.date) <= dateStr)
         .reduce((s, p) => s + p.amount, 0);

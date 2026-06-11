@@ -70,6 +70,7 @@ describe("computeNetWorthHistory", () => {
         direction: "borrowed" as const,
         initialAmount: 10000,
         currency: "USD",
+        startDate: new Date("2024-01-01T00:00:00.000Z"),
         principalPayments: [
           { date: new Date("2024-01-15T00:00:00.000Z"), amount: 1000 },
         ],
@@ -87,6 +88,7 @@ describe("computeNetWorthHistory", () => {
         direction: "borrowed" as const,
         initialAmount: 10000,
         currency: "USD",
+        startDate: new Date("2024-01-01T00:00:00.000Z"),
         principalPayments: [
           { date: new Date("2024-02-01T00:00:00.000Z"), amount: 2000 },
         ],
@@ -103,6 +105,7 @@ describe("computeNetWorthHistory", () => {
         direction: "lent" as const,
         initialAmount: 5000,
         currency: "USD",
+        startDate: new Date("2024-01-01T00:00:00.000Z"),
         principalPayments: [],
       },
     ];

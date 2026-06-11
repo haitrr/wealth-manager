@@ -1,13 +1,14 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Asset, AssetPayload, AssetType } from "@/lib/api/assets";
-import { Currency } from "@/lib/api/accounts";
+import { Currency, getAccounts, Account } from "@/lib/api/accounts";
 
 const ASSET_TYPE_OPTIONS: { value: AssetType; label: string }[] = [
   { value: "real_estate", label: "Real Estate" },
@@ -40,6 +41,124 @@ function NativeSelect({ id, name, value, options, onChange, required }: {
   );
 }
 
+function AccountSelect({ id, name, value, accounts, onChange, required, placeholder }: {
+  id: string; name: string; value: string; required?: boolean; placeholder?: string;
+  accounts: Account[];
+  onChange: (value: string) => void;
+}) {
+  return (
+    <select
+      id={id}
+      name={name}
+      value={value}
+      required={required}
+      onChange={e => onChange(e.target.value)}
+      className="h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-[16px] md:text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+    >
+      {placeholder && <option value="">{placeholder}</option>}
+      {accounts.map(a => (
+        <option key={a.id} value={a.id}>{a.name} ({a.currency})</option>
+      ))}
+    </select>
+  );
+}
+
+function PurchaseSection({ accounts, purchaseAccountId, defaultPurchaseAccountId, onChange, asset }: {
+  accounts: Account[];
+  purchaseAccountId: string;
+  defaultPurchaseAccountId: string;
+  onChange: (v: string) => void;
+  asset?: Asset | null;
+}) {
+  return (
+    <div className="border rounded-lg p-3 space-y-3">
+      <p className="text-sm font-medium">Purchase</p>
+      <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-2">
+          <Label htmlFor="purchaseDate">Date</Label>
+          <Input id="purchaseDate"
+name="purchaseDate"
+type="date"
+className="text-[16px] md:text-sm"
+            defaultValue={asset?.purchaseDate?.slice(0, 10) ?? ""}
+required />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="purchasePrice">Price</Label>
+          <Input id="purchasePrice"
+name="purchasePrice"
+type="number"
+step="any"
+min="0"
+            defaultValue={asset?.purchasePrice ?? ""}
+required />
+        </div>
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="purchaseAccountId">Debit Account</Label>
+        <AccountSelect id="purchaseAccountId"
+name="purchaseAccountId"
+          value={purchaseAccountId || defaultPurchaseAccountId}
+          accounts={accounts}
+onChange={onChange}
+required />
+      </div>
+    </div>
+  );
+}
+
+function SellSection({ accounts, sellAccountId, onChange, onRemove, asset }: {
+  accounts: Account[];
+  sellAccountId: string;
+  onChange: (v: string) => void;
+  onRemove: () => void;
+  asset?: Asset | null;
+}) {
+  return (
+    <div className="border rounded-lg p-3 space-y-3">
+      <div className="flex items-center justify-between">
+        <p className="text-sm font-medium">Sale</p>
+        <Button type="button"
+variant="ghost"
+size="sm"
+className="text-muted-foreground h-auto py-0"
+          onClick={onRemove}>Remove</Button>
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-2">
+          <Label htmlFor="sellDate">Date</Label>
+          <Input id="sellDate"
+name="sellDate"
+type="date"
+className="text-[16px] md:text-sm"
+            defaultValue={asset?.sellDate?.slice(0, 10) ?? ""}
+required />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="sellPrice">Price</Label>
+          <Input id="sellPrice"
+name="sellPrice"
+type="number"
+step="any"
+min="0"
+            defaultValue={asset?.sellPrice ?? ""}
+required />
+        </div>
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="sellAccountId">Credit Account</Label>
+        <AccountSelect id="sellAccountId"
+name="sellAccountId"
+value={sellAccountId}
+          accounts={accounts}
+onChange={onChange}
+placeholder="Select account…"
+required />
+      </div>
+    </div>
+  );
+}
+
 interface AssetFormProps {
   open: boolean;
   asset?: Asset | null;
@@ -54,6 +173,18 @@ export function AssetForm({ open, asset, onClose, onSubmit, onDelete }: AssetFor
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [type, setType] = useState<AssetType>(asset?.type ?? "stock");
   const [currency, setCurrency] = useState<Currency>(asset?.currency ?? "USD");
+  const [purchaseAccountId, setPurchaseAccountId] = useState(asset?.purchaseTransactionId ? "" : "");
+  const [sellAccountId, setSellAccountId] = useState("");
+  const [showSell, setShowSell] = useState(!!(asset?.sellDate));
+
+  const { data: accounts = [] } = useQuery({
+    queryKey: ["accounts"],
+    queryFn: getAccounts,
+    enabled: open,
+  });
+
+  // Pre-select account when editing
+  const defaultPurchaseAccountId = purchaseAccountId || (accounts[0]?.id ?? "");
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -65,8 +196,6 @@ export function AssetForm({ open, asset, onClose, onSubmit, onDelete }: AssetFor
     const metadata: Record<string, unknown> = {};
     if (type === "real_estate") {
       metadata.address = get("address");
-      metadata.purchasePrice = get("purchasePrice") ? Number(get("purchasePrice")) : undefined;
-      metadata.purchaseDate = get("purchaseDate") || undefined;
     } else if (type === "stock") {
       metadata.exchange = get("exchange");
     } else if (type === "bond") {
@@ -84,7 +213,12 @@ export function AssetForm({ open, asset, onClose, onSubmit, onDelete }: AssetFor
       currentValue: Number(get("currentValue")),
       quantity: get("quantity") ? Number(get("quantity")) : null,
       ticker: get("ticker") || null,
-      purchaseDate: get("purchaseDate") || null,
+      purchaseDate: get("purchaseDate"),
+      purchasePrice: Number(get("purchasePrice")),
+      purchaseAccountId: get("purchaseAccountId"),
+      sellDate: showSell ? (get("sellDate") || null) : null,
+      sellPrice: showSell && get("sellPrice") ? Number(get("sellPrice")) : null,
+      sellAccountId: showSell ? (get("sellAccountId") || null) : null,
       metadata,
     };
 
@@ -115,116 +249,63 @@ export function AssetForm({ open, asset, onClose, onSubmit, onDelete }: AssetFor
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
               <Label htmlFor="type">Type</Label>
-              <NativeSelect id="type"
-name="type"
-value={type}
-onChange={v => setType(v as AssetType)}
-                options={ASSET_TYPE_OPTIONS} />
+              <NativeSelect id="type" name="type" value={type} onChange={v => setType(v as AssetType)} options={ASSET_TYPE_OPTIONS} />
             </div>
             <div className="space-y-2">
               <Label htmlFor="currency">Currency</Label>
-              <NativeSelect id="currency"
-name="currency"
-value={currency}
-onChange={v => setCurrency(v as Currency)}
-                options={CURRENCY_OPTIONS} />
+              <NativeSelect id="currency" name="currency" value={currency} onChange={v => setCurrency(v as Currency)} options={CURRENCY_OPTIONS} />
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-2">
-              <Label htmlFor="currentValue">Current Value</Label>
-              <Input id="currentValue"
+          <div className="space-y-2">
+            <Label htmlFor="currentValue">Current Value</Label>
+            <Input id="currentValue"
 name="currentValue"
 type="number"
 step="any"
 min="0"
-                defaultValue={asset?.currentValue ?? ""}
+              defaultValue={asset?.currentValue ?? ""}
 required />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="purchaseDate">Purchase Date</Label>
-              <Input id="purchaseDate"
-name="purchaseDate"
-type="date"
-className="text-[16px] md:text-sm"
-                defaultValue={asset?.purchaseDate?.slice(0, 10) ?? ""} />
-            </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            {(type === "stock" || type === "gold") && (
-              <div className="space-y-2">
-                <Label htmlFor="quantity">{type === "gold" ? "Quantity (oz)" : "Shares"}</Label>
-                <Input id="quantity"
+          {(type === "stock" || type === "gold") && (
+            <div className="space-y-2">
+              <Label htmlFor="quantity">{type === "gold" ? "Quantity (oz)" : "Shares"}</Label>
+              <Input id="quantity"
 name="quantity"
 type="number"
 step="any"
 min="0"
-                  defaultValue={asset?.quantity ?? ""}
+                defaultValue={asset?.quantity ?? ""}
 required />
-              </div>
-            )}
-          </div>
+            </div>
+          )}
 
           {type === "stock" && (
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label htmlFor="ticker">Ticker</Label>
-                <Input id="ticker"
-name="ticker"
-placeholder="e.g. AAPL"
-                  defaultValue={asset?.ticker ?? ""}
-required />
+                <Input id="ticker" name="ticker" placeholder="e.g. AAPL" defaultValue={asset?.ticker ?? ""} required />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="exchange">Exchange</Label>
-                <Input id="exchange"
-name="exchange"
-placeholder="e.g. NASDAQ"
-                  defaultValue={meta?.exchange as string ?? ""} />
+                <Input id="exchange" name="exchange" placeholder="e.g. NASDAQ" defaultValue={meta?.exchange as string ?? ""} />
               </div>
             </div>
           )}
 
           {type === "real_estate" && (
-            <>
-              <div className="space-y-2">
-                <Label htmlFor="address">Address</Label>
-                <Input id="address"
-name="address"
-placeholder="e.g. 123 Main St"
-                  defaultValue={meta?.address as string ?? ""} />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-2">
-                  <Label htmlFor="purchasePrice">Purchase Price</Label>
-                  <Input id="purchasePrice"
-name="purchasePrice"
-type="number"
-step="any"
-min="0"
-                    defaultValue={meta?.purchasePrice as number ?? ""} />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="purchaseDate">Purchase Date</Label>
-                  <Input id="purchaseDate"
-name="purchaseDate"
-type="date"
-                    defaultValue={meta?.purchaseDate as string ?? ""} />
-                </div>
-              </div>
-            </>
+            <div className="space-y-2">
+              <Label htmlFor="address">Address</Label>
+              <Input id="address" name="address" placeholder="e.g. 123 Main St" defaultValue={meta?.address as string ?? ""} />
+            </div>
           )}
 
           {type === "bond" && (
             <>
               <div className="space-y-2">
                 <Label htmlFor="issuer">Issuer</Label>
-                <Input id="issuer"
-name="issuer"
-placeholder="e.g. US Treasury"
-                  defaultValue={meta?.issuer as string ?? ""} />
+                <Input id="issuer" name="issuer" placeholder="e.g. US Treasury" defaultValue={meta?.issuer as string ?? ""} />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-2">
@@ -250,16 +331,36 @@ type="date"
           {type === "gold" && (
             <div className="space-y-2">
               <Label htmlFor="goldForm">Form</Label>
-              <select
-                id="goldForm"
-                name="goldForm"
-                defaultValue={meta?.form as string ?? "physical"}
-                className="h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-[16px] md:text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-              >
+              <select id="goldForm"
+name="goldForm"
+defaultValue={meta?.form as string ?? "physical"}
+                className="h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-[16px] md:text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
                 <option value="physical">Physical</option>
                 <option value="ETF">ETF</option>
               </select>
             </div>
+          )}
+
+          <PurchaseSection
+            accounts={accounts}
+            purchaseAccountId={purchaseAccountId}
+            defaultPurchaseAccountId={defaultPurchaseAccountId}
+            onChange={setPurchaseAccountId}
+            asset={asset}
+          />
+
+          {!showSell ? (
+            <Button type="button" variant="outline" className="w-full" onClick={() => setShowSell(true)}>
+              Mark as Sold
+            </Button>
+          ) : (
+            <SellSection
+              accounts={accounts}
+              sellAccountId={sellAccountId}
+              onChange={setSellAccountId}
+              onRemove={() => setShowSell(false)}
+              asset={asset}
+            />
           )}
 
           {error && <p className="text-sm text-destructive">{error}</p>}

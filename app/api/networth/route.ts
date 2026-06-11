@@ -43,7 +43,9 @@ export async function GET(req: NextRequest) {
       where: { userId: session.userId },
       include: { transactions: { include: { category: { select: { type: true } } } } },
     }),
-    prisma.asset.findMany({ where: { userId: session.userId } }),
+    prisma.asset.findMany({
+      where: { userId: session.userId, OR: [{ sellDate: null }, { sellDate: { gt: new Date() } }] },
+    }),
     prisma.loan.findMany({
       where: { userId: session.userId, status: "active" },
       include: {

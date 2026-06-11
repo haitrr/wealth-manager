@@ -42,7 +42,7 @@ export async function GET(req: NextRequest) {
     }),
     prisma.asset.findMany({
       where: { userId: session.userId },
-      select: { id: true, currentValue: true, currency: true, purchaseDate: true, createdAt: true },
+      select: { id: true, currentValue: true, purchasePrice: true, currency: true, purchaseDate: true, sellDate: true, createdAt: true },
     }),
     prisma.assetValueHistory.findMany({
       where: { asset: { userId: session.userId } },
@@ -50,10 +50,15 @@ export async function GET(req: NextRequest) {
     }),
     prisma.loan.findMany({
       where: { userId: session.userId, status: "active", direction: "borrowed" },
-      include: {
+      select: {
+        id: true,
+        direction: true,
+        currency: true,
+        startDate: true,
         initialTransaction: { select: { amount: true } },
         payments: {
-          include: {
+          select: {
+            paymentDate: true,
             principalTransaction: { select: { amount: true } },
           },
         },
@@ -74,6 +79,7 @@ export async function GET(req: NextRequest) {
   }
   for (const a of assets) {
     allDateStrs.add(toDateStr(new Date(a.purchaseDate ?? a.createdAt)));
+    if (a.sellDate) allDateStrs.add(toDateStr(new Date(a.sellDate)));
   }
 
   // Filter to range and add cutoff as anchor point
@@ -94,17 +100,28 @@ export async function GET(req: NextRequest) {
     accountCurrency: tx.account.currency,
   }));
 
-  // Synthetic baseline entry per asset at createdAt with currentValue.
-  // Actual history entries (added later) override via step interpolation when they exist.
-  const baselineRecords: AssetHistoryRecord[] = assets.map(a => ({
-    assetId: a.id,
-    date: new Date(a.purchaseDate ?? a.createdAt),
-    value: a.currentValue,
-    currency: a.currency,
-  }));
+  // Synthetic baseline per asset at purchaseDate (or createdAt) with currentValue.
+  // A zero-value entry at sellDate marks when the asset leaves the portfolio.
+  const syntheticRecords: AssetHistoryRecord[] = [];
+  for (const a of assets) {
+    syntheticRecords.push({
+      assetId: a.id,
+      date: new Date(a.purchaseDate ?? a.createdAt),
+      value: a.purchasePrice ?? a.currentValue,
+      currency: a.currency,
+    });
+    if (a.sellDate) {
+      syntheticRecords.push({
+        assetId: a.id,
+        date: new Date(a.sellDate),
+        value: 0,
+        currency: a.currency,
+      });
+    }
+  }
 
   const assetHistoryRecords: AssetHistoryRecord[] = [
-    ...baselineRecords,
+    ...syntheticRecords,
     ...assetHistories.map(h => ({
       assetId: h.assetId,
       date: new Date(h.date),
@@ -118,6 +135,7 @@ export async function GET(req: NextRequest) {
     direction: loan.direction,
     initialAmount: loan.initialTransaction?.amount ?? 0,
     currency: loan.currency,
+    startDate: new Date(loan.startDate),
     principalPayments: loan.payments
       .filter(p => p.principalTransaction)
       .map(p => ({

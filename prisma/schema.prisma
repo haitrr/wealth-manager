@@ -112,6 +112,8 @@ model Transaction {
   loanPaymentInterest  LoanPayment?        @relation("LoanInterestTransaction")
   loanPaymentPrepayFee LoanPayment?        @relation("LoanPrepayFeeTransaction")
   loanInitial          Loan?               @relation("LoanInitialTransaction")
+  assetPurchase        Asset?              @relation("AssetPurchaseTransaction")
+  assetSell            Asset?              @relation("AssetSellTransaction")
   createdAt            DateTime            @default(now())
   updatedAt            DateTime            @updatedAt
 }
@@ -218,21 +220,28 @@ enum AssetType {
 }
 
 model Asset {
-  id           String              @id @default(cuid())
-  name         String
-  type         AssetType
-  currency     Currency            @default(USD)
-  currentValue Float
-  quantity     Float?
-  ticker       String?
-  metadata     Json                @default("{}")
-  lastPricedAt DateTime?
-  purchaseDate DateTime?
-  userId       String
-  user         User                @relation(fields: [userId], references: [id], onDelete: Cascade)
-  valueHistory AssetValueHistory[]
-  createdAt    DateTime            @default(now())
-  updatedAt    DateTime            @updatedAt
+  id                    String              @id @default(cuid())
+  name                  String
+  type                  AssetType
+  currency              Currency            @default(USD)
+  currentValue          Float
+  quantity              Float?
+  ticker                String?
+  metadata              Json                @default("{}")
+  lastPricedAt          DateTime?
+  purchaseDate          DateTime?
+  purchasePrice         Float?
+  purchaseTransactionId String              @unique
+  purchaseTransaction   Transaction         @relation("AssetPurchaseTransaction", fields: [purchaseTransactionId], references: [id])
+  sellDate              DateTime?
+  sellPrice             Float?
+  sellTransactionId     String?             @unique
+  sellTransaction       Transaction?        @relation("AssetSellTransaction", fields: [sellTransactionId], references: [id], onDelete: SetNull)
+  userId                String
+  user                  User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  valueHistory          AssetValueHistory[]
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime            @updatedAt
 
   @@index([userId, type])
 }

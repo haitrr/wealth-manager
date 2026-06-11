@@ -11,7 +11,12 @@ export interface AssetPayload {
   currentValue: number;
   quantity?: number | null;
   ticker?: string | null;
-  purchaseDate?: string | null;
+  purchaseDate: string;
+  purchasePrice: number;
+  purchaseAccountId: string;
+  sellDate?: string | null;
+  sellPrice?: number | null;
+  sellAccountId?: string | null;
   metadata?: Record<string, unknown>;
 }
 
@@ -30,11 +35,28 @@ export function parseAssetPayload(payload: AssetPayload) {
   if (payload.type === "gold") {
     if (!payload.quantity || Number(payload.quantity) <= 0) throw new Error("Quantity must be positive for gold");
   }
-  let purchaseDate: Date | null = null;
-  if (payload.purchaseDate) {
-    purchaseDate = new Date(payload.purchaseDate + "T00:00:00.000Z");
-    if (isNaN(purchaseDate.getTime())) throw new Error("Invalid purchase date");
+
+  if (!payload.purchaseDate) throw new Error("Purchase date is required");
+  const purchaseDate = new Date(payload.purchaseDate + "T00:00:00.000Z");
+  if (isNaN(purchaseDate.getTime())) throw new Error("Invalid purchase date");
+
+  const purchasePrice = Number(payload.purchasePrice);
+  if (!Number.isFinite(purchasePrice) || purchasePrice < 0) throw new Error("Purchase price is required and must be a non-negative number");
+
+  if (!payload.purchaseAccountId?.trim()) throw new Error("Purchase account is required");
+
+  let sellDate: Date | null = null;
+  let sellPrice: number | null = null;
+  const hasSell = !!(payload.sellDate || payload.sellPrice != null || payload.sellAccountId);
+  if (hasSell) {
+    if (!payload.sellDate) throw new Error("Sell date is required when selling");
+    sellDate = new Date(payload.sellDate + "T00:00:00.000Z");
+    if (isNaN(sellDate.getTime())) throw new Error("Invalid sell date");
+    sellPrice = payload.sellPrice != null ? Number(payload.sellPrice) : null;
+    if (sellPrice === null || !Number.isFinite(sellPrice) || sellPrice < 0) throw new Error("Sell price is required when selling");
+    if (!payload.sellAccountId?.trim()) throw new Error("Sell account is required when selling");
   }
+
   return {
     name,
     type: payload.type as AssetType,
@@ -43,8 +65,23 @@ export function parseAssetPayload(payload: AssetPayload) {
     quantity: payload.quantity != null ? Number(payload.quantity) : null,
     ticker: payload.ticker?.trim() || null,
     purchaseDate,
+    purchasePrice,
+    purchaseAccountId: payload.purchaseAccountId,
+    sellDate,
+    sellPrice,
+    sellAccountId: hasSell ? payload.sellAccountId! : null,
     metadata: (payload.metadata ?? {}) as Prisma.InputJsonValue,
   };
+}
+
+export async function getOrCreateAssetCategory(userId: string, categoryName: string, type: "income" | "expense") {
+  const existing = await prisma.transactionCategory.findFirst({
+    where: { userId, name: categoryName },
+  });
+  if (existing) return existing;
+  return prisma.transactionCategory.create({
+    data: { userId, name: categoryName, type },
+  });
 }
 
 export async function getOwnedAsset(id: string, userId: string) {
