@@ -1,9 +1,11 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { AlertTriangle, ArrowRight } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import {
   getNetWorth,
   NetWorthResponse,
@@ -11,6 +13,8 @@ import {
   AccountItem,
   LoanItem,
 } from "@/lib/api/networth";
+import { getNetWorthHistory, NetWorthRange } from "@/lib/api/networth-history";
+import { NetWorthChart } from "@/components/networth/net-worth-chart";
 import { formatCurrency } from "@/lib/utils";
 import { Currency } from "@/lib/api/accounts";
 
@@ -20,6 +24,14 @@ const ASSET_TYPE_LABELS: Record<string, string> = {
   bond: "Bonds",
   gold: "Gold",
 };
+
+const RANGES: { label: string; value: NetWorthRange }[] = [
+  { label: "All", value: "all" },
+  { label: "1Y", value: "1y" },
+  { label: "6M", value: "6m" },
+  { label: "3M", value: "3m" },
+  { label: "1M", value: "1m" },
+];
 
 function SectionCard({
   title,
@@ -120,9 +132,16 @@ function AssetsBreakdown({
 }
 
 export default function NetWorthPage() {
+  const [range, setRange] = useState<NetWorthRange>("all");
+
   const { data, isLoading, error } = useQuery<NetWorthResponse>({
     queryKey: ["networth"],
     queryFn: getNetWorth,
+  });
+
+  const { data: historyData = [], isLoading: historyLoading } = useQuery({
+    queryKey: ["networth-history", range],
+    queryFn: () => getNetWorthHistory(range),
   });
 
   const currency = data?.currency ?? "USD";
@@ -170,6 +189,29 @@ export default function NetWorthPage() {
               </div>
             </CardContent>
           </Card>
+
+          <div className="space-y-2">
+            <div className="flex gap-1">
+              {RANGES.map(r => (
+                <Button
+                  key={r.value}
+                  variant={range === r.value ? "default" : "outline"}
+                  size="sm"
+                  className="text-xs h-7 px-2"
+                  onClick={() => setRange(r.value)}
+                >
+                  {r.label}
+                </Button>
+              ))}
+            </div>
+            {historyLoading ? (
+              <div className="rounded-lg border p-4 h-60 flex items-center justify-center">
+                <p className="text-sm text-muted-foreground">Loading…</p>
+              </div>
+            ) : (
+              <NetWorthChart data={historyData} currency={currency} />
+            )}
+          </div>
 
           {data.missingRates.length > 0 && (
             <div className="flex items-start gap-2 rounded-lg border border-yellow-500/30 bg-yellow-500/10 px-3 py-2 text-sm text-yellow-700 dark:text-yellow-400">
