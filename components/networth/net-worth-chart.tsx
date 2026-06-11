@@ -23,7 +23,7 @@ export function NetWorthChart({ data, currency }: NetWorthChartProps) {
     return (
       <div className="rounded-lg border p-4">
         <p className="text-sm text-muted-foreground">
-          Add asset value history entries to see your net worth over time.
+          No data yet. Add transactions to see your net worth over time.
         </p>
       </div>
     );
