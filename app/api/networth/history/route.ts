@@ -27,7 +27,7 @@ export async function GET(req: NextRequest) {
   const range = new URL(req.url).searchParams.get("range") ?? "all";
   const cutoff = getCutoffDate(range);
 
-  const [settings, transactions, assetHistories, loans, exchangeRates] = await Promise.all([
+  const [settings, transactions, assets, assetHistories, loans, exchangeRates] = await Promise.all([
     prisma.userSettings.upsert({
       where: { userId: session.userId },
       create: { userId: session.userId },
@@ -39,6 +39,10 @@ export async function GET(req: NextRequest) {
         category: { select: { type: true } },
         account: { select: { currency: true } },
       },
+    }),
+    prisma.asset.findMany({
+      where: { userId: session.userId },
+      select: { id: true, currentValue: true, currency: true, createdAt: true },
     }),
     prisma.assetValueHistory.findMany({
       where: { asset: { userId: session.userId } },
@@ -60,13 +64,16 @@ export async function GET(req: NextRequest) {
 
   const targetCurrency = settings.defaultCurrency;
 
-  // Collect all unique date strings from transactions + asset histories
+  // Collect all unique date strings from transactions + asset histories + asset createdAt
   const allDateStrs = new Set<string>();
   for (const tx of transactions) {
     allDateStrs.add(toDateStr(new Date(tx.date)));
   }
   for (const h of assetHistories) {
     allDateStrs.add(toDateStr(new Date(h.date)));
+  }
+  for (const a of assets) {
+    allDateStrs.add(toDateStr(new Date(a.createdAt)));
   }
 
   // Filter to range and add cutoff as anchor point
@@ -87,12 +94,24 @@ export async function GET(req: NextRequest) {
     accountCurrency: tx.account.currency,
   }));
 
-  const assetHistoryRecords: AssetHistoryRecord[] = assetHistories.map(h => ({
-    assetId: h.assetId,
-    date: new Date(h.date),
-    value: h.value,
-    currency: h.asset.currency,
+  // Synthetic baseline entry per asset at createdAt with currentValue.
+  // Actual history entries (added later) override via step interpolation when they exist.
+  const baselineRecords: AssetHistoryRecord[] = assets.map(a => ({
+    assetId: a.id,
+    date: new Date(a.createdAt),
+    value: a.currentValue,
+    currency: a.currency,
   }));
+
+  const assetHistoryRecords: AssetHistoryRecord[] = [
+    ...baselineRecords,
+    ...assetHistories.map(h => ({
+      assetId: h.assetId,
+      date: new Date(h.date),
+      value: h.value,
+      currency: h.asset.currency,
+    })),
+  ];
 
   const loanRecords: LoanRecord[] = loans.map(loan => ({
     id: loan.id,
