@@ -33,16 +33,17 @@ export async function GET(req: NextRequest) {
   const session = await getSession(req);
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const [settings, accounts, assets, loans, exchangeRates] = await Promise.all([
-    prisma.userSettings.upsert({
-      where: { userId: session.userId },
-      create: { userId: session.userId },
-      update: {},
-    }),
-    prisma.account.findMany({
-      where: { userId: session.userId },
-      include: { transactions: { include: { category: { select: { type: true } } } } },
-    }),
+  const [settings, accounts, accountBalanceRows, assets, loans, exchangeRates] = await Promise.all([
+    prisma.userSettings.findFirst({ where: { userId: session.userId } }),
+    prisma.account.findMany({ where: { userId: session.userId } }),
+    prisma.$queryRaw<{ account_id: string; balance: number }[]>`
+      SELECT t."accountId" AS account_id,
+             SUM(CASE WHEN c.type = 'income' THEN t.amount ELSE -t.amount END) AS balance
+      FROM "Transaction" t
+      JOIN "TransactionCategory" c ON t."categoryId" = c.id
+      WHERE t."userId" = ${session.userId}
+      GROUP BY t."accountId"
+    `,
     prisma.asset.findMany({
       where: { userId: session.userId, OR: [{ sellDate: null }, { sellDate: { gt: new Date() } }] },
     }),
@@ -60,7 +61,7 @@ export async function GET(req: NextRequest) {
     prisma.exchangeRate.findMany({ where: { userId: session.userId } }),
   ]);
 
-  const targetCurrency = settings.defaultCurrency;
+  const targetCurrency = settings?.defaultCurrency ?? "USD";
   const missingRates: string[] = [];
 
   function convert(amount: number, fromCurrency: Currency): number {
@@ -70,11 +71,10 @@ export async function GET(req: NextRequest) {
     return convertToCurrency(amount, fromCurrency, targetCurrency, exchangeRates);
   }
 
-  const accountItems = accounts.map(({ transactions, ...a }) => {
-    const balance = transactions.reduce((sum, tx) => {
-      const isIncome = tx.category.type === "income";
-      return sum + (isIncome ? tx.amount : -tx.amount);
-    }, 0);
+  const balanceByAccountId = new Map(accountBalanceRows.map(r => [r.account_id, Number(r.balance)]));
+
+  const accountItems = accounts.map(a => {
+    const balance = balanceByAccountId.get(a.id) ?? 0;
     return {
       id: a.id,
       name: a.name,

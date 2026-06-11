@@ -28,11 +28,7 @@ export async function GET(req: NextRequest) {
   const cutoff = getCutoffDate(range);
 
   const [settings, transactions, assets, assetHistories, loans, exchangeRates] = await Promise.all([
-    prisma.userSettings.upsert({
-      where: { userId: session.userId },
-      create: { userId: session.userId },
-      update: {},
-    }),
+    prisma.userSettings.findFirst({ where: { userId: session.userId } }),
     prisma.transaction.findMany({
       where: { userId: session.userId },
       include: {
@@ -67,7 +63,7 @@ export async function GET(req: NextRequest) {
     prisma.exchangeRate.findMany({ where: { userId: session.userId } }),
   ]);
 
-  const targetCurrency = settings.defaultCurrency;
+  const targetCurrency = settings?.defaultCurrency ?? "USD";
 
   // Collect all unique date strings from transactions + asset histories + asset createdAt
   const allDateStrs = new Set<string>();
