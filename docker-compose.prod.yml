@@ -36,12 +36,18 @@ services:
       - .env.prod
     environment:
       POSTGRES_HOST: postgres
-      SCHEDULE: "@daily"
+      SCHEDULE: "@hourly"
       BACKUP_KEEP_DAYS: 7
       BACKUP_KEEP_WEEKS: 4
       BACKUP_KEEP_MONTHS: 6
     volumes:
-      - /nfs/wm/backups:/backups
+      - postgres-backups:/backups
 
 volumes:
   postgres_data:
+  postgres-backups:
+    driver: local
+    driver_opts:
+      type: nfs
+      o: "addr=ugnas.lc,rw,noatime,nolock,intr,tcp,actimeo=1800,nfsvers=3"
+      device: ":/volume2/wm/backups"
