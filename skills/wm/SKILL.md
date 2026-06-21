@@ -88,6 +88,10 @@ wm exchange-rates
 
 - **Never ask for confirmation** before adding a transaction — just add it and report the result.
 - **Know the category before adding** — if you already know the valid category name from earlier in the session, use it directly. Only run `wm categories --type expense` if you're unsure; don't fetch it every time.
+- **Resolving uncertain categories** — if unsure which category fits a transaction, follow this escalation:
+  1. Search existing transactions for similar merchants or descriptions: `wm transactions --search "<merchant or keyword>"`. Use the category from matching results.
+  2. If still uncertain, use WebSearch to look up what the merchant/service is (e.g. "What type of business is X?") to determine the right category.
+  3. Only after both steps fail to clarify should you fall back to the closest-matching category and note the assumption.
 - **`--desc`** must be a short, human-readable summary of what the expense was (e.g. "Grocery run at Bách Hóa Xanh"). Keep it concise.
 - **`--details`** is for structured info: item lists, invoice numbers, points used, etc. Format using markdown. Use literal inline newlines inside the quoted string (ANSI-C quoting or just embed real newlines). Example:
   ```bash
