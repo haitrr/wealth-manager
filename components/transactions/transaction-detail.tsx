@@ -127,6 +127,7 @@ export function TransactionDetail({
               )}
               <Row label="Date" value={formattedDate} />
               <Row label="Account" value={tx.account.name} />
+              {tx.locationPlaceName && <Row label="Location" value={tx.locationPlaceName} />}
               {tx.details && (
                 <div className="flex flex-col gap-1">
                   <span className="text-muted-foreground">Details</span>
