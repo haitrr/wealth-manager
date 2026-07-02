@@ -32,6 +32,7 @@ export async function PUT(req: NextRequest) {
     "loanLentPrincipalCategoryId",
     "loanLentInterestCategoryId",
     "loanLentPrepayFeeCategoryId",
+    "openTimelineUrl",
   ] as const;
 
   const data: Record<string, string | null> = {};

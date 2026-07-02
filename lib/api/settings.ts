@@ -14,6 +14,7 @@ export interface UserSettings {
   loanLentPrincipalCategoryId: string | null;
   loanLentInterestCategoryId: string | null;
   loanLentPrepayFeeCategoryId: string | null;
+  openTimelineUrl: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -30,6 +31,7 @@ export type UserSettingsPayload = Partial<Pick<
   | "loanLentPrincipalCategoryId"
   | "loanLentInterestCategoryId"
   | "loanLentPrepayFeeCategoryId"
+  | "openTimelineUrl"
 >>;
 
 export async function getSettings(): Promise<UserSettings> {
