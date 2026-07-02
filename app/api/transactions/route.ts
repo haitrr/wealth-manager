@@ -19,6 +19,7 @@ export async function GET(req: NextRequest) {
     const rows = await prisma.$queryRaw<unknown[]>`
       SELECT
         t.id, t.amount, t.date, t.description, t.details,
+        t."locationPlaceId", t."locationPlaceName",
         t."accountId", t."categoryId", t."userId", t."createdAt", t."updatedAt",
         json_build_object('id', a.id, 'name', a.name, 'currency', a.currency::text) AS account,
         json_build_object('id', c.id, 'name', c.name, 'type', c.type::text, 'icon', c.icon) AS category,
@@ -81,7 +82,7 @@ export async function POST(req: NextRequest) {
   const session = await getSession(req);
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { amount, date, description, details, accountId, categoryId } = await req.json();
+  const { amount, date, description, details, accountId, categoryId, locationPlaceId, locationPlaceName } = await req.json();
 
   if (!amount || amount <= 0) {
     return NextResponse.json({ error: "Amount must be positive" }, { status: 400 });
@@ -110,6 +111,8 @@ export async function POST(req: NextRequest) {
       date: parseDateParam(date, session.timezone),
       description: description?.trim() || null,
       details: details?.trim() || null,
+      locationPlaceId: locationPlaceId?.trim() || null,
+      locationPlaceName: locationPlaceName?.trim() || null,
       accountId,
       categoryId,
       userId: session.userId,
