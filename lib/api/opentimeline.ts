@@ -5,13 +5,12 @@ export interface OpenTimelinePlace {
   name: string;
 }
 
-export async function getVisitSuggestion(date: string): Promise<OpenTimelinePlace | null> {
-  const { data } = await api.get<{ placeId: string; placeName: string } | null>(
+export async function getVisitSuggestions(date: string): Promise<OpenTimelinePlace[]> {
+  const { data } = await api.get<{ places: OpenTimelinePlace[] }>(
     "/integrations/opentimeline/visits",
     { params: { at: date } }
   );
-  if (!data) return null;
-  return { id: data.placeId, name: data.placeName };
+  return data.places;
 }
 
 export async function searchPlaces(q: string): Promise<OpenTimelinePlace[]> {

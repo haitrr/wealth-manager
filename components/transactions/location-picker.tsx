@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { MapPin, X, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { getVisitSuggestion, searchPlaces, OpenTimelinePlace } from "@/lib/api/opentimeline";
+import { getVisitSuggestions, searchPlaces, OpenTimelinePlace } from "@/lib/api/opentimeline";
 import { getSettings } from "@/lib/api/settings";
 
 interface LocationPickerProps {
@@ -17,26 +17,24 @@ interface LocationPickerProps {
 export function LocationPicker({ date, value, onChange }: LocationPickerProps) {
   // All hooks must be called unconditionally before any early return
   const { data: settings } = useQuery({ queryKey: ["settings"], queryFn: getSettings });
-  const [dismissed, setDismissed] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
   const prevDateRef = useRef(date);
 
   const configured = !!settings?.openTimelineUrl;
 
-  // Reset dismissed state when date changes
+  // Clear the manual search when the date changes
   useEffect(() => {
     if (prevDateRef.current !== date) {
       prevDateRef.current = date;
-      setDismissed(false);
       setSearchQuery("");
     }
   }, [date]);
 
-  const { data: suggestion, isLoading: isSuggesting } = useQuery({
+  const { data: suggestions = [], isLoading: isSuggesting } = useQuery({
     queryKey: ["opentimeline-visit", date],
-    queryFn: () => getVisitSuggestion(date),
-    enabled: configured && !!date && !value && !dismissed,
+    queryFn: () => getVisitSuggestions(date),
+    enabled: configured && !!date && !value,
     retry: false,
     staleTime: 60_000,
   });
@@ -62,7 +60,7 @@ export function LocationPicker({ date, value, onChange }: LocationPickerProps) {
           <span className="flex-1 truncate">{value.name}</span>
           <button
             type="button"
-            onClick={() => { onChange(null); setDismissed(false); }}
+            onClick={() => onChange(null)}
             className="text-muted-foreground hover:text-foreground"
             aria-label="Clear location"
           >
@@ -73,51 +71,32 @@ export function LocationPicker({ date, value, onChange }: LocationPickerProps) {
     );
   }
 
-  // Auto-suggestion available
-  if (!dismissed && suggestion) {
-    return (
-      <div className="space-y-2">
-        <Label>Location (optional)</Label>
-        <div className="flex items-center gap-2 rounded-md border border-primary/40 bg-primary/5 px-3 py-2 text-sm">
-          <MapPin className="size-4 text-primary shrink-0" />
-          <span className="flex-1 truncate text-foreground">{suggestion.name}</span>
-          <button
-            type="button"
-            onClick={() => onChange(suggestion)}
-            className="text-xs font-medium text-primary hover:text-primary/80 shrink-0"
-          >
-            Accept
-          </button>
-          <button
-            type="button"
-            onClick={() => setDismissed(true)}
-            className="text-muted-foreground hover:text-foreground"
-            aria-label="Dismiss suggestion"
-          >
-            <X className="size-4" />
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  // Suggestion loading
-  if (!dismissed && isSuggesting) {
-    return (
-      <div className="space-y-2">
-        <Label>Location (optional)</Label>
-        <div className="flex items-center gap-2 rounded-md border border-input bg-background px-3 py-2 text-sm text-muted-foreground animate-pulse">
-          <MapPin className="size-4 shrink-0" />
-          <span>Looking up location…</span>
-        </div>
-      </div>
-    );
-  }
-
-  // Manual search
+  // No value yet — show the day's visited places as pills, plus manual search
   return (
     <div className="space-y-2">
       <Label>Location (optional)</Label>
+
+      {isSuggesting ? (
+        <div className="flex items-center gap-2 rounded-md border border-input bg-background px-3 py-2 text-sm text-muted-foreground animate-pulse">
+          <MapPin className="size-4 shrink-0" />
+          <span>Looking up places…</span>
+        </div>
+      ) : suggestions.length > 0 ? (
+        <div className="flex flex-wrap gap-2">
+          {suggestions.map((place) => (
+            <button
+              key={place.id}
+              type="button"
+              onClick={() => onChange(place)}
+              className="flex items-center gap-1.5 rounded-full border border-primary/40 bg-primary/5 px-3 py-1.5 text-sm text-foreground hover:bg-primary/10 transition-colors max-w-full"
+            >
+              <MapPin className="size-3.5 text-primary shrink-0" />
+              <span className="truncate">{place.name}</span>
+            </button>
+          ))}
+        </div>
+      ) : null}
+
       <div className="relative">
         <div className="flex items-center rounded-md border border-input bg-background px-3 gap-2">
           <Search className="size-4 text-muted-foreground shrink-0" />

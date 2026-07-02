@@ -16,10 +16,10 @@ export async function GET(req: NextRequest) {
 
   const settings = await prisma.userSettings.findUnique({ where: { userId: session.userId } });
   if (!settings?.openTimelineUrl) {
-    return NextResponse.json(null);
+    return NextResponse.json({ places: [] });
   }
 
-  // Query the full UTC day so partial-day visits overlapping the transaction are included
+  // Query the full UTC day so all visits overlapping the transaction date are included
   const dayStart = new Date(atDate);
   dayStart.setUTCHours(0, 0, 0, 0);
   const dayEnd = new Date(atDate);
@@ -32,18 +32,26 @@ export async function GET(req: NextRequest) {
     url.searchParams.set("status", "confirmed");
 
     const res = await fetch(url.toString(), { signal: AbortSignal.timeout(5000) });
-    if (!res.ok) return NextResponse.json(null);
+    if (!res.ok) return NextResponse.json({ places: [] });
 
     const visits: { placeId?: number; place?: { id: number; name: string } }[] = await res.json();
-    if (!Array.isArray(visits) || visits.length === 0) return NextResponse.json(null);
+    if (!Array.isArray(visits)) return NextResponse.json({ places: [] });
 
-    const first = visits[0];
-    const placeId = first.place?.id ?? first.placeId;
-    const placeName = first.place?.name;
-    if (placeId == null || !placeName) return NextResponse.json(null);
+    // Collect every visited place for the day, de-duplicated, preserving arrival order
+    const seen = new Set<string>();
+    const places: { id: string; name: string }[] = [];
+    for (const v of visits) {
+      const id = v.place?.id ?? v.placeId;
+      const name = v.place?.name;
+      if (id == null || !name) continue;
+      const key = String(id);
+      if (seen.has(key)) continue;
+      seen.add(key);
+      places.push({ id: key, name });
+    }
 
-    return NextResponse.json({ placeId: String(placeId), placeName });
+    return NextResponse.json({ places });
   } catch {
-    return NextResponse.json(null);
+    return NextResponse.json({ places: [] });
   }
 }
