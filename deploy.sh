@@ -35,7 +35,7 @@ step "Building and deploying app"
 docker compose -f docker-compose.prod.yml up -d --build && ok "App deployed" || fail "Docker deploy failed"
 
 step "Deploying CLI"
-pnpm link --global && ok "CLI linked" || fail "CLI link failed"
+pnpm link --global . && ok "CLI linked" || fail "CLI link failed"
 
 step "Updating agent skills"
 if [ -d ~/.openclaw/workspace/skills ]; then
