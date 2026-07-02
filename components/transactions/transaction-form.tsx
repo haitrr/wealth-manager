@@ -182,17 +182,26 @@ export function TransactionForm({
       : null
   );
 
-  // Reset form state when a different transaction is shown, adjusting state
-  // during render (React's recommended alternative to a syncing effect).
-  const [prevTransactionId, setPrevTransactionId] = useState(transaction?.id);
-  if (transaction?.id !== prevTransactionId) {
-    setPrevTransactionId(transaction?.id);
-    setSelectedCategoryId(transaction?.categoryId ?? "");
-    setLocation(
-      transaction?.locationPlaceId && transaction?.locationPlaceName
-        ? { id: transaction.locationPlaceId, name: transaction.locationPlaceName }
-        : null
-    );
+  // The dialog stays mounted across open/close, so reset all form state each
+  // time it opens. Bumping formInstance also remounts TransactionFields, which
+  // clears its local date state and the uncontrolled amount/description/details
+  // inputs. Adjusting state during render is React's recommended alternative to
+  // a syncing effect.
+  const [formInstance, setFormInstance] = useState(0);
+  const [prevOpen, setPrevOpen] = useState(open);
+  if (open !== prevOpen) {
+    setPrevOpen(open);
+    if (open) {
+      setError("");
+      setConfirmDelete(false);
+      setSelectedCategoryId(transaction?.categoryId ?? "");
+      setLocation(
+        transaction?.locationPlaceId && transaction?.locationPlaceName
+          ? { id: transaction.locationPlaceId, name: transaction.locationPlaceName }
+          : null
+      );
+      setFormInstance((n) => n + 1);
+    }
   }
 
   const defaultAccount = accounts.find((a) => a.isDefault) ?? accounts[0];
@@ -252,7 +261,7 @@ export function TransactionForm({
         <form onSubmit={handleSubmit} className="flex-1 flex flex-col min-h-0">
           <div className="overflow-y-auto flex-1">
             <TransactionFields
-              key={transaction?.id ?? "new"}
+              key={`${transaction?.id ?? "new"}-${formInstance}`}
               transaction={transaction}
               accounts={accounts}
               categories={categories}
