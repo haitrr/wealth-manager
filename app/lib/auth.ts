@@ -3,24 +3,23 @@ import { cookies } from "next/headers";
 import { createHash } from "crypto";
 import type { NextRequest } from "next/server";
 import { prisma } from "./db";
+import {
+  COOKIE_NAME,
+  SESSION_MAX_AGE,
+  getCookieOptions,
+} from "./session-config";
 
 const SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET ?? "dev-secret-change-in-production"
 );
 
-export const COOKIE_NAME = "auth-token";
-export const COOKIE_OPTIONS = {
-  httpOnly: true,
-  secure: process.env.COOKIE_SECURE === "true",
-  sameSite: "lax" as const,
-  maxAge: 60 * 60 * 24 * 7, // 7 days
-  path: "/",
-};
+export { COOKIE_NAME };
+export const COOKIE_OPTIONS = getCookieOptions();
 
 export async function signToken(payload: { userId: string; email: string }) {
   return new SignJWT(payload)
     .setProtectedHeader({ alg: "HS256" })
-    .setExpirationTime("7d")
+    .setExpirationTime(`${SESSION_MAX_AGE}s`)
     .sign(SECRET);
 }
 
