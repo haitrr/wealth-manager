@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, FormEvent } from "react";
+import { useState, FormEvent } from "react";
 import { ChevronLeft, ChevronRight, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,10 +13,12 @@ import {
 } from "@/components/ui/dialog";
 import { AmountInput } from "@/components/transactions/amount-input";
 import { CategorySelector } from "@/components/transactions/category-selector";
+import { LocationPicker } from "@/components/transactions/location-picker";
 import { localDayToISO } from "@/lib/dates";
 import { Transaction } from "@/lib/api/transactions";
 import { Account } from "@/lib/api/accounts";
 import { TransactionCategory } from "@/lib/api/transaction-categories";
+import { OpenTimelinePlace } from "@/lib/api/opentimeline";
 
 interface TransactionFieldsProps {
   transaction?: Transaction | null;
@@ -27,6 +29,8 @@ interface TransactionFieldsProps {
   error: string;
   selectedCategoryId: string;
   onCategoryChange: (id: string) => void;
+  location: OpenTimelinePlace | null;
+  onLocationChange: (value: OpenTimelinePlace | null) => void;
 }
 
 function TransactionFields({
@@ -38,6 +42,8 @@ function TransactionFields({
   error,
   selectedCategoryId,
   onCategoryChange,
+  location,
+  onLocationChange,
 }: TransactionFieldsProps) {
   const [date, setDate] = useState(defaultDate);
 
@@ -129,6 +135,8 @@ function TransactionFields({
         />
       </div>
 
+      <LocationPicker date={date} value={location} onChange={onLocationChange} />
+
       {error && <p className="text-sm text-destructive">{error}</p>}
     </div>
   );
@@ -147,6 +155,8 @@ interface TransactionFormProps {
     details?: string;
     accountId: string;
     categoryId: string;
+    locationPlaceId?: string | null;
+    locationPlaceName?: string | null;
   }) => Promise<void>;
   onDelete?: (transaction: Transaction) => Promise<void>;
 }
@@ -166,10 +176,33 @@ export function TransactionForm({
   const [selectedCategoryId, setSelectedCategoryId] = useState(
     transaction?.categoryId ?? ""
   );
+  const [location, setLocation] = useState<OpenTimelinePlace | null>(
+    transaction?.locationPlaceId && transaction?.locationPlaceName
+      ? { id: transaction.locationPlaceId, name: transaction.locationPlaceName }
+      : null
+  );
 
-  useEffect(() => {
-    setSelectedCategoryId(transaction?.categoryId ?? "");
-  }, [transaction?.id, transaction?.categoryId]);
+  // The dialog stays mounted across open/close, so reset all form state each
+  // time it opens. Bumping formInstance also remounts TransactionFields, which
+  // clears its local date state and the uncontrolled amount/description/details
+  // inputs. Adjusting state during render is React's recommended alternative to
+  // a syncing effect.
+  const [formInstance, setFormInstance] = useState(0);
+  const [prevOpen, setPrevOpen] = useState(open);
+  if (open !== prevOpen) {
+    setPrevOpen(open);
+    if (open) {
+      setError("");
+      setConfirmDelete(false);
+      setSelectedCategoryId(transaction?.categoryId ?? "");
+      setLocation(
+        transaction?.locationPlaceId && transaction?.locationPlaceName
+          ? { id: transaction.locationPlaceId, name: transaction.locationPlaceName }
+          : null
+      );
+      setFormInstance((n) => n + 1);
+    }
+  }
 
   const defaultAccount = accounts.find((a) => a.isDefault) ?? accounts[0];
 
@@ -193,7 +226,16 @@ export function TransactionForm({
     }
 
     try {
-      await onSubmit({ amount, date: localDayToISO(date), description: description || undefined, details: details || undefined, accountId, categoryId });
+      await onSubmit({
+        amount,
+        date: localDayToISO(date),
+        description: description || undefined,
+        details: details || undefined,
+        accountId,
+        categoryId,
+        locationPlaceId: location?.id ?? null,
+        locationPlaceName: location?.name ?? null,
+      });
       onClose();
     } catch (err: unknown) {
       const message =
@@ -219,7 +261,7 @@ export function TransactionForm({
         <form onSubmit={handleSubmit} className="flex-1 flex flex-col min-h-0">
           <div className="overflow-y-auto flex-1">
             <TransactionFields
-              key={transaction?.id ?? "new"}
+              key={`${transaction?.id ?? "new"}-${formInstance}`}
               transaction={transaction}
               accounts={accounts}
               categories={categories}
@@ -228,6 +270,8 @@ export function TransactionForm({
               error={error}
               selectedCategoryId={selectedCategoryId}
               onCategoryChange={setSelectedCategoryId}
+              location={location}
+              onLocationChange={setLocation}
             />
           </div>
           <div className="flex items-center justify-between pt-4 gap-2">

@@ -82,8 +82,11 @@ export default function TransactionsPage() {
       amount: number;
       date: string;
       description?: string;
+      details?: string;
       accountId: string;
       categoryId: string;
+      locationPlaceId?: string | null;
+      locationPlaceName?: string | null;
     }) => updateTransaction(id, payload),
     onSuccess: invalidate,
   });
@@ -107,8 +110,11 @@ export default function TransactionsPage() {
     amount: number;
     date: string;
     description?: string;
+    details?: string;
     accountId: string;
     categoryId: string;
+    locationPlaceId?: string | null;
+    locationPlaceName?: string | null;
   }) {
     if (editingTransaction) {
       await updateMutation.mutateAsync({ id: editingTransaction.id, ...payload });

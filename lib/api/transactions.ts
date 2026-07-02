@@ -10,6 +10,8 @@ export interface Transaction {
   date: string;
   description: string | null;
   details: string | null;
+  locationPlaceId: string | null;
+  locationPlaceName: string | null;
   accountId: string;
   account: { id: string; name: string; currency: Currency };
   categoryId: string;
@@ -49,6 +51,8 @@ export async function createTransaction(payload: {
   details?: string;
   accountId: string;
   categoryId: string;
+  locationPlaceId?: string | null;
+  locationPlaceName?: string | null;
 }): Promise<Transaction> {
   const { data } = await api.post<Transaction>("/transactions", payload);
   return data;
@@ -63,6 +67,8 @@ export async function updateTransaction(
     details?: string;
     accountId: string;
     categoryId: string;
+    locationPlaceId?: string | null;
+    locationPlaceName?: string | null;
   }
 ): Promise<Transaction> {
   const { data } = await api.put<Transaction>(`/transactions/${id}`, payload);

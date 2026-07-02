@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ChevronRight, CreditCard, Tag, User, DollarSign, Upload, Landmark, PiggyBank, Building2, HandCoins } from "lucide-react";
+import { ChevronRight, CreditCard, Tag, User, DollarSign, Upload, Landmark, PiggyBank, Building2, HandCoins, Link2 } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ImportDialog } from "@/components/transactions/import-dialog";
 import { getSettings, updateSettings } from "@/lib/api/settings";
@@ -68,6 +68,26 @@ export default function SettingsPage() {
             <option key={tz} value={tz}>{tz}</option>
           ))}
         </select>
+      </div>
+
+      <div className="rounded-lg border px-4 py-3">
+        <p className="text-sm font-medium mb-0.5 flex items-center gap-2">
+          <Link2 className="size-4" />
+          OpenTimeline
+        </p>
+        <p className="text-xs text-muted-foreground mb-3">
+          Connect your OpenTimeline instance to auto-suggest locations on transactions
+        </p>
+        <input
+          type="url"
+          placeholder="http://localhost:3000"
+          defaultValue={settings?.openTimelineUrl ?? ""}
+          className="w-full rounded-md border bg-background px-3 py-2 text-[16px] md:text-sm"
+          onBlur={(e) => {
+            const val = e.target.value.trim();
+            updateMutation.mutate({ openTimelineUrl: val || null });
+          }}
+        />
       </div>
 
       <div className="divide-y rounded-lg border overflow-hidden">

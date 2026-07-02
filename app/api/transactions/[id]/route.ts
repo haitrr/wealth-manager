@@ -28,7 +28,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     );
   }
 
-  const { amount, date, description, details, accountId, categoryId } = await req.json();
+  const { amount, date, description, details, accountId, categoryId, locationPlaceId, locationPlaceName } = await req.json();
 
   if (!amount || amount <= 0) {
     return NextResponse.json({ error: "Amount must be positive" }, { status: 400 });
@@ -58,6 +58,8 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       date: parseDateParam(date, session.timezone),
       description: description?.trim() || null,
       details: details?.trim() || null,
+      locationPlaceId: locationPlaceId?.trim() || null,
+      locationPlaceName: locationPlaceName?.trim() || null,
       accountId,
       categoryId,
     },

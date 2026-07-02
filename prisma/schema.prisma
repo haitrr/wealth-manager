@@ -38,6 +38,7 @@ model UserSettings {
   loanLentPrincipalCategoryId     String?
   loanLentInterestCategoryId      String?
   loanLentPrepayFeeCategoryId     String?
+  openTimelineUrl                 String?
   createdAt                       DateTime @default(now())
   updatedAt                       DateTime @updatedAt
 }
@@ -114,6 +115,8 @@ model Transaction {
   loanInitial          Loan?               @relation("LoanInitialTransaction")
   assetPurchase        Asset?              @relation("AssetPurchaseTransaction")
   assetSell            Asset?              @relation("AssetSellTransaction")
+  locationPlaceId      String?
+  locationPlaceName    String?
   createdAt            DateTime            @default(now())
   updatedAt            DateTime            @updatedAt
 }

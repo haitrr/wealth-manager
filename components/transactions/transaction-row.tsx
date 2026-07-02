@@ -4,7 +4,7 @@ import { Transaction } from "@/lib/api/transactions";
 import { CategoryType } from "@/lib/api/transaction-categories";
 import { formatCurrency } from "@/lib/utils";
 import { CategoryIcon } from "@/components/transaction-categories/category-icon";
-import { Landmark } from "lucide-react";
+import { Landmark, MapPin } from "lucide-react";
 
 const TYPE_COLORS: Record<CategoryType, string> = {
   income: "text-green-600 dark:text-green-400",
@@ -68,6 +68,15 @@ export function TransactionRow({ transaction, onEdit }: TransactionRowProps) {
             <p className="text-xs text-muted-foreground">{formattedDate}</p>
             <span className="text-xs text-muted-foreground">·</span>
             <p className="text-xs text-muted-foreground">{transaction.account.name}</p>
+            {transaction.locationPlaceName && (
+              <>
+                <span className="text-xs text-muted-foreground">·</span>
+                <span className="flex items-center gap-1 text-xs text-muted-foreground min-w-0">
+                  <MapPin size={11} className="shrink-0" />
+                  <span className="truncate">{transaction.locationPlaceName}</span>
+                </span>
+              </>
+            )}
             {loanPayment && (
               <>
                 <span className="text-xs text-muted-foreground">·</span>
